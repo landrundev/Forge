@@ -8,7 +8,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 const T = {
   bg:"#FFFFFF",surface:"#F5F5F7",card:"#FFFFFF",
   border:"#E2E4E9",borderLight:"#D0D3DA",
-  accent:"#FF2D6F",text:"#1A1D23",sub:"#6B7280",dim:"#9CA3AF",
+  accent:"#FF2D6F",text:"#1A1D23",sub:"#5A6070",dim:"#7B8494",
   green:"#10B981",red:"#EF4444",blue:"#3B82F6",purple:"#8B5CF6",
   cyan:"#14B8A6",amber:"#84CC16",pink:"#FF2D6F",
   quads:"#EF4444",hams:"#10B981",glutes:"#84CC16",core:"#8B5CF6",
@@ -124,6 +124,8 @@ const SEED_PAT=[
   mk("2026-01-13","upper","Back","upper",[["Pull – 4 rds",["Pendlay Row",4,8,55],["Cable Lat Pull Down",4,10,90],["Banded Chin Up",4,10,null]],["Core – 4 rds",["Halo",4,10,null],["Side Crunch",4,10,null]],["Arms – 4 rds",["Concentration Curl",4,8,33],["DB Reverse Fly",4,8,40],["Cable Tricep Extension",4,10,45]],["Finisher",["Row",1,1,null,"300m"],["Renegade Rows",1,10,35],["Heel Taps",1,10,null]]]),
   mk("2026-01-22","glute","Glutes","glute",[["Trap Bar DL",["Trap Bar Deadlift",4,8,145]],["Superset – 4 rds",["Leg Curl",4,8,115],["Sumo Squat",4,10,null]],["Conditioning – 4 rds",["Row",4,1,null,"250m"],["S/L RDL with Knee Drive",4,8,null]],["Core",["Dead Bug",3,20,15],["Heel Taps",3,20,null]]]),
   mk("2026-01-29","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,145],["Trap Bar Deadlift",3,8,235]],["Bulgarians – 4 rds",["Bulgarian Split Squat",4,7,30],["Calf Raises",4,7,null]],["Superset – 4 rds",["Leg Curl",4,10,105],["Farmer's Carry",4,2,null]],["AMRAP",["Bike",1,1,null],["Weighted Situps",1,10,20],["Russian Twists",1,20,null]]]),
+  mk("2026-02-16","quad","Quad Day","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",1,6,185],["Barbell Back Squat",2,6,205],["Barbell Back Squat",1,10,165]],["Core – 3 rds",["Hip Flexors",3,8,null],["Box Crunches",3,10,null]],["Superset – 4 rds",["Single Leg Extension",4,8,55],["Box Step Overs",4,10,null]],["Conditioning – 4 rds",["Bike",4,1,null,".7 mi"],["Banded Abductors",4,10,null],["Calf Raises",4,12,null]]]),
+  mk("2026-02-24","quad","Quad Day","quad",[["BB Back Squat (Volume)",["Barbell Back Squat",5,10,135]],["Superset – 4 rds",["Leg Extension",4,10,90],["Jump Squats",4,10,null]],["Trap Bar DL",["Trap Bar Deadlift",4,10,185]],["Superset – 4 rds",["Hamstring Curl",4,10,90],["Front Lunges",4,20,null]]]),
 ];
 
 const SEED_RACHEL=[
@@ -340,31 +342,31 @@ mk("2026-02-12","full","Full Body Band + Cable","abike",[["Scap Work",["Band Sho
 mk("2026-02-19","lower","Lower Body HT + Sumo","abike",[["Main",["Hip Thruster",4,8,95]],["Circuit 1",["Leg Extension",4,8,null,"45/25"],["Calf Raise",4,10,null,"plate, each"]],["Core",["Knee Tuck on Box",4,10,null],["Hip Flexor",4,8,null,"each"],["Banded Abductor",4,10,null,"each"]],["Circuit 2",["Hamstring Curl",4,8,null,"45/25/10"],["Sumo Squat Pulse",4,20,null,"purple"]]]),
 ];
 
-const SEED_CLIENT_PAT={id:"pat",name:"Pat",fullName:"Patrick",startDate:"2024-01-06",schedule:"Tues/Thurs AM",color:T.accent,
+const SEED_CLIENT_PAT={id:"pat",name:"Pat",fullName:"Patrick",startDate:"2024-01-06",color:T.accent,
+  scheduleDays:["T","TH"],scheduleNotes:"AM sessions, 2-3x/week. Typical split: Quad / Glute / Upper (Back focused)",
   focusAreas:"Lower body primary: Quad day (BB Back Squat) + Glute day (Trap Bar DL). Back/Upper 1x/week when scheduling allows.",
-  schedulePattern:"2-3 sessions/week. Typical split: Quad / Glute / Upper (Back focused)",
   goals:"General fitness & functional strength. Progressive overload on squat and deadlift.",
   dob:"",gender:"M",startingWeight:"",considerations:[],checkins:[]};
-const SEED_CLIENT_RACHEL={id:"rachel",name:"Rachel",fullName:"Rachel",startDate:"2025-01-13",schedule:"Sun 5:00 PM",color:"#84CC16",
+const SEED_CLIENT_RACHEL={id:"rachel",name:"Rachel",fullName:"Rachel",startDate:"2025-01-13",color:"#84CC16",
+  scheduleDays:["SU"],scheduleNotes:"5:00 PM, 1 session/week. Evolved from Quad → Lower Body → Glutes phase",
   focusAreas:"Lower body focused: Quad days (BB Back Squat), Lower Body (Sumo DL/Squat, Trap Bar DL), Glute days (Hip Thruster). Heavy emphasis on glute development.",
-  schedulePattern:"1 session/week. Evolved from Quad → Lower Body → Glutes phase",
   goals:"Glute & lower body strength. Progressive overload on Hip Thruster (up to 365#), Sumo DL (up to 205#), Back Squat (up to 160#).",
   dob:"",gender:"F",startingWeight:"",considerations:[],checkins:[]};
-const SEED_CLIENT_ANGELA={id:"angela",name:"Angela",fullName:"Angela",startDate:"2025-01-13",schedule:"Weekly",color:"#9C27B0",
+const SEED_CLIENT_ANGELA={id:"angela",name:"Angela",fullName:"Angela",startDate:"2025-01-13",color:"#9C27B0",
+  scheduleDays:["W"],scheduleNotes:"1 session/week. Alternates Squat-focused and Hip Thruster-focused blocks. Includes treadmill intervals as finishers.",
   focusAreas:"Lower body dominant: Quad days (BB Back Squat up to 150#), Glute days (Hip Thruster up to 275#). Sumo DL phase (Apr-May 2025, peaked 145#). Occasional upper body.",
-  schedulePattern:"1 session/week. Alternates Squat-focused and Hip Thruster-focused blocks. Includes treadmill intervals as finishers.",
   goals:"Lower body strength & glute development. Progressive overload on Back Squat and Hip Thruster. Strong core work emphasis. Building toward heavier compound lifts.",
   workoutTypes:["quad","glute","lower","upper","full"],
   dob:"",gender:"F",startingWeight:"",considerations:[],checkins:[]};
-const SEED_CLIENT_ADAM={id:"adam",name:"Adam",fullName:"Adam",startDate:"2024-12-23",schedule:"Weekly",color:"#14B8A6",
+const SEED_CLIENT_ADAM={id:"adam",name:"Adam",fullName:"Adam",startDate:"2024-12-23",color:"#14B8A6",
+  scheduleDays:["S"],scheduleNotes:"1-2 sessions/week. Primary: bench press percentage/ramp work + full body accessories.",
   focusAreas:"Bench press focused: Push days with accessory upper body (curls, triceps, shoulders) and supplementary lower (leg ext, leg curl, sled, lunges). Occasional landmine and sled conditioning.",
-  schedulePattern:"1-2 sessions/week. Primary: bench press percentage/ramp work + full body accessories. Occasionally a second push-only session.",
   goals:"Bench press strength. Progressive overload — PR progression: 175→185→200→210→220→225→230→240→245#. Upper body hypertrophy and functional strength.",
   workoutTypes:["push"],
   dob:"",gender:"M",startingWeight:"",considerations:[],checkins:[]};
-const SEED_CLIENT_DEANNA={id:"deanna",name:"Deanna",fullName:"Deanna",startDate:"2025-08-19",schedule:"Tues/Thurs",color:"#60A5FA",
+const SEED_CLIENT_DEANNA={id:"deanna",name:"Deanna",fullName:"Deanna",startDate:"2025-08-19",color:"#60A5FA",
+  scheduleDays:["T","TH"],scheduleNotes:"2 sessions/week. Alternates: full body / lower body / upper (shoulder rehab). Heavy emphasis on scap strengthening.",
   focusAreas:"Full body with shoulder rehab focus. Upper days: scap work, banded pressing, light curls (ISO hold on bad arm). Lower days: sled drags, leg ext/curl machines, light trap bar DL, hip thrusters (95#). Modified push exercises (incline push ups, banded chest press).",
-  schedulePattern:"2 sessions/week. Alternates: full body / lower body / upper (shoulder rehab). Heavy emphasis on scap strengthening and controlled movements.",
   goals:"Rebuild shoulder & bicep strength (R side). Build lower body foundation around knee/foot limitations. Progress to heavier compound lifts. Core stability.",
   workoutTypes:["full","lower","upper"],
   considerations:[{text:"Right shoulder & bicep injury — no heavy overhead pressing, no barbell curls R arm, use banded/ISO holds, scap rehab every upper day",date:"2025-08-19",active:true},{text:"Knee & foot — controlled step downs only, assisted calf raises, no heavy impact/jumping, sled drag over running",date:"2025-08-19",active:true}],
@@ -560,21 +562,21 @@ Weight should be a number or null for bodyweight. Use exercise names from the cl
 //  UI COMPONENTS (v5 — improved layout)
 // ═══════════════════════════════════════════════════════════════
 const ss={
-  page:{minHeight:"100vh",background:T.surface,color:T.text,fontFamily:"'Outfit','Helvetica Neue',sans-serif",paddingBottom:"70px"},
+  page:{minHeight:"100vh",background:T.surface,color:T.text,fontFamily:"'Outfit','Helvetica Neue',sans-serif",paddingBottom:"70px",overflowX:"hidden"},
   header:{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"14px 16px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
-  content:{padding:"14px",maxWidth:"700px",margin:"0 auto"},
-  card:{background:T.card,border:`1px solid ${T.border}`,borderRadius:"10px",padding:"14px",marginBottom:"10px",boxShadow:"0 1px 3px rgba(0,0,0,0.06)"},
+  content:{padding:"14px",maxWidth:"700px",margin:"0 auto",overflow:"hidden"},
+  card:{background:T.card,border:`1px solid ${T.border}`,borderRadius:"10px",padding:"14px",marginBottom:"10px",boxShadow:"0 1px 3px rgba(0,0,0,0.06)",overflow:"hidden"},
   btn:(p)=>({background:p?T.accent:T.card,color:p?T.bg:T.text,border:`1px solid ${p?T.accent:T.border}`,padding:"7px 14px",borderRadius:"7px",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}),
-  pill:(c)=>({display:"inline-block",padding:"2px 6px",borderRadius:"4px",fontSize:"8px",fontWeight:700,letterSpacing:".3px",textTransform:"uppercase",background:(c||T.dim)+"15",color:c||T.dim,border:`1px solid ${(c||T.dim)}25`}),
-  inp:{background:T.card,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"5px",fontSize:"13px",fontFamily:"'JetBrains Mono',monospace",width:"50px",textAlign:"center"},
+  pill:(c)=>({display:"inline-block",padding:"2px 6px",borderRadius:"4px",fontSize:"9px",fontWeight:700,letterSpacing:".3px",textTransform:"uppercase",background:(c||T.dim)+"15",color:c||T.dim,border:`1px solid ${(c||T.dim)}25`}),
+  inp:{background:T.card,border:`1px solid ${T.border}`,color:T.text,padding:"7px 8px",borderRadius:"5px",fontSize:"13px",fontFamily:"'JetBrains Mono',monospace",width:"50px",textAlign:"center"},
   mono:{fontFamily:"'JetBrains Mono',monospace"},
   navBar:{position:"fixed",bottom:0,left:0,right:0,background:T.surface,borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-around",padding:"6px 0 10px",zIndex:100,boxShadow:"0 -1px 3px rgba(0,0,0,0.04)"},
-  navBtn:(a)=>({background:"none",border:"none",color:a?T.accent:T.dim,fontSize:"10px",fontWeight:600,display:"flex",flexDirection:"column",alignItems:"center",gap:"1px",cursor:"pointer",fontFamily:"inherit",padding:"3px 12px"}),
+  navBtn:(a)=>({background:"none",border:"none",color:a?T.accent:T.dim,fontSize:"11px",fontWeight:600,display:"flex",flexDirection:"column",alignItems:"center",gap:"1px",cursor:"pointer",fontFamily:"inherit",padding:"3px 12px"}),
 };
 function Pill({g}){return <span style={ss.pill(MC[g])}>{g}</span>}
-function Stat({v,l,c}){return <div style={{...ss.card,textAlign:"center",padding:"12px 6px"}}><div style={{...ss.mono,color:c||T.accent,fontSize:"22px",fontWeight:700}}>{v}</div><div style={{color:T.dim,fontSize:"9px",marginTop:"1px"}}>{l}</div></div>}
-function Chart({data,color=T.accent,h=110}){if(!data.length)return <div style={{color:T.dim,fontSize:"11px",textAlign:"center",padding:"16px"}}>No data</div>;const mx=Math.max(...data.map(d=>d.max)),mn=Math.min(...data.map(d=>d.max)),rng=mx-mn+30||50,H=h,W=Math.max(data.length*38,180);return <div style={{overflowX:"auto"}}><svg viewBox={`0 0 ${W+50} ${H+26}`} style={{width:"100%",minWidth:W+50,height:H+26}}>{[0,.5,1].map((p,i)=>{const y=5+(1-p)*H,v=Math.round(mn-15+p*rng);return <g key={i}><line x1={36} y1={y} x2={W+42} y2={y} stroke={T.border} strokeWidth={.5}/><text x={32} y={y+3} textAnchor="end" fill={T.dim} fontSize="8" fontFamily="'JetBrains Mono',monospace">{v}</text></g>})}{data.map((d,i)=>{const x=42+i*((W-4)/Math.max(data.length-1,1)),y=5+(1-(d.max-mn+15)/rng)*H;const dt=new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});return <g key={i}>{i>0&&<line x1={42+(i-1)*((W-4)/Math.max(data.length-1,1))} y1={5+(1-(data[i-1].max-mn+15)/rng)*H} x2={x} y2={y} stroke={color} strokeWidth={2}/>}<circle cx={x} cy={y} r={2.5} fill={color}/><text x={x} y={y-6} textAnchor="middle" fill={color} fontSize="8" fontWeight="700" fontFamily="'JetBrains Mono',monospace">{d.max}</text>{(i%Math.max(1,Math.floor(data.length/7))===0||i===data.length-1)&&<text x={x} y={H+16} textAnchor="middle" fill={T.dim} fontSize="7" fontFamily="'JetBrains Mono',monospace" transform={`rotate(-30,${x},${H+16})`}>{dt}</text>}</g>})}</svg></div>}
-function Bars({ws}){const c=muscBal(ws);const e=Object.entries(c).sort((a,b)=>b[1]-a[1]);const mx=Math.max(...e.map(([,v])=>v),1);return <div style={{display:"flex",flexDirection:"column",gap:"4px"}}>{e.map(([g,v])=><div key={g} style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:MC[g]||T.sub,fontSize:"10px",fontWeight:600,width:"68px",textAlign:"right",flexShrink:0}}>{g}</span><div style={{flex:1,height:"11px",background:T.surface,borderRadius:"3px",overflow:"hidden"}}><div style={{height:"100%",width:`${v/mx*100}%`,background:`linear-gradient(90deg,${MC[g]||T.sub}70,${MC[g]||T.sub}30)`,borderRadius:"3px"}}/></div><span style={{...ss.mono,color:T.sub,fontSize:"9px",width:"22px"}}>{v}</span></div>)}</div>}
+function Stat({v,l,c}){return <div style={{...ss.card,textAlign:"center",padding:"12px 6px"}}><div style={{...ss.mono,color:c||T.accent,fontSize:"22px",fontWeight:700}}>{v}</div><div style={{color:T.dim,fontSize:"10px",marginTop:"1px"}}>{l}</div></div>}
+function Chart({data,color=T.accent,h=110}){if(!data.length)return <div style={{color:T.dim,fontSize:"11px",textAlign:"center",padding:"16px"}}>No data</div>;const mx=Math.max(...data.map(d=>d.max)),mn=Math.min(...data.map(d=>d.max)),rng=mx-mn+30||50,H=h,W=Math.max(data.length*38,180);return <div style={{overflowX:"auto",overflowY:"hidden",maxWidth:"100%",WebkitOverflowScrolling:"touch"}}><svg viewBox={`0 0 ${W+50} ${H+26}`} width={W+50} height={H+26} style={{display:"block",maxWidth:"none"}}>{[0,.5,1].map((p,i)=>{const y=5+(1-p)*H,v=Math.round(mn-15+p*rng);return <g key={i}><line x1={36} y1={y} x2={W+42} y2={y} stroke={T.border} strokeWidth={.5}/><text x={32} y={y+3} textAnchor="end" fill={T.dim} fontSize="8" fontFamily="'JetBrains Mono',monospace">{v}</text></g>})}{data.map((d,i)=>{const x=42+i*((W-4)/Math.max(data.length-1,1)),y=5+(1-(d.max-mn+15)/rng)*H;const dt=new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});return <g key={i}>{i>0&&<line x1={42+(i-1)*((W-4)/Math.max(data.length-1,1))} y1={5+(1-(data[i-1].max-mn+15)/rng)*H} x2={x} y2={y} stroke={color} strokeWidth={2}/>}<circle cx={x} cy={y} r={2.5} fill={color}/><text x={x} y={y-6} textAnchor="middle" fill={color} fontSize="8" fontWeight="700" fontFamily="'JetBrains Mono',monospace">{d.max}</text>{(i%Math.max(1,Math.floor(data.length/7))===0||i===data.length-1)&&<text x={x} y={H+16} textAnchor="middle" fill={T.dim} fontSize="7" fontFamily="'JetBrains Mono',monospace" transform={`rotate(-30,${x},${H+16})`}>{dt}</text>}</g>})}</svg></div>}
+function Bars({ws}){const c=muscBal(ws);const e=Object.entries(c).sort((a,b)=>b[1]-a[1]);const mx=Math.max(...e.map(([,v])=>v),1);return <div style={{display:"flex",flexDirection:"column",gap:"4px"}}>{e.map(([g,v])=><div key={g} style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:MC[g]||T.sub,fontSize:"11px",fontWeight:600,width:"68px",textAlign:"right",flexShrink:0}}>{g}</span><div style={{flex:1,height:"11px",background:T.surface,borderRadius:"3px",overflow:"hidden"}}><div style={{height:"100%",width:`${v/mx*100}%`,background:`linear-gradient(90deg,${MC[g]||T.sub}70,${MC[g]||T.sub}30)`,borderRadius:"3px"}}/></div><span style={{...ss.mono,color:T.sub,fontSize:"10px",width:"22px"}}>{v}</span></div>)}</div>}
 
 // ── Exercise Row (improved layout with persistent notes) ──
 function ExProg({name,ws,onClose}){
@@ -600,19 +602,19 @@ function ExProg({name,ws,onClose}){
         <Stat v={best?`${best}#`:"BW"} l="Best Weight" c={T.green}/>
         <Stat v={recent?`${recent.sets}×${recent.reps}`:"-"} l="Last S×R" c={T.blue}/>
       </div>
-      {data.length>2&&<div style={{background:T.surface,borderRadius:"8px",padding:"10px",marginBottom:"10px"}}><div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>WEIGHT PROGRESSION</div><Chart data={data} color={T.accent} h={100}/></div>}
+      {data.length>2&&<div style={{background:T.surface,borderRadius:"8px",padding:"10px",marginBottom:"10px"}}><div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>WEIGHT PROGRESSION</div><Chart data={data} color={T.accent} h={100}/></div>}
       <div style={{background:T.surface,borderRadius:"8px",padding:"10px"}}>
-        <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>FULL HISTORY ({all.length})</div>
+        <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>FULL HISTORY ({all.length})</div>
         <div style={{display:"grid",gridTemplateColumns:"78px 40px 55px 50px 1fr",gap:"4px",padding:"4px 0",borderBottom:`1px solid ${T.border}`,marginBottom:"2px"}}>
-          <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>DATE</span><span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>TYPE</span><span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>S × R</span><span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>WEIGHT</span><span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>DELTA</span>
+          <span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>DATE</span><span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>TYPE</span><span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>S × R</span><span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>WEIGHT</span><span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>DELTA</span>
         </div>
         {[...all].reverse().map((d,i,arr)=>{const prev=arr[i+1];const delta=d.max&&prev&&prev.max?(d.max-prev.max):null;
           return <div key={i} style={{display:"grid",gridTemplateColumns:"78px 40px 55px 50px 1fr",gap:"4px",padding:"3px 0",borderBottom:`1px solid ${T.border}10`,alignItems:"center"}}>
-            <span style={{...ss.mono,color:T.sub,fontSize:"10px"}}>{new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"2-digit"})}</span>
-            <span style={{...ss.pill(TC[d.type]),fontSize:"8px"}}>{d.type}</span>
-            <span style={{...ss.mono,color:T.text,fontSize:"10px"}}>{d.sets}×{d.reps}</span>
-            <span style={{...ss.mono,color:d.max?T.accent:T.dim,fontSize:"10px",fontWeight:600}}>{d.max?`${d.max}#`:"BW"}</span>
-            <span style={{...ss.mono,fontSize:"10px",fontWeight:600,color:delta>0?T.green:delta<0?T.red:T.dim}}>{delta>0?`+${delta}`:delta<0?`${delta}`:delta===0?"—":""}</span>
+            <span style={{...ss.mono,color:T.sub,fontSize:"11px"}}>{new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"2-digit"})}</span>
+            <span style={{...ss.pill(TC[d.type]),fontSize:"9px"}}>{d.type}</span>
+            <span style={{...ss.mono,color:T.text,fontSize:"11px"}}>{d.sets}×{d.reps}</span>
+            <span style={{...ss.mono,color:d.max?T.accent:T.dim,fontSize:"11px",fontWeight:600}}>{d.max?`${d.max}#`:"BW"}</span>
+            <span style={{...ss.mono,fontSize:"11px",fontWeight:600,color:delta>0?T.green:delta<0?T.red:T.dim}}>{delta>0?`+${delta}`:delta<0?`${delta}`:delta===0?"—":""}</span>
           </div>})}
       </div>
       </div>
@@ -631,9 +633,9 @@ function ExRow({ex,bi,ei,live,editing,isDone,ms,upEx,delEx,onExClick}){
       </div>
       <div style={{display:"flex",alignItems:"center",gap:"6px",flexShrink:0}}>
         {live?<>
-          <input style={{...ss.inp,width:"36px"}} value={ex.sets??""} onChange={e=>upEx(bi,ei,"sets",e.target.value)} disabled={isDone}/>
+          <input style={{...ss.inp,width:"42px"}} value={ex.sets??""} onChange={e=>upEx(bi,ei,"sets",e.target.value)} disabled={isDone}/>
           <span style={{color:T.dim,fontSize:"12px"}}>×</span>
-          <input style={{...ss.inp,width:"36px"}} value={ex.reps??""} onChange={e=>upEx(bi,ei,"reps",e.target.value)} disabled={isDone}/>
+          <input style={{...ss.inp,width:"42px"}} value={ex.reps??""} onChange={e=>upEx(bi,ei,"reps",e.target.value)} disabled={isDone}/>
           <input style={{...ss.inp,width:"52px"}} value={ex.weight??""} onChange={e=>upEx(bi,ei,"weight",e.target.value)} placeholder="BW" disabled={isDone}/>
           <button onClick={()=>delEx(bi,ei)} style={{background:"none",border:"none",color:T.red+"80",cursor:"pointer",fontSize:"18px",padding:"0 4px",fontWeight:700,lineHeight:1}}>×</button>
         </>:<div style={{display:"flex",alignItems:"baseline",gap:"8px"}}>
@@ -667,21 +669,21 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
     <div onClick={toggle} style={{padding:"12px 14px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
       <div style={{display:"flex",flexDirection:"column",gap:"3px"}}>
         <div style={{display:"flex",alignItems:"center",gap:"5px",flexWrap:"wrap"}}>
-          {isL&&<span style={{background:T.green,color:T.bg,padding:"2px 6px",borderRadius:"4px",fontSize:"8px",fontWeight:800,letterSpacing:"1px"}}>● LIVE</span>}
-          {isP&&<span style={{background:T.accent,color:T.bg,padding:"2px 6px",borderRadius:"4px",fontSize:"8px",fontWeight:800,letterSpacing:"1px"}}>AI PROPOSED</span>}
-          {editing&&<span style={{background:T.blue,color:T.bg,padding:"2px 6px",borderRadius:"4px",fontSize:"8px",fontWeight:800,letterSpacing:"1px"}}>✏ EDITING</span>}
-          <span style={{background:tc+"18",color:tc,padding:"2px 6px",borderRadius:"4px",fontSize:"9px",fontWeight:700,textTransform:"uppercase"}}>{w.type}</span>
+          {isL&&<span style={{background:T.green,color:T.bg,padding:"2px 6px",borderRadius:"4px",fontSize:"9px",fontWeight:800,letterSpacing:"1px"}}>● LIVE</span>}
+          {isP&&<span style={{background:T.accent,color:T.bg,padding:"2px 6px",borderRadius:"4px",fontSize:"9px",fontWeight:800,letterSpacing:"1px"}}>AI PROPOSED</span>}
+          {editing&&<span style={{background:T.blue,color:T.bg,padding:"2px 6px",borderRadius:"4px",fontSize:"9px",fontWeight:800,letterSpacing:"1px"}}>✏ EDITING</span>}
+          <span style={{background:tc+"18",color:tc,padding:"2px 6px",borderRadius:"4px",fontSize:"10px",fontWeight:700,textTransform:"uppercase"}}>{w.type}</span>
           <span style={{color:T.text,fontWeight:600,fontSize:"13px"}}>{w.label}</span>
-          {w.rpe&&<span style={{...ss.mono,background:(rpeColors[w.rpe]||T.dim)+"20",color:rpeColors[w.rpe]||T.dim,padding:"1px 5px",borderRadius:"4px",fontSize:"9px",fontWeight:700}}>RPE {w.rpe}</span>}
+          {w.rpe&&<span style={{...ss.mono,background:(rpeColors[w.rpe]||T.dim)+"20",color:rpeColors[w.rpe]||T.dim,padding:"1px 5px",borderRadius:"4px",fontSize:"10px",fontWeight:700}}>RPE {w.rpe}</span>}
         </div>
-        <span style={{...ss.mono,color:T.sub,fontSize:"10px"}}>{dl} · {sets} sets{vol>0?` · ${(vol/1000).toFixed(1)}k vol`:""}{hasPins?" · 📌 pinned":""}</span>
+        <span style={{...ss.mono,color:T.sub,fontSize:"11px"}}>{dl} · {sets} sets{vol>0?` · ${(vol/1000).toFixed(1)}k vol`:""}{hasPins?" · 📌 pinned":""}</span>
       </div>
       <span style={{color:T.sub,fontSize:"16px",transition:"transform .2s",transform:open?"rotate(180deg)":"rotate(0)"}}>▾</span>
     </div>
     {open&&<div style={{borderTop:`1px solid ${T.border}`}}>
-      <div style={{padding:"6px 14px",background:T.surface}}><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:"1px"}}>Warmup: </span><span style={{color:T.sub,fontSize:"11px"}}>{w.warmup}</span></div>
+      <div style={{padding:"6px 14px",background:T.surface}}><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:"1px"}}>Warmup: </span><span style={{color:T.sub,fontSize:"11px"}}>{w.warmup}</span></div>
       {w.blocks.map((bl,bi)=><div key={bi} style={{borderTop:bi?`1px solid ${T.border}18`:"none"}}>
-        <div style={{padding:"6px 14px 3px",background:T.surface+"80"}}><span style={{color:T.accent,fontSize:"10px",fontWeight:700,letterSpacing:".4px",textTransform:"uppercase"}}>{bl.name}</span></div>
+        <div style={{padding:"6px 14px 3px",background:T.surface+"80"}}><span style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:".4px",textTransform:"uppercase"}}>{bl.name}</span></div>
         {bl.exercises.map((ex,ei)=>{const ms=(MM[ex.name]||[]).filter(m=>m!=="Grip");const pk=pinKey(bi,ei);const isPinned=pinned&&pinned[pk];
           return <div key={ei} style={{display:"flex",alignItems:"flex-start",gap:"0"}}>
             {isP&&onTogglePin&&<button onClick={(e)=>{e.stopPropagation();onTogglePin(pk)}} style={{background:"none",border:"none",cursor:"pointer",padding:"8px 2px 8px 10px",fontSize:"13px",flexShrink:0,color:isPinned?T.accent:T.dim,opacity:isPinned?1:0.4}}>{isPinned?"📌":"○"}</button>}
@@ -689,27 +691,27 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
           </div>;
         })}
       </div>)}
-      {w.reasoning&&<div style={{padding:"10px 14px",background:T.accent+"06",borderTop:`1px solid ${T.accent}15`}}><div style={{color:T.accent,fontSize:"9px",fontWeight:700,letterSpacing:"1px",marginBottom:"3px"}}>🧠 AI RATIONALE</div><p style={{color:T.sub,fontSize:"11px",margin:0,lineHeight:1.5}}>{w.reasoning}</p></div>}
-      {isC&&w.trainerNotes&&<div style={{padding:"8px 14px",background:T.blue+"08",borderTop:`1px solid ${T.blue}15`}}><span style={{color:T.blue,fontSize:"9px",fontWeight:700,letterSpacing:"1px"}}>📝 TRAINER NOTES: </span><span style={{color:T.sub,fontSize:"11px"}}>{w.trainerNotes}</span></div>}
+      {w.reasoning&&<div style={{padding:"10px 14px",background:T.accent+"06",borderTop:`1px solid ${T.accent}15`}}><div style={{color:T.accent,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"3px"}}>🧠 AI RATIONALE</div><p style={{color:T.sub,fontSize:"11px",margin:0,lineHeight:1.5}}>{w.reasoning}</p></div>}
+      {isC&&w.trainerNotes&&<div style={{padding:"8px 14px",background:T.blue+"08",borderTop:`1px solid ${T.blue}15`}}><span style={{color:T.blue,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>📝 TRAINER NOTES: </span><span style={{color:T.sub,fontSize:"11px"}}>{w.trainerNotes}</span></div>}
       {isC&&w.readiness&&(w.readiness.sleep||w.readiness.soreness||w.readiness.energy)&&<div style={{padding:"6px 14px",background:T.purple+"08",borderTop:`1px solid ${T.purple}15`,display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap"}}>
-        <span style={{color:T.purple,fontSize:"9px",fontWeight:700,letterSpacing:"1px"}}>CHECK-IN:</span>
-        {w.readiness.sleep&&<span style={{color:T.sub,fontSize:"10px"}}>Sleep {w.readiness.sleep}/5</span>}
-        {w.readiness.soreness&&<span style={{color:T.sub,fontSize:"10px"}}>Sore {w.readiness.soreness}/5</span>}
-        {w.readiness.energy&&<span style={{color:T.sub,fontSize:"10px"}}>Energy {w.readiness.energy}/5</span>}
-        {w.readiness.note&&<span style={{color:T.dim,fontSize:"10px",fontStyle:"italic"}}>{w.readiness.note}</span>}
+        <span style={{color:T.purple,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>CHECK-IN:</span>
+        {w.readiness.sleep&&<span style={{color:T.sub,fontSize:"11px"}}>Sleep {w.readiness.sleep}/5</span>}
+        {w.readiness.soreness&&<span style={{color:T.sub,fontSize:"11px"}}>Sore {w.readiness.soreness}/5</span>}
+        {w.readiness.energy&&<span style={{color:T.sub,fontSize:"11px"}}>Energy {w.readiness.energy}/5</span>}
+        {w.readiness.note&&<span style={{color:T.dim,fontSize:"11px",fontStyle:"italic"}}>{w.readiness.note}</span>}
       </div>}
-      {isP&&onTogglePin&&<div style={{padding:"6px 14px",background:T.surface,borderTop:`1px solid ${T.border}`}}><span style={{color:T.dim,fontSize:"10px"}}>📌 Pin exercises to keep them on regenerate</span></div>}
+      {isP&&onTogglePin&&<div style={{padding:"6px 14px",background:T.surface,borderTop:`1px solid ${T.border}`}}><span style={{color:T.dim,fontSize:"11px"}}>📌 Pin exercises to keep them on regenerate</span></div>}
       {isC&&editing&&<div style={{padding:"10px 14px",borderTop:`1px solid ${T.blue}20`,background:T.blue+"06"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 80px 60px",gap:"6px",marginBottom:"8px"}}>
-          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Date</label><input type="date" style={{...ss.inp,width:"100%"}} value={w.date} onChange={e=>onChange({...w,date:e.target.value})}/></div>
-          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Type</label><select style={{...ss.inp,width:"100%",appearance:"auto"}} value={w.type} onChange={e=>onChange({...w,type:e.target.value})}>{["quad","lower","glute","upper","push","pull","full"].map(t=><option key={t} value={t}>{t}</option>)}</select></div>
-          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>RPE</label><select style={{...ss.inp,width:"100%",appearance:"auto"}} value={w.rpe||""} onChange={e=>onChange({...w,rpe:e.target.value?Number(e.target.value):null})}><option value="">—</option>{[6,7,8,9,10].map(r=><option key={r} value={r}>{r}</option>)}</select></div>
+          <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Date</label><input type="date" style={{...ss.inp,width:"100%"}} value={w.date} onChange={e=>onChange({...w,date:e.target.value})}/></div>
+          <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Type</label><select style={{...ss.inp,width:"100%",appearance:"auto"}} value={w.type} onChange={e=>onChange({...w,type:e.target.value})}>{["quad","lower","glute","upper","push","pull","full"].map(t=><option key={t} value={t}>{t}</option>)}</select></div>
+          <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>RPE</label><select style={{...ss.inp,width:"100%",appearance:"auto"}} value={w.rpe||""} onChange={e=>onChange({...w,rpe:e.target.value?Number(e.target.value):null})}><option value="">—</option>{[6,7,8,9,10].map(r=><option key={r} value={r}>{r}</option>)}</select></div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"8px"}}>
-          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Label</label><input style={{...ss.inp,width:"100%"}} value={w.label} onChange={e=>onChange({...w,label:e.target.value})}/></div>
-          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Warmup</label><input style={{...ss.inp,width:"100%"}} value={w.warmup||""} onChange={e=>onChange({...w,warmup:e.target.value})}/></div>
+          <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Label</label><input style={{...ss.inp,width:"100%"}} value={w.label} onChange={e=>onChange({...w,label:e.target.value})}/></div>
+          <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Warmup</label><input style={{...ss.inp,width:"100%"}} value={w.warmup||""} onChange={e=>onChange({...w,warmup:e.target.value})}/></div>
         </div>
-        <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Trainer Notes</label>
+        <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Trainer Notes</label>
         <input style={{...ss.inp,width:"100%",boxSizing:"border-box",marginBottom:"8px"}} value={w.trainerNotes||""} onChange={e=>onChange({...w,trainerNotes:e.target.value})} placeholder="Session notes..."/>
         <div style={{display:"flex",gap:"8px"}}>
           <button onClick={onEditSave} style={{...ss.btn(true),background:T.blue,borderColor:T.blue}}>💾 Save Changes</button>
@@ -717,16 +719,16 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
         </div>
       </div>}
       {isC&&!editing&&open&&<div style={{padding:"8px 14px",borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"flex-end",gap:"8px"}}>
-        <button onClick={copyW} style={{background:"none",border:"none",color:copied?T.green:T.cyan,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>{copied?"✓ Copied":"📋 Copy"}</button>
-        {onEdit&&<button onClick={onEdit} style={{background:"none",border:"none",color:T.blue,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>✏️ Edit</button>}
-        {onDelete&&!confirmDel&&<button onClick={()=>setConfirmDel(true)} style={{background:"none",border:"none",color:T.red,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>🗑 Delete</button>}
-        {confirmDel&&<div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.red,fontSize:"10px",fontWeight:600}}>Delete this workout?</span><button onClick={()=>{onDelete();setConfirmDel(false)}} style={{...ss.btn(false),color:T.red,borderColor:T.red,fontSize:"10px",padding:"3px 10px"}}>Yes, delete</button><button onClick={()=>setConfirmDel(false)} style={{...ss.btn(false),fontSize:"10px",padding:"3px 10px"}}>No</button></div>}
+        <button onClick={copyW} style={{background:"none",border:"none",color:copied?T.green:T.cyan,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>{copied?"✓ Copied":"📋 Copy"}</button>
+        {onEdit&&<button onClick={onEdit} style={{background:"none",border:"none",color:T.blue,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>✏️ Edit</button>}
+        {onDelete&&!confirmDel&&<button onClick={()=>setConfirmDel(true)} style={{background:"none",border:"none",color:T.red,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>🗑 Delete</button>}
+        {confirmDel&&<div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.red,fontSize:"11px",fontWeight:600}}>Delete this workout?</span><button onClick={()=>{onDelete();setConfirmDel(false)}} style={{...ss.btn(false),color:T.red,borderColor:T.red,fontSize:"11px",padding:"3px 10px"}}>Yes, delete</button><button onClick={()=>setConfirmDel(false)} style={{...ss.btn(false),fontSize:"11px",padding:"3px 10px"}}>No</button></div>}
       </div>}
       {(isP||isL)&&onAction&&<div style={{padding:"10px 14px",display:"flex",gap:"8px",borderTop:`1px solid ${T.border}`,flexDirection:"column"}}>
         {isL&&<div>
           <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"6px"}}>
-            <span style={{color:T.dim,fontSize:"10px",fontWeight:600,flexShrink:0}}>RPE:</span>
-            {[6,7,8,9,10].map(r=><button key={r} onClick={()=>onChange({...w,rpe:w.rpe===r?null:r})} style={{width:28,height:24,borderRadius:"5px",border:`1px solid ${w.rpe===r?(rpeColors[r]||T.dim):T.border}`,background:w.rpe===r?(rpeColors[r]||T.dim)+"20":"transparent",color:w.rpe===r?(rpeColors[r]||T.dim):T.dim,fontSize:"10px",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{r}</button>)}
+            <span style={{color:T.dim,fontSize:"11px",fontWeight:600,flexShrink:0}}>RPE:</span>
+            {[6,7,8,9,10].map(r=><button key={r} onClick={()=>onChange({...w,rpe:w.rpe===r?null:r})} style={{width:28,height:24,borderRadius:"5px",border:`1px solid ${w.rpe===r?(rpeColors[r]||T.dim):T.border}`,background:w.rpe===r?(rpeColors[r]||T.dim)+"20":"transparent",color:w.rpe===r?(rpeColors[r]||T.dim):T.dim,fontSize:"11px",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{r}</button>)}
           </div>
           <input value={w.trainerNotes||""} onChange={e=>onChange({...w,trainerNotes:e.target.value})} placeholder="Session notes — energy, modifications, cues for next time..." style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"7px 10px",borderRadius:"6px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box",marginBottom:"8px"}}/>
         </div>}
@@ -746,7 +748,13 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
 // ═══════════════════════════════════════════════════════════════
 function useForge(){
   const[clients,setCl]=useState([]);const[workouts,setWs]=useState({});const[loading,setL]=useState(true);const init=useRef(false);
-  const load=useCallback(async()=>{if(init.current)return;init.current=true;const ver=await S.get("forge:ver");if(!ver||ver<13){await S.set("forge:ver",13);const cls=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];await S.set("forge:clients",cls);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}let cls=await S.get("forge:clients");if(!cls||!cls.length){const d=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];cls=d;await S.set("forge:clients",d);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}setCl(cls);const wm={};for(const c of cls){wm[c.id]=await S.get(`forge:w:${c.id}`)||[]}setWs(wm);setL(false)},[]);
+  const load=useCallback(async()=>{if(init.current)return;init.current=true;const ver=await S.get("forge:ver");if(!ver){await S.set("forge:ver",16);const cls=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];await S.set("forge:clients",cls);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}
+    // Migrate: patch scheduleDays + add missing Pat Feb workouts
+    if(ver&&ver<16){await S.set("forge:ver",16);const seedMap={pat:SEED_CLIENT_PAT,rachel:SEED_CLIENT_RACHEL,angela:SEED_CLIENT_ANGELA,adam:SEED_CLIENT_ADAM,deanna:SEED_CLIENT_DEANNA};let cls=await S.get("forge:clients");if(cls){cls=cls.map(c=>{const seed=seedMap[c.id];if(seed&&!c.scheduleDays){return{...c,scheduleDays:seed.scheduleDays||[],scheduleNotes:seed.scheduleNotes||c.schedulePattern||""}}return c});await S.set("forge:clients",cls)}
+      // Add missing Pat Feb workouts if not already present
+      let patWs=await S.get("forge:w:pat");if(patWs){const existing=new Set(patWs.map(w=>w.date));const febWs=SEED_PAT.filter(w=>w.date>="2026-02-01"&&!existing.has(w.date));if(febWs.length>0){patWs=[...patWs,...febWs].sort((a,b)=>a.date.localeCompare(b.date));await S.set("forge:w:pat",patWs)}}
+    }
+    let cls=await S.get("forge:clients");if(!cls||!cls.length){const d=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];cls=d;await S.set("forge:clients",d);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}setCl(cls);const wm={};for(const c of cls){wm[c.id]=await S.get(`forge:w:${c.id}`)||[]}setWs(wm);setL(false)},[]);
   useEffect(()=>{load()},[load]);
   const saveW=async(cid,w)=>{const ws=[...(workouts[cid]||[])];const i=ws.findIndex(x=>x.id===w.id);if(i>=0)ws[i]=w;else ws.push(w);ws.sort((a,b)=>a.date.localeCompare(b.date));setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
   const deleteW=async(cid,wid)=>{const ws=(workouts[cid]||[]).filter(x=>x.id!==wid);setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
@@ -763,27 +771,27 @@ function Dashboard({clients,workouts,onNav}){
   const totalSessions=Object.values(workouts).reduce((a,ws)=>a+ws.length,0);
   const thisWeek=Object.values(workouts).reduce((a,ws)=>a+ws.filter(w=>{const d=new Date(w.date+"T12:00:00");const now=new Date();const weekAgo=new Date(now);weekAgo.setDate(now.getDate()-7);return d>=weekAgo}).length,0);
 
-  return <div><div style={ss.header}><h1 style={{margin:0,fontSize:"20px",fontWeight:700,letterSpacing:"-.4px"}}><span style={{color:T.accent}}>FORGE</span> <span style={{fontWeight:400,color:T.sub}}>Training</span><span style={{fontSize:"10px",color:T.cyan,marginLeft:"8px",fontWeight:500}}>AI</span></h1><p style={{margin:"3px 0 0",color:T.dim,fontSize:"11px"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</p></div>
+  return <div><div style={ss.header}><h1 style={{margin:0,fontSize:"20px",fontWeight:700,letterSpacing:"-.4px"}}><span style={{color:T.accent}}>FORGE</span> <span style={{fontWeight:400,color:T.sub}}>Training</span><span style={{fontSize:"11px",color:T.cyan,marginLeft:"8px",fontWeight:500}}>AI</span></h1><p style={{margin:"3px 0 0",color:T.dim,fontSize:"11px"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</p></div>
   <div style={ss.content}>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginBottom:"12px"}}>
-      <div style={{...ss.card,textAlign:"center",padding:"10px 6px",marginBottom:0}}><div style={{...ss.mono,color:T.accent,fontSize:"20px",fontWeight:700}}>{clients.length}</div><div style={{color:T.dim,fontSize:"9px"}}>Clients</div></div>
-      <div style={{...ss.card,textAlign:"center",padding:"10px 6px",marginBottom:0}}><div style={{...ss.mono,color:T.blue,fontSize:"20px",fontWeight:700}}>{totalSessions}</div><div style={{color:T.dim,fontSize:"9px"}}>Total Sessions</div></div>
-      <div style={{...ss.card,textAlign:"center",padding:"10px 6px",marginBottom:0}}><div style={{...ss.mono,color:T.green,fontSize:"20px",fontWeight:700}}>{thisWeek}</div><div style={{color:T.dim,fontSize:"9px"}}>This Week</div></div>
+      <div style={{...ss.card,textAlign:"center",padding:"10px 6px",marginBottom:0}}><div style={{...ss.mono,color:T.accent,fontSize:"20px",fontWeight:700}}>{clients.length}</div><div style={{color:T.dim,fontSize:"10px"}}>Clients</div></div>
+      <div style={{...ss.card,textAlign:"center",padding:"10px 6px",marginBottom:0}}><div style={{...ss.mono,color:T.blue,fontSize:"20px",fontWeight:700}}>{totalSessions}</div><div style={{color:T.dim,fontSize:"10px"}}>Total Sessions</div></div>
+      <div style={{...ss.card,textAlign:"center",padding:"10px 6px",marginBottom:0}}><div style={{...ss.mono,color:T.green,fontSize:"20px",fontWeight:700}}>{thisWeek}</div><div style={{color:T.dim,fontSize:"10px"}}>This Week</div></div>
     </div>
 
     {todayClients.length>0&&<>
-      <div style={{color:T.accent,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🔥 TODAY'S SESSIONS</div>
+      <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🔥 TODAY'S SESSIONS</div>
       {todayClients.map(c=>{const ws=workouts[c.id]||[];const last=ws.length?ws[ws.length-1]:null;const lastType=last?last.type:"";const nextTypes=(c.workoutTypes||[]).length>0?c.workoutTypes:["full"];const cs=clientStats(ws,c.scheduleDays);
         return <div key={c.id+"today"} onClick={()=>onNav("client",c.id,"next")} style={{...ss.card,cursor:"pointer",border:`1px solid ${T.accent}30`,background:`linear-gradient(135deg,${T.card},${T.accent}04)`}}>
           <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
             <div style={{width:44,height:44,borderRadius:"10px",background:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"17px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</div>
             <div style={{flex:1}}>
-              <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.text,fontWeight:700,fontSize:"15px"}}>{c.fullName||c.name}</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"1px 5px",borderRadius:"4px",fontSize:"9px",fontWeight:700}}>🔥 {cs.streak}w</span>}</div>
-              <div style={{color:T.sub,fontSize:"10px",marginTop:"2px"}}>{ws.length} sessions{last?` · Last: ${lastType}`:""}{cs.adherence!==null?` · ${cs.adherence}% adherence`:""}{(c.considerations||[]).filter(x=>x.active).length>0?` · ⚠ ${(c.considerations||[]).filter(x=>x.active).length}`:""}</div>
-              <div style={{display:"flex",gap:"3px",marginTop:"4px"}}>{nextTypes.map(t=><span key={t} style={{...ss.pill(TC[t]),fontSize:"9px"}}>{t}</span>)}</div>
+              <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.text,fontWeight:700,fontSize:"15px"}}>{c.fullName||c.name}</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"1px 5px",borderRadius:"4px",fontSize:"10px",fontWeight:700}}>🔥 {cs.streak}w</span>}</div>
+              <div style={{color:T.sub,fontSize:"11px",marginTop:"2px"}}>{ws.length} sessions{last?` · Last: ${lastType}`:""}{cs.adherence!==null?` · ${cs.adherence}% adherence`:""}{(c.considerations||[]).filter(x=>x.active).length>0?` · ⚠ ${(c.considerations||[]).filter(x=>x.active).length}`:""}</div>
+              <div style={{display:"flex",gap:"3px",marginTop:"4px"}}>{nextTypes.map(t=><span key={t} style={{...ss.pill(TC[t]),fontSize:"10px"}}>{t}</span>)}</div>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
-              <div style={{background:T.accent,color:"#fff",padding:"5px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:700,letterSpacing:".3px"}}>GO →</div>
+              <div style={{background:T.accent,color:"#fff",padding:"5px 10px",borderRadius:"6px",fontSize:"11px",fontWeight:700,letterSpacing:".3px"}}>GO →</div>
             </div>
           </div>
         </div>})}
@@ -791,19 +799,19 @@ function Dashboard({clients,workouts,onNav}){
 
     {todayClients.length===0&&<div style={{...ss.card,textAlign:"center",padding:"16px",border:`1px solid ${T.border}`,marginBottom:"10px"}}>
       <div style={{color:T.dim,fontSize:"12px"}}>No sessions scheduled for today</div>
-      <div style={{color:T.dim,fontSize:"10px",marginTop:"2px"}}>Set training days in each client's profile</div>
+      <div style={{color:T.dim,fontSize:"11px",marginTop:"2px"}}>Set training days in each client's profile</div>
     </div>}
 
     {(()=>{const others=clients.filter(c=>!todayClients.some(tc=>tc.id===c.id));return others.length>0&&<>
-    <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px",marginTop:"4px"}}>{todayClients.length>0?"OTHER CLIENTS":"ALL CLIENTS"}</div>
+    <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px",marginTop:"4px"}}>{todayClients.length>0?"OTHER CLIENTS":"ALL CLIENTS"}</div>
     {others.map(c=>{const ws=workouts[c.id]||[];const tc={};ws.forEach(w=>{tc[w.type]=(tc[w.type]||0)+1});const last=ws.length?new Date(ws[ws.length-1].date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}):"—";
       const ds=daysSince(ws);const isOverdue=ds!==null&&ds>=7;const cs=clientStats(ws,c.scheduleDays);
       return <div key={c.id} onClick={()=>onNav("client",c.id)} style={{...ss.card,cursor:"pointer",display:"flex",alignItems:"center",gap:"12px"}}>
         <div style={{width:40,height:40,borderRadius:"9px",background:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"16px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</div>
-        <div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.text,fontWeight:600,fontSize:"14px"}}>{c.name}</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"1px 5px",borderRadius:"4px",fontSize:"8px",fontWeight:700}}>🔥 {cs.streak}w</span>}{isOverdue&&<span style={{background:T.red+"12",color:T.red,fontSize:"8px",fontWeight:700,padding:"1px 5px",borderRadius:"3px"}}>{ds}d ago</span>}</div>
-          <div style={{color:T.sub,fontSize:"10px",marginTop:"2px"}}>{ws.length} sessions · Last: {last}{cs.adherence!==null?` · ${cs.adherence}%`:""}{c.gender?` · ${c.gender}`:""}</div>
+        <div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.text,fontWeight:600,fontSize:"14px"}}>{c.name}</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"1px 5px",borderRadius:"4px",fontSize:"9px",fontWeight:700}}>🔥 {cs.streak}w</span>}{isOverdue&&<span style={{background:T.red+"12",color:T.red,fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"3px"}}>{ds}d ago</span>}</div>
+          <div style={{color:T.sub,fontSize:"11px",marginTop:"2px"}}>{ws.length} sessions · Last: {last}{cs.adherence!==null?` · ${cs.adherence}%`:""}{c.gender?` · ${c.gender}`:""}</div>
           <div style={{display:"flex",gap:"3px",marginTop:"3px",flexWrap:"wrap"}}>{Object.entries(tc).map(([t,n])=><span key={t} style={ss.pill(TC[t])}>{t} {n}</span>)}</div>
-          {(c.considerations||[]).filter(x=>x.active).length>0&&<div style={{marginTop:"4px",display:"flex",gap:"3px",flexWrap:"wrap"}}>{c.considerations.filter(x=>x.active).map((x,i)=><span key={i} style={{...ss.pill(T.red),fontSize:"8px"}}>⚠ {x.text}</span>)}</div>}
+          {(c.considerations||[]).filter(x=>x.active).length>0&&<div style={{marginTop:"4px",display:"flex",gap:"3px",flexWrap:"wrap"}}>{c.considerations.filter(x=>x.active).map((x,i)=><span key={i} style={{...ss.pill(T.red),fontSize:"9px"}}>⚠ {x.text}</span>)}</div>}
         </div><span style={{color:T.dim,fontSize:"18px"}}>›</span></div>})}
     </>})()}
     <button onClick={()=>onNav("addClient")} style={{...ss.btn(false),width:"100%",marginTop:"6px",padding:"10px",textAlign:"center"}}>+ Add Client</button>
@@ -822,52 +830,52 @@ function CheckInPanel({client,onSaveCl}){
 
   return <div style={ss.card}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
-      <span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>📊 BODY COMPOSITION CHECK-INS</span>
-      <button onClick={()=>setShow(!show)} style={{...ss.btn(show),fontSize:"10px",padding:"3px 10px"}}>{show?"Cancel":"+ Check-in"}</button>
+      <span style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px"}}>📊 BODY COMPOSITION CHECK-INS</span>
+      <button onClick={()=>setShow(!show)} style={{...ss.btn(show),fontSize:"11px",padding:"3px 10px"}}>{show?"Cancel":"+ Check-in"}</button>
     </div>
     {latest&&!show&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(80px,1fr))",gap:"6px",marginBottom:"8px"}}>
-      {latest.weight&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.blue,fontSize:"16px",fontWeight:700}}>{latest.weight}</div><div style={{color:T.dim,fontSize:"8px"}}>WEIGHT (lbs)</div></div>}
-      {latest.bodyFat&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.pink,fontSize:"16px",fontWeight:700}}>{latest.bodyFat}%</div><div style={{color:T.dim,fontSize:"8px"}}>BODY FAT</div></div>}
-      {latest.muscleMass&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.green,fontSize:"16px",fontWeight:700}}>{latest.muscleMass}</div><div style={{color:T.dim,fontSize:"8px"}}>MUSCLE (lbs)</div></div>}
-      {latest.bmi&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.purple,fontSize:"16px",fontWeight:700}}>{latest.bmi}</div><div style={{color:T.dim,fontSize:"8px"}}>BMI</div></div>}
+      {latest.weight&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.blue,fontSize:"16px",fontWeight:700}}>{latest.weight}</div><div style={{color:T.dim,fontSize:"9px"}}>WEIGHT (lbs)</div></div>}
+      {latest.bodyFat&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.pink,fontSize:"16px",fontWeight:700}}>{latest.bodyFat}%</div><div style={{color:T.dim,fontSize:"9px"}}>BODY FAT</div></div>}
+      {latest.muscleMass&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.green,fontSize:"16px",fontWeight:700}}>{latest.muscleMass}</div><div style={{color:T.dim,fontSize:"9px"}}>MUSCLE (lbs)</div></div>}
+      {latest.bmi&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.purple,fontSize:"16px",fontWeight:700}}>{latest.bmi}</div><div style={{color:T.dim,fontSize:"9px"}}>BMI</div></div>}
     </div>}
     {show&&<div style={{marginBottom:"8px"}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"6px"}}>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Date</label><input type="date" style={inp} value={form.date} onChange={e=>setForm(p=>({...p,date:e.target.value}))}/></div>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Weight (lbs)</label><input style={inp} value={form.weight} onChange={e=>setForm(p=>({...p,weight:e.target.value}))} placeholder="185"/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Date</label><input type="date" style={inp} value={form.date} onChange={e=>setForm(p=>({...p,date:e.target.value}))}/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Weight (lbs)</label><input style={inp} value={form.weight} onChange={e=>setForm(p=>({...p,weight:e.target.value}))} placeholder="185"/></div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"6px",marginBottom:"6px"}}>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Body Fat %</label><input style={inp} value={form.bodyFat} onChange={e=>setForm(p=>({...p,bodyFat:e.target.value}))} placeholder="18.5"/></div>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Muscle Mass</label><input style={inp} value={form.muscleMass} onChange={e=>setForm(p=>({...p,muscleMass:e.target.value}))} placeholder="155"/></div>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>BMI</label><input style={inp} value={form.bmi} onChange={e=>setForm(p=>({...p,bmi:e.target.value}))} placeholder="24.5"/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Body Fat %</label><input style={inp} value={form.bodyFat} onChange={e=>setForm(p=>({...p,bodyFat:e.target.value}))} placeholder="18.5"/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Muscle Mass</label><input style={inp} value={form.muscleMass} onChange={e=>setForm(p=>({...p,muscleMass:e.target.value}))} placeholder="155"/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>BMI</label><input style={inp} value={form.bmi} onChange={e=>setForm(p=>({...p,bmi:e.target.value}))} placeholder="24.5"/></div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"6px"}}>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Visceral Fat</label><input style={inp} value={form.visceralFat} onChange={e=>setForm(p=>({...p,visceralFat:e.target.value}))} placeholder="8"/></div>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Notes</label><input style={inp} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} placeholder="Post-holiday"/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Visceral Fat</label><input style={inp} value={form.visceralFat} onChange={e=>setForm(p=>({...p,visceralFat:e.target.value}))} placeholder="8"/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Notes</label><input style={inp} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} placeholder="Post-holiday"/></div>
       </div>
       <button onClick={addCheckin} style={{...ss.btn(true),width:"100%",padding:"8px"}}>Save Check-in</button>
     </div>}
     {checkins.length>0&&<div>
       <div style={{display:"grid",gridTemplateColumns:"70px 50px 42px 50px 38px 1fr 24px",gap:"4px",padding:"4px 0",borderBottom:`1px solid ${T.border}`,marginBottom:"2px"}}>
-        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>DATE</span>
-        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>WEIGHT</span>
-        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>BF%</span>
-        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>MUSCLE</span>
-        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>BMI</span>
-        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>NOTES</span>
+        <span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>DATE</span>
+        <span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>WEIGHT</span>
+        <span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>BF%</span>
+        <span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>MUSCLE</span>
+        <span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>BMI</span>
+        <span style={{color:T.dim,fontSize:"9px",fontWeight:700}}>NOTES</span>
         <span></span>
       </div>
       {[...checkins].reverse().map((ci,i)=>{const idx=checkins.length-1-i;return <div key={idx} style={{display:"grid",gridTemplateColumns:"70px 50px 42px 50px 38px 1fr 24px",gap:"4px",padding:"3px 0",borderBottom:`1px solid ${T.border}10`,alignItems:"center"}}>
-        <span style={{...ss.mono,color:T.sub,fontSize:"10px"}}>{new Date(ci.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>
-        <span style={{...ss.mono,color:T.blue,fontSize:"10px",fontWeight:600}}>{ci.weight||"–"}</span>
-        <span style={{...ss.mono,color:T.pink,fontSize:"10px",fontWeight:600}}>{ci.bodyFat?ci.bodyFat+"%":"–"}</span>
-        <span style={{...ss.mono,color:T.green,fontSize:"10px",fontWeight:600}}>{ci.muscleMass||"–"}</span>
-        <span style={{...ss.mono,color:T.purple,fontSize:"10px",fontWeight:600}}>{ci.bmi||"–"}</span>
-        <span style={{color:T.dim,fontSize:"9px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ci.notes||""}</span>
+        <span style={{...ss.mono,color:T.sub,fontSize:"11px"}}>{new Date(ci.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>
+        <span style={{...ss.mono,color:T.blue,fontSize:"11px",fontWeight:600}}>{ci.weight||"–"}</span>
+        <span style={{...ss.mono,color:T.pink,fontSize:"11px",fontWeight:600}}>{ci.bodyFat?ci.bodyFat+"%":"–"}</span>
+        <span style={{...ss.mono,color:T.green,fontSize:"11px",fontWeight:600}}>{ci.muscleMass||"–"}</span>
+        <span style={{...ss.mono,color:T.purple,fontSize:"11px",fontWeight:600}}>{ci.bmi||"–"}</span>
+        <span style={{color:T.dim,fontSize:"10px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ci.notes||""}</span>
         <button onClick={()=>delCheckin(idx)} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"12px",padding:"0"}}>×</button>
       </div>})}
     </div>}
-    <p style={{color:T.dim,fontSize:"9px",margin:"6px 0 0"}}>Track InBody 270S scan data or manual measurements. <a href="https://inbodyusa.com/products/inbody-270s/" target="_blank" rel="noreferrer" style={{color:T.cyan,textDecoration:"none"}}>InBody info ↗</a></p>
+    <p style={{color:T.dim,fontSize:"10px",margin:"6px 0 0"}}>Track InBody 270S scan data or manual measurements. <a href="https://inbodyusa.com/products/inbody-270s/" target="_blank" rel="noreferrer" style={{color:T.cyan,textDecoration:"none"}}>InBody info ↗</a></p>
   </div>;
 }
 
@@ -907,11 +915,11 @@ function WorkoutBuilder({type,types,onTypeChange,allWs,onSave,onCancel}){
       <button onClick={onCancel} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"14px"}}>×</button>
     </div>
     <div style={{display:"flex",gap:"5px",marginBottom:"8px",flexWrap:"wrap"}}>
-      {types.map(t=><button key={t} onClick={()=>{onTypeChange(t);setLabel(`${t} Day`);setWarmup(WU[t]||"General warmup")}} style={{background:type===t?(TC[t]||T.accent)+"20":"transparent",border:`1px solid ${type===t?(TC[t]||T.accent)+"50":T.border}`,color:type===t?(TC[t]||T.accent):T.dim,padding:"3px 10px",borderRadius:"5px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{t}</button>)}
+      {types.map(t=><button key={t} onClick={()=>{onTypeChange(t);setLabel(`${t} Day`);setWarmup(WU[t]||"General warmup")}} style={{background:type===t?(TC[t]||T.accent)+"20":"transparent",border:`1px solid ${type===t?(TC[t]||T.accent)+"50":T.border}`,color:type===t?(TC[t]||T.accent):T.dim,padding:"3px 10px",borderRadius:"5px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{t}</button>)}
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"10px"}}>
-      <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Label</label><input style={inp} value={label} onChange={e=>setLabel(e.target.value)}/></div>
-      <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Warmup</label><input style={inp} value={warmup} onChange={e=>setWarmup(e.target.value)}/></div>
+      <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Label</label><input style={inp} value={label} onChange={e=>setLabel(e.target.value)}/></div>
+      <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Warmup</label><input style={inp} value={warmup} onChange={e=>setWarmup(e.target.value)}/></div>
     </div>
     {blocks.map((bl,bi)=><div key={bi} style={{border:`1px solid ${T.border}`,borderRadius:"7px",padding:"8px",marginBottom:"8px",background:T.surface}}>
       <div style={{display:"flex",gap:"6px",alignItems:"center",marginBottom:"6px"}}>
@@ -929,7 +937,7 @@ function WorkoutBuilder({type,types,onTypeChange,allWs,onSave,onCancel}){
               {isActive&&filtered.length>0&&<div style={{position:"absolute",top:"100%",left:0,right:0,background:T.card,border:`1px solid ${T.border}`,borderRadius:"0 0 6px 6px",maxHeight:"180px",overflowY:"auto",zIndex:99}}>
                 {filtered.map(n=><div key={n} onMouseDown={e=>e.preventDefault()} onClick={()=>pickEx(bi,ei,n)} style={{padding:"6px 8px",cursor:"pointer",fontSize:"11px",color:T.text,borderBottom:`1px solid ${T.border}18`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <span>{n}</span>
-                  <span style={{color:T.dim,fontSize:"9px"}}>{(MM[n]||[]).join(", ")}{lastUsed[n]&&lastUsed[n].weight?` · ${lastUsed[n].weight}#`:""}</span>
+                  <span style={{color:T.dim,fontSize:"10px"}}>{(MM[n]||[]).join(", ")}{lastUsed[n]&&lastUsed[n].weight?` · ${lastUsed[n].weight}#`:""}</span>
                 </div>)}
               </div>}
             </div>
@@ -938,9 +946,9 @@ function WorkoutBuilder({type,types,onTypeChange,allWs,onSave,onCancel}){
             <input style={{...inp,fontSize:"11px",textAlign:"center"}} value={ex.weight==null?"":ex.weight} onChange={e=>updEx(bi,ei,"weight",e.target.value)} placeholder="Wt"/>
             <button onClick={()=>delEx(bi,ei)} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"12px",padding:"0"}}>×</button>
           </div>
-          {ex.name&&<input style={{...inp,fontSize:"10px",marginTop:"3px",color:T.dim}} value={ex.notes||""} onChange={e=>updEx(bi,ei,"notes",e.target.value)} placeholder="Notes (tempo, each side, DnB...)"/>}
+          {ex.name&&<input style={{...inp,fontSize:"11px",marginTop:"3px",color:T.dim}} value={ex.notes||""} onChange={e=>updEx(bi,ei,"notes",e.target.value)} placeholder="Notes (tempo, each side, DnB...)"/>}
         </div>})}
-      <button onClick={()=>addEx(bi)} style={{background:"none",border:`1px dashed ${T.border}`,color:T.dim,padding:"4px",borderRadius:"5px",width:"100%",fontSize:"10px",cursor:"pointer",fontFamily:"inherit"}}>+ Exercise</button>
+      <button onClick={()=>addEx(bi)} style={{background:"none",border:`1px dashed ${T.border}`,color:T.dim,padding:"4px",borderRadius:"5px",width:"100%",fontSize:"11px",cursor:"pointer",fontFamily:"inherit"}}>+ Exercise</button>
     </div>)}
     <button onClick={addBlock} style={{background:"none",border:`1px dashed ${T.border}`,color:T.dim,padding:"8px",borderRadius:"7px",width:"100%",fontSize:"11px",cursor:"pointer",fontFamily:"inherit",marginBottom:"10px"}}>+ Add Block</button>
     <button onClick={save} style={{...ss.btn(true),width:"100%",padding:"10px"}}>💾 Save as Proposed Workout</button>
@@ -1030,7 +1038,7 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
 
   if(liveW&&tab==="live")return <div>
     <div style={{...ss.header,background:`linear-gradient(180deg,${T.green}10,${T.surface})`}}>
-      <div style={{display:"flex",alignItems:"center",gap:"8px"}}><span style={{background:T.green,color:T.bg,padding:"2px 7px",borderRadius:"5px",fontSize:"9px",fontWeight:800,letterSpacing:"1px"}}>● LIVE</span><h2 style={{margin:0,fontSize:"16px"}}>{liveW.label}</h2><span style={{color:T.sub,fontSize:"11px",marginLeft:"auto"}}>{client.name}</span>{elapsed&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"2px 8px",borderRadius:"5px",fontSize:"11px",fontWeight:600}}>⏱ {elapsed}</span>}</div>
+      <div style={{display:"flex",alignItems:"center",gap:"8px"}}><span style={{background:T.green,color:T.bg,padding:"2px 7px",borderRadius:"5px",fontSize:"10px",fontWeight:800,letterSpacing:"1px"}}>● LIVE</span><h2 style={{margin:0,fontSize:"16px"}}>{liveW.label}</h2><span style={{color:T.sub,fontSize:"11px",marginLeft:"auto"}}>{client.name}</span>{elapsed&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"2px 8px",borderRadius:"5px",fontSize:"11px",fontWeight:600}}>⏱ {elapsed}</span>}</div>
     </div>
     <div style={ss.content}><WCard w={liveW} open={true} toggle={()=>{}} live onChange={setLiveW} onAction={handleAction} onExClick={setSelEx}/></div>
   </div>;
@@ -1039,7 +1047,7 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
     <div style={ss.header}><div style={{display:"flex",alignItems:"center",gap:"8px"}}>
       <button onClick={()=>onNav("dashboard")} style={{background:"none",border:"none",color:T.sub,fontSize:"18px",cursor:"pointer",padding:"2px"}}>‹</button>
       <div style={{width:32,height:32,borderRadius:"7px",background:`linear-gradient(135deg,${client.color||T.accent},${client.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:700,color:T.bg}}>{client.name[0]}</div>
-      <div><h2 style={{margin:0,fontSize:"16px",fontWeight:700}}>{client.fullName||client.name}</h2><div style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"3px",flexWrap:"wrap"}}>{(client.scheduleDays||[]).length>0&&<span style={{display:"inline-flex",gap:"2px"}}>{["M","T","W","TH","F","S","SU"].filter(d=>(client.scheduleDays||[]).includes(d)).map(d=><span key={d} style={{padding:"1px 5px",borderRadius:"3px",fontSize:"9px",fontWeight:700,background:T.accent+"18",color:T.accent,border:`1px solid ${T.accent}40`}}>{d}</span>)}</span>}<span style={{color:T.sub,fontSize:"10px"}}>{(client.scheduleDays||[]).length===0&&client.schedule?client.schedule+" · ":""}{sorted.length} sessions{age?` · Age ${age}`:""}{client.gender?` · ${client.gender}`:""}</span></div></div>
+      <div><h2 style={{margin:0,fontSize:"16px",fontWeight:700}}>{client.fullName||client.name}</h2><div style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"3px",flexWrap:"wrap"}}>{(client.scheduleDays||[]).length>0&&<span style={{display:"inline-flex",gap:"2px"}}>{["M","T","W","TH","F","S","SU"].filter(d=>(client.scheduleDays||[]).includes(d)).map(d=><span key={d} style={{padding:"1px 5px",borderRadius:"3px",fontSize:"10px",fontWeight:700,background:T.accent+"18",color:T.accent,border:`1px solid ${T.accent}40`}}>{d}</span>)}</span>}<span style={{color:T.sub,fontSize:"11px"}}>{(client.scheduleDays||[]).length===0&&client.schedule?client.schedule+" · ":""}{sorted.length} sessions{age?` · Age ${age}`:""}{client.gender?` · ${client.gender}`:""}</span></div></div>
     </div></div>
 
     <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 10px",overflowX:"auto"}}>
@@ -1055,74 +1063,74 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
         </div>
         {sorted.length===0&&<div style={{background:`linear-gradient(135deg,${T.accent}08,${T.accent}03)`,border:`1px solid ${T.accent}25`,borderRadius:"10px",padding:"16px",marginBottom:"10px",textAlign:"center"}}><div style={{fontSize:"20px",marginBottom:"4px"}}>🚀</div><div style={{color:T.text,fontWeight:600,fontSize:"13px",marginBottom:"4px"}}>Ready to start training!</div><div style={{color:T.dim,fontSize:"11px",marginBottom:"10px"}}>Fill in the profile below, then generate AI workouts.</div><button onClick={()=>setTab("next")} style={{...ss.btn(true),fontSize:"11px"}}>→ Next Workouts</button></div>}
         {sorted.length>0&&<div style={{...ss.card,padding:"12px 14px",marginBottom:"10px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}><span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>📈 CONSISTENCY</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"2px 8px",borderRadius:"5px",fontSize:"11px",fontWeight:700}}>🔥 {cs.streak} week streak</span>}</div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}><span style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px"}}>📈 CONSISTENCY</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"2px 8px",borderRadius:"5px",fontSize:"11px",fontWeight:700}}>🔥 {cs.streak} week streak</span>}</div>
           <div style={{display:"grid",gridTemplateColumns:(client.scheduleDays||[]).length>0?"1fr 1fr 1fr":"1fr 1fr",gap:"8px"}}>
-            <div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:T.accent,fontSize:"20px",fontWeight:700}}>{cs.thisWeekCount}{cs.thisWeekTarget>0?<span style={{color:T.dim,fontSize:"13px",fontWeight:400}}>/{cs.thisWeekTarget}</span>:""}</div><div style={{color:T.dim,fontSize:"9px",marginTop:"2px"}}>This Week</div>{cs.thisWeekTarget>0&&<div style={{height:4,borderRadius:2,background:T.border,marginTop:"6px",overflow:"hidden"}}><div style={{height:"100%",borderRadius:2,background:cs.thisWeekCount>=cs.thisWeekTarget?T.green:T.accent,width:`${Math.min(cs.thisWeekCount/cs.thisWeekTarget*100,100)}%`,transition:"width .3s"}}/></div>}</div>
-            {(client.scheduleDays||[]).length>0&&<div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:cs.adherence>=75?T.green:cs.adherence>=50?T.accent:T.red,fontSize:"20px",fontWeight:700}}>{cs.adherence!==null?`${cs.adherence}%`:"—"}</div><div style={{color:T.dim,fontSize:"9px",marginTop:"2px"}}>4-Wk Adherence</div>{cs.adherence!==null&&<div style={{height:4,borderRadius:2,background:T.border,marginTop:"6px",overflow:"hidden"}}><div style={{height:"100%",borderRadius:2,background:cs.adherence>=75?T.green:cs.adherence>=50?T.accent:T.red,width:`${cs.adherence}%`,transition:"width .3s"}}/></div>}</div>}
-            <div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:cs.streak>=4?T.green:cs.streak>=2?T.accent:T.dim,fontSize:"20px",fontWeight:700}}>{cs.streak}<span style={{fontSize:"11px",fontWeight:400}}>w</span></div><div style={{color:T.dim,fontSize:"9px",marginTop:"2px"}}>Streak</div></div>
+            <div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:T.accent,fontSize:"20px",fontWeight:700}}>{cs.thisWeekCount}{cs.thisWeekTarget>0?<span style={{color:T.dim,fontSize:"13px",fontWeight:400}}>/{cs.thisWeekTarget}</span>:""}</div><div style={{color:T.dim,fontSize:"10px",marginTop:"2px"}}>This Week</div>{cs.thisWeekTarget>0&&<div style={{height:4,borderRadius:2,background:T.border,marginTop:"6px",overflow:"hidden"}}><div style={{height:"100%",borderRadius:2,background:cs.thisWeekCount>=cs.thisWeekTarget?T.green:T.accent,width:`${Math.min(cs.thisWeekCount/cs.thisWeekTarget*100,100)}%`,transition:"width .3s"}}/></div>}</div>
+            {(client.scheduleDays||[]).length>0&&<div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:cs.adherence>=75?T.green:cs.adherence>=50?T.accent:T.red,fontSize:"20px",fontWeight:700}}>{cs.adherence!==null?`${cs.adherence}%`:"—"}</div><div style={{color:T.dim,fontSize:"10px",marginTop:"2px"}}>4-Wk Adherence</div>{cs.adherence!==null&&<div style={{height:4,borderRadius:2,background:T.border,marginTop:"6px",overflow:"hidden"}}><div style={{height:"100%",borderRadius:2,background:cs.adherence>=75?T.green:cs.adherence>=50?T.accent:T.red,width:`${cs.adherence}%`,transition:"width .3s"}}/></div>}</div>}
+            <div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:cs.streak>=4?T.green:cs.streak>=2?T.accent:T.dim,fontSize:"20px",fontWeight:700}}>{cs.streak}<span style={{fontSize:"11px",fontWeight:400}}>w</span></div><div style={{color:T.dim,fontSize:"10px",marginTop:"2px"}}>Streak</div></div>
           </div>
         </div>}
         <div style={ss.card}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
-            <span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>CLIENT PROFILE</span>
-            <button onClick={()=>{if(editBio)saveBio();else{setBio({fullName:client.fullName||"",email:client.email||"",phone:client.phone||"",scheduleDays:client.scheduleDays||[],scheduleNotes:client.scheduleNotes||"",focusAreas:client.focusAreas||"",goals:client.goals||"",dob:client.dob||"",gender:client.gender||"",startingWeight:client.startingWeight||"",workoutTypes:client.workoutTypes||[...new Set(sorted.map(w=>w.type))]});setEditBio(true)}}} style={{...ss.btn(editBio),fontSize:"10px",padding:"3px 10px"}}>{editBio?"Save":"Edit"}</button>
+            <span style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px"}}>CLIENT PROFILE</span>
+            <button onClick={()=>{if(editBio)saveBio();else{setBio({fullName:client.fullName||"",email:client.email||"",phone:client.phone||"",scheduleDays:client.scheduleDays||[],scheduleNotes:client.scheduleNotes||"",focusAreas:client.focusAreas||"",goals:client.goals||"",dob:client.dob||"",gender:client.gender||"",startingWeight:client.startingWeight||"",workoutTypes:client.workoutTypes||[...new Set(sorted.map(w=>w.type))]});setEditBio(true)}}} style={{...ss.btn(editBio),fontSize:"11px",padding:"3px 10px"}}>{editBio?"Save":"Edit"}</button>
           </div>
           {editBio?<>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"8px"}}>
-              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Full Name</label><input style={{...inp,width:"100%"}} value={bio.fullName} onChange={e=>setBio(p=>({...p,fullName:e.target.value}))} placeholder="First Last"/></div>
-              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Email</label><input type="email" style={{...inp,width:"100%"}} value={bio.email} onChange={e=>setBio(p=>({...p,email:e.target.value}))} placeholder="email@example.com"/></div>
+              <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Full Name</label><input style={{...inp,width:"100%"}} value={bio.fullName} onChange={e=>setBio(p=>({...p,fullName:e.target.value}))} placeholder="First Last"/></div>
+              <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Email</label><input type="email" style={{...inp,width:"100%"}} value={bio.email} onChange={e=>setBio(p=>({...p,email:e.target.value}))} placeholder="email@example.com"/></div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"6px",marginBottom:"8px"}}>
-              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Phone</label><input type="tel" style={{...inp,width:"100%"}} value={bio.phone} onChange={e=>setBio(p=>({...p,phone:e.target.value}))} placeholder="(555) 123-4567"/></div>
-              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Date of Birth</label><input type="date" style={inp} value={bio.dob} onChange={e=>setBio(p=>({...p,dob:e.target.value}))}/></div>
-              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Gender</label><select style={{...inp,appearance:"auto"}} value={bio.gender} onChange={e=>setBio(p=>({...p,gender:e.target.value}))}><option value="">—</option><option value="M">Male</option><option value="F">Female</option><option value="Other">Other</option></select></div>
+              <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Phone</label><input type="tel" style={{...inp,width:"100%"}} value={bio.phone} onChange={e=>setBio(p=>({...p,phone:e.target.value}))} placeholder="(555) 123-4567"/></div>
+              <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Date of Birth</label><input type="date" style={inp} value={bio.dob} onChange={e=>setBio(p=>({...p,dob:e.target.value}))}/></div>
+              <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Gender</label><select style={{...inp,appearance:"auto"}} value={bio.gender} onChange={e=>setBio(p=>({...p,gender:e.target.value}))}><option value="">—</option><option value="M">Male</option><option value="F">Female</option><option value="Other">Other</option></select></div>
             </div>
             <div style={{marginBottom:"8px"}}>
-              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Start Weight (lbs)</label><input style={{...inp,width:"80px"}} value={bio.startingWeight} onChange={e=>setBio(p=>({...p,startingWeight:e.target.value}))} placeholder="185"/></div>
+              <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Start Weight (lbs)</label><input style={{...inp,width:"80px"}} value={bio.startingWeight} onChange={e=>setBio(p=>({...p,startingWeight:e.target.value}))} placeholder="185"/></div>
             </div>
-            <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"4px"}}>Scheduled Days</label>
-            <div style={{display:"flex",gap:"4px",marginBottom:"4px"}}>{[["M","Mon"],["T","Tue"],["W","Wed"],["TH","Thu"],["F","Fri"],["S","Sat"],["SU","Sun"]].map(([k,l])=><button key={k} onClick={()=>setBio(p=>({...p,scheduleDays:p.scheduleDays.includes(k)?p.scheduleDays.filter(d=>d!==k):[...p.scheduleDays,k]}))} style={{width:36,height:32,borderRadius:"6px",border:`1.5px solid ${bio.scheduleDays.includes(k)?T.accent:T.border}`,background:bio.scheduleDays.includes(k)?T.accent+"15":T.card,color:bio.scheduleDays.includes(k)?T.accent:T.dim,fontSize:"10px",fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>{l}</button>)}</div>
+            <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"4px"}}>Scheduled Days</label>
+            <div style={{display:"flex",gap:"4px",marginBottom:"4px"}}>{[["M","Mon"],["T","Tue"],["W","Wed"],["TH","Thu"],["F","Fri"],["S","Sat"],["SU","Sun"]].map(([k,l])=><button key={k} onClick={()=>setBio(p=>({...p,scheduleDays:p.scheduleDays.includes(k)?p.scheduleDays.filter(d=>d!==k):[...p.scheduleDays,k]}))} style={{width:36,height:32,borderRadius:"6px",border:`1.5px solid ${bio.scheduleDays.includes(k)?T.accent:T.border}`,background:bio.scheduleDays.includes(k)?T.accent+"15":T.card,color:bio.scheduleDays.includes(k)?T.accent:T.dim,fontSize:"11px",fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>{l}</button>)}</div>
             <input style={{...inp,marginBottom:"8px",fontSize:"12px"}} value={bio.scheduleNotes} onChange={e=>setBio(p=>({...p,scheduleNotes:e.target.value}))} placeholder="e.g. Mornings, 5:30 PM, alternating weeks..."/>
-            <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Focus Areas / Split</label>
+            <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Focus Areas / Split</label>
             <textarea style={{...inp,height:"55px",resize:"vertical",marginBottom:"6px"}} value={bio.focusAreas} onChange={e=>setBio(p=>({...p,focusAreas:e.target.value}))}/>
-            <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Goals</label>
+            <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Goals</label>
             <textarea style={{...inp,height:"45px",resize:"vertical",marginBottom:"8px"}} value={bio.goals} onChange={e=>setBio(p=>({...p,goals:e.target.value}))}/>
-            <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"4px"}}>Workout Types</label>
-            <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>{["quad","lower","glute","upper","push","pull","full"].map(t=><button key={t} onClick={()=>setBio(p=>({...p,workoutTypes:p.workoutTypes.includes(t)?p.workoutTypes.filter(x=>x!==t):[...p.workoutTypes,t]}))} style={{background:bio.workoutTypes.includes(t)?(TC[t]||T.accent)+"20":"transparent",border:`1px solid ${bio.workoutTypes.includes(t)?(TC[t]||T.accent)+"50":T.border}`,color:bio.workoutTypes.includes(t)?(TC[t]||T.accent):T.dim,padding:"4px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{t}</button>)}</div>
+            <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"4px"}}>Workout Types</label>
+            <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>{["quad","lower","glute","upper","push","pull","full"].map(t=><button key={t} onClick={()=>setBio(p=>({...p,workoutTypes:p.workoutTypes.includes(t)?p.workoutTypes.filter(x=>x!==t):[...p.workoutTypes,t]}))} style={{background:bio.workoutTypes.includes(t)?(TC[t]||T.accent)+"20":"transparent",border:`1px solid ${bio.workoutTypes.includes(t)?(TC[t]||T.accent)+"50":T.border}`,color:bio.workoutTypes.includes(t)?(TC[t]||T.accent):T.dim,padding:"4px 10px",borderRadius:"6px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{t}</button>)}</div>
           </>:<>
             <div style={{marginBottom:"8px"}}>
               {client.fullName&&<div style={{fontSize:"14px",fontWeight:600,color:T.text,marginBottom:"2px"}}>{client.fullName}</div>}
               <div style={{display:"flex",gap:"12px",flexWrap:"wrap"}}>
-                {client.email&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>✉ </span><span style={{color:T.sub,fontSize:"12px"}}>{client.email}</span></div>}
-                {client.phone&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>☎ </span><span style={{color:T.sub,fontSize:"12px"}}>{client.phone}</span></div>}
+                {client.email&&<div><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:".5px"}}>✉ </span><span style={{color:T.sub,fontSize:"12px"}}>{client.email}</span></div>}
+                {client.phone&&<div><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:".5px"}}>☎ </span><span style={{color:T.sub,fontSize:"12px"}}>{client.phone}</span></div>}
               </div>
             </div>
             <div style={{display:"flex",gap:"12px",marginBottom:"8px",flexWrap:"wrap"}}>
-              {client.dob&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>DOB: </span><span style={{color:T.text,fontSize:"12px"}}>{new Date(client.dob+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}{age?` (${age})`:""}</span></div>}
-              {client.gender&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Gender: </span><span style={{color:T.text,fontSize:"12px"}}>{client.gender}</span></div>}
-              {client.startingWeight&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Start Wt: </span><span style={{color:T.text,fontSize:"12px"}}>{client.startingWeight} lbs</span></div>}
+              {client.dob&&<div><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:".5px"}}>DOB: </span><span style={{color:T.text,fontSize:"12px"}}>{new Date(client.dob+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}{age?` (${age})`:""}</span></div>}
+              {client.gender&&<div><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:".5px"}}>Gender: </span><span style={{color:T.text,fontSize:"12px"}}>{client.gender}</span></div>}
+              {client.startingWeight&&<div><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:".5px"}}>Start Wt: </span><span style={{color:T.text,fontSize:"12px"}}>{client.startingWeight} lbs</span></div>}
             </div>
-            {(client.scheduleDays||[]).length>0&&<div style={{marginBottom:"8px"}}><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Training Days: </span><span style={{display:"inline-flex",gap:"3px",marginLeft:"4px"}}>{["M","T","W","TH","F","S","SU"].filter(d=>(client.scheduleDays||[]).includes(d)).map(d=><span key={d} style={{padding:"2px 6px",borderRadius:"4px",fontSize:"9px",fontWeight:700,background:T.accent+"15",color:T.accent,border:`1px solid ${T.accent}40`}}>{d}</span>)}</span>{client.scheduleNotes&&<span style={{color:T.sub,fontSize:"11px",marginLeft:"8px"}}>{client.scheduleNotes}</span>}</div>}
-            {client.focusAreas&&<div style={{marginBottom:"6px"}}><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Focus: </span><span style={{color:T.text,fontSize:"12px"}}>{client.focusAreas}</span></div>}
-            {client.goals&&<div style={{marginBottom:"6px"}}><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Goals: </span><span style={{color:T.text,fontSize:"12px"}}>{client.goals}</span></div>}
-            {types.length>0&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Workout Types: </span><span style={{display:"inline-flex",gap:"4px",flexWrap:"wrap",marginTop:"3px"}}>{types.map(t=><span key={t} style={ss.pill(TC[t])}>{t}</span>)}</span></div>}
+            {(client.scheduleDays||[]).length>0&&<div style={{marginBottom:"8px"}}><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:".5px"}}>Training Days: </span><span style={{display:"inline-flex",gap:"3px",marginLeft:"4px"}}>{["M","T","W","TH","F","S","SU"].filter(d=>(client.scheduleDays||[]).includes(d)).map(d=><span key={d} style={{padding:"2px 6px",borderRadius:"4px",fontSize:"10px",fontWeight:700,background:T.accent+"15",color:T.accent,border:`1px solid ${T.accent}40`}}>{d}</span>)}</span>{client.scheduleNotes&&<span style={{color:T.sub,fontSize:"11px",marginLeft:"8px"}}>{client.scheduleNotes}</span>}</div>}
+            {client.focusAreas&&<div style={{marginBottom:"6px"}}><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:".5px"}}>Focus: </span><span style={{color:T.text,fontSize:"12px"}}>{client.focusAreas}</span></div>}
+            {client.goals&&<div style={{marginBottom:"6px"}}><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:".5px"}}>Goals: </span><span style={{color:T.text,fontSize:"12px"}}>{client.goals}</span></div>}
+            {types.length>0&&<div><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:".5px"}}>Workout Types: </span><span style={{display:"inline-flex",gap:"4px",flexWrap:"wrap",marginTop:"3px"}}>{types.map(t=><span key={t} style={ss.pill(TC[t])}>{t}</span>)}</span></div>}
           </>}
         </div>
         <div style={ss.card}>
-          <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>⚠ CONSIDERATIONS & INJURIES</div>
+          <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>⚠ CONSIDERATIONS & INJURIES</div>
           {considerations.map((c,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"8px",padding:"6px 0",borderBottom:`1px solid ${T.border}18`}}>
-            <button onClick={()=>toggleCon(i)} style={{width:18,height:18,borderRadius:"4px",border:`2px solid ${c.active?T.red:T.dim}`,background:c.active?T.red+"20":"transparent",cursor:"pointer",fontSize:"10px",color:T.red,display:"flex",alignItems:"center",justifyContent:"center",padding:0,flexShrink:0}}>{c.active?"!":""}</button>
-            <div style={{flex:1}}><span style={{color:c.active?T.text:T.dim,fontSize:"12px",textDecoration:c.active?"none":"line-through"}}>{c.text}</span><span style={{color:T.dim,fontSize:"9px",marginLeft:"6px"}}>{c.date}</span></div>
+            <button onClick={()=>toggleCon(i)} style={{width:18,height:18,borderRadius:"4px",border:`2px solid ${c.active?T.red:T.dim}`,background:c.active?T.red+"20":"transparent",cursor:"pointer",fontSize:"11px",color:T.red,display:"flex",alignItems:"center",justifyContent:"center",padding:0,flexShrink:0}}>{c.active?"!":""}</button>
+            <div style={{flex:1}}><span style={{color:c.active?T.text:T.dim,fontSize:"12px",textDecoration:c.active?"none":"line-through"}}>{c.text}</span><span style={{color:T.dim,fontSize:"10px",marginLeft:"6px"}}>{c.date}</span></div>
             <button onClick={()=>delCon(i)} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"12px",padding:"2px"}}>×</button>
           </div>)}
           <div style={{display:"flex",gap:"6px",marginTop:"8px"}}>
             <input style={{...inp,flex:1}} value={newCon} onChange={e=>setNewCon(e.target.value)} placeholder="Strained back, torn quad, twisted ankle..." onKeyDown={e=>{if(e.key==="Enter")addCon()}}/>
             <button onClick={addCon} style={ss.btn(true)}>Add</button>
           </div>
-          <p style={{color:T.dim,fontSize:"10px",margin:"6px 0 0"}}>Active considerations are sent to Claude AI to adjust proposed workouts.</p>
+          <p style={{color:T.dim,fontSize:"11px",margin:"6px 0 0"}}>Active considerations are sent to Claude AI to adjust proposed workouts.</p>
         </div>
         <div style={ss.card}>
-          <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🔄 MOVEMENT SUBSTITUTIONS</div>
+          <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🔄 MOVEMENT SUBSTITUTIONS</div>
           {subs.length===0&&<p style={{color:T.dim,fontSize:"11px",margin:"0 0 8px"}}>No substitutions yet. Add rules so the AI knows exactly what to swap.</p>}
           {subs.map((s,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"6px",padding:"5px 0",borderBottom:`1px solid ${T.border}18`}}>
             <span style={{color:T.red,fontSize:"11px",fontWeight:600,flex:1}}>{s.avoid}</span>
@@ -1136,11 +1144,11 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
             <input style={{...inp,flex:1,fontSize:"12px"}} value={newSub.use} onChange={e=>setNewSub(p=>({...p,use:e.target.value}))} placeholder="Use: Belt Squat, Leg Press" onKeyDown={e=>{if(e.key==="Enter")addSub()}}/>
             <button onClick={addSub} style={{...ss.btn(true),flexShrink:0,padding:"6px 10px"}}>+</button>
           </div>
-          <p style={{color:T.dim,fontSize:"10px",margin:"6px 0 0"}}>When a consideration is active, AI uses these swaps instead of guessing. One "avoid" can map to multiple alternatives.</p>
+          <p style={{color:T.dim,fontSize:"11px",margin:"6px 0 0"}}>When a consideration is active, AI uses these swaps instead of guessing. One "avoid" can map to multiple alternatives.</p>
         </div>
         <CheckInPanel client={client} onSaveCl={onSaveCl}/>
-        {tl.length>0&&<div style={{display:"grid",gridTemplateColumns:tl.length>1?"1fr 1fr":"1fr",gap:"8px"}}>
-          {tl.slice(0,2).map(l=><div key={l.name} style={ss.card}><div style={{color:T.sub,fontSize:"9px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>{l.short.toUpperCase()} TREND</div><Chart data={l.prog} color={l.color} h={90}/></div>)}
+        {tl.length>0&&<div style={{display:"grid",gridTemplateColumns:tl.length>1?"1fr 1fr":"1fr",gap:"8px",overflow:"hidden"}}>
+          {tl.slice(0,2).map(l=><div key={l.name} style={{...ss.card,overflow:"hidden",minWidth:0}}><div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>{l.short.toUpperCase()} TREND</div><Chart data={l.prog} color={l.color} h={90}/></div>)}
         </div>}
       </>}
 
@@ -1148,8 +1156,8 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
           <span style={{color:T.sub,fontSize:"11px"}}>🧠 Powered by Claude AI</span>
           <div style={{display:"flex",gap:"6px"}}>
-            <button onClick={()=>setBuildType(buildType?null:types[0])} style={{...ss.btn(!buildType),fontSize:"10px",padding:"5px 10px"}}>{buildType?"Cancel":"🔨 Builder"}</button>
-            <button onClick={generateAll} style={{...ss.btn(true),fontSize:"10px",padding:"5px 12px"}}>✨ Generate All</button>
+            <button onClick={()=>setBuildType(buildType?null:types[0])} style={{...ss.btn(!buildType),fontSize:"11px",padding:"5px 10px"}}>{buildType?"Cancel":"🔨 Builder"}</button>
+            <button onClick={generateAll} style={{...ss.btn(true),fontSize:"11px",padding:"5px 12px"}}>✨ Generate All</button>
           </div>
         </div>
         {considerations.filter(c=>c.active).length>0&&<div style={{background:T.red+"10",border:`1px solid ${T.red}25`,borderRadius:"8px",padding:"8px 12px",marginBottom:"10px",fontSize:"11px",color:T.red}}>⚠ Active: {considerations.filter(c=>c.active).map(c=>c.text).join(", ")} — AI will adapt workouts{subs.length>0?` · ${subs.length} substitution rule${subs.length>1?"s":""}`:""}</div>}
@@ -1159,9 +1167,9 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
           return <div style={{...ss.card,border:`1px solid ${hasRd?T.purple+"40":T.border}`,marginBottom:"10px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:exp.readiness?"10px":"0",cursor:"pointer"}} onClick={()=>tog("readiness")}>
               <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
-                <span style={{color:T.purple,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>📋 TODAY'S CHECK-IN</span>
-                {hasRd&&!exp.readiness&&<span style={{color:T.sub,fontSize:"10px"}}>— Sleep {readiness.sleep||"?"}/5 · Sore {readiness.soreness||"?"}/5 · Energy {readiness.energy||"?"}/5</span>}
-                {!hasRd&&!exp.readiness&&<span style={{color:T.dim,fontSize:"10px"}}>(optional — helps AI adjust)</span>}
+                <span style={{color:T.purple,fontSize:"11px",fontWeight:700,letterSpacing:"1px"}}>📋 TODAY'S CHECK-IN</span>
+                {hasRd&&!exp.readiness&&<span style={{color:T.sub,fontSize:"11px"}}>— Sleep {readiness.sleep||"?"}/5 · Sore {readiness.soreness||"?"}/5 · Energy {readiness.energy||"?"}/5</span>}
+                {!hasRd&&!exp.readiness&&<span style={{color:T.dim,fontSize:"11px"}}>(optional — helps AI adjust)</span>}
               </div>
               <span style={{color:T.sub,fontSize:"12px"}}>{exp.readiness?"▴":"▾"}</span>
             </div>
@@ -1171,11 +1179,11 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
                 <div style={{display:"inline-flex",gap:"4px"}}>{[1,2,3,4,5].map(v=>{const sel=readiness[key]===v;const isS=key==="soreness";const c=isS?cs[v-1]:cs[v-1];
                   return <button key={v} onClick={()=>rc(key,v)} style={{width:44,padding:"4px 2px",borderRadius:"6px",border:`1.5px solid ${sel?c:T.border}`,background:sel?c+"18":"transparent",cursor:"pointer",textAlign:"center",fontSize:"11px"}}>
                     <div style={{fontSize:"12px"}}>{labs[key][v-1]}</div>
-                    <div style={{color:sel?c:T.dim,fontSize:"8px",fontWeight:600}}>{v}/5</div>
+                    <div style={{color:sel?c:T.dim,fontSize:"9px",fontWeight:600}}>{v}/5</div>
                   </button>})}</div>
               </div>)}
               <input value={readiness.note} onChange={e=>setReadiness(p=>({...p,note:e.target.value}))} placeholder="Quick note — knee tight, rough week, feeling great..." style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 10px",borderRadius:"6px",fontSize:"11px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}}/>
-              {hasRd&&<div style={{color:T.dim,fontSize:"9px",marginTop:"6px"}}>✓ AI will factor this into generated workouts{readiness.soreness>=4?" — high soreness will trigger auto-deload":""}</div>}
+              {hasRd&&<div style={{color:T.dim,fontSize:"10px",marginTop:"6px"}}>✓ AI will factor this into generated workouts{readiness.soreness>=4?" — high soreness will trigger auto-deload":""}</div>}
             </div>}
           </div>})()}
         {buildType&&<WorkoutBuilder type={buildType} types={types} onTypeChange={setBuildType} allWs={sorted} onSave={(w)=>{setProposals(p=>[...p.filter(x=>x.type!==w.type),w]);setBuildType(null)}} onCancel={()=>setBuildType(null)}/>}
@@ -1186,8 +1194,8 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
           const hasPins = Object.values(tp).some(v=>v);
           return <div key={type} style={{marginBottom:"8px"}}>
             {!p && !loading && <div style={{...ss.card,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div><span style={{...ss.pill(TC[type]),fontSize:"10px",marginRight:"8px"}}>{type}</span><span style={{color:T.sub,fontSize:"12px"}}>No proposal yet</span></div>
-              <button onClick={()=>generateForType(type)} style={{...ss.btn(true),fontSize:"10px",padding:"4px 10px"}}>✨ Generate</button>
+              <div><span style={{...ss.pill(TC[type]),fontSize:"11px",marginRight:"8px"}}>{type}</span><span style={{color:T.sub,fontSize:"12px"}}>No proposal yet</span></div>
+              <button onClick={()=>generateForType(type)} style={{...ss.btn(true),fontSize:"11px",padding:"4px 10px"}}>✨ Generate</button>
             </div>}
             {loading && <div style={{...ss.card,textAlign:"center",padding:"20px"}}>
               <div style={{color:T.accent,fontSize:"13px",fontWeight:600,marginBottom:"4px"}}>🧠 Claude is programming {type} day...</div>
@@ -1197,8 +1205,8 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
             {p && !loading && <div>
               <WCard w={p} open={exp[p.id]!==false} toggle={()=>tog(p.id)} onAction={handleAction} pinned={tp} onTogglePin={(pk)=>setPinned(prev=>({...prev,[type]:{...(prev[type]||{}), [pk]:!(prev[type]||{})[pk]}}))} onExClick={setSelEx}/>
               <div style={{textAlign:"right",marginTop:"-4px",marginBottom:"8px",display:"flex",justifyContent:"flex-end",gap:"10px"}}>
-                {hasPins&&<button onClick={()=>generateForType(type,true)} style={{background:"none",border:"none",color:T.accent,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>✨ Regen unpinned</button>}
-                <button onClick={()=>generateForType(type)} style={{background:"none",border:"none",color:T.cyan,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>↻ Regenerate all</button>
+                {hasPins&&<button onClick={()=>generateForType(type,true)} style={{background:"none",border:"none",color:T.accent,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>✨ Regen unpinned</button>}
+                <button onClick={()=>generateForType(type)} style={{background:"none",border:"none",color:T.cyan,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>↻ Regenerate all</button>
               </div>
             </div>}
           </div>;
@@ -1209,7 +1217,7 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
       {tab==="history"&&<>
         {sorted.length===0?<div style={{...ss.card,textAlign:"center",padding:"32px 16px"}}><div style={{fontSize:"28px",marginBottom:"8px"}}>📋</div><div style={{color:T.text,fontWeight:600,fontSize:"14px",marginBottom:"4px"}}>No workouts yet</div><div style={{color:T.dim,fontSize:"12px"}}>Generate a workout in the Next Workouts tab to get started.</div><button onClick={()=>setTab("next")} style={{...ss.btn(true),marginTop:"12px"}}>→ Next Workouts</button></div>:<>
         <div style={{display:"flex",gap:"4px",marginBottom:"8px",flexWrap:"wrap"}}>
-          {["all",...getTypes(sorted)].map(f=><button key={f} onClick={()=>setFilt(f)} style={{background:filt===f?T.accent+"15":"transparent",border:`1px solid ${filt===f?T.accent+"30":T.border}`,color:filt===f?T.accent:T.sub,padding:"3px 8px",borderRadius:"5px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{f} ({f==="all"?sorted.length:sorted.filter(w=>w.type===f).length})</button>)}
+          {["all",...getTypes(sorted)].map(f=><button key={f} onClick={()=>setFilt(f)} style={{background:filt===f?T.accent+"15":"transparent",border:`1px solid ${filt===f?T.accent+"30":T.border}`,color:filt===f?T.accent:T.sub,padding:"3px 8px",borderRadius:"5px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{f} ({f==="all"?sorted.length:sorted.filter(w=>w.type===f).length})</button>)}
         </div>
         {[...filtHist].reverse().map(w=>{const isEditing=editingWId===w.id;const displayW=isEditing?editW:w;
           return <WCard key={w.id} w={displayW} open={!!exp[w.id]} toggle={()=>tog(w.id)} onExClick={setSelEx}
@@ -1228,20 +1236,20 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
         <div style={{display:"grid",gridTemplateColumns:`repeat(${2+Math.min(tl.length,3)},1fr)`,gap:"6px",marginBottom:"12px"}}>{tl.slice(0,3).map(l=><Stat key={l.name} v={`${l.max}#`} l={`${l.short} Max`} c={l.color}/>)}<Stat v={quads.length+lowers.length} l="Leg Days" c={T.quads}/><Stat v={glutes.length} l="Glute Days" c={T.glutes}/></div>
         {(()=>{const rpeData=sorted.filter(w=>w.rpe).map(w=>({date:w.date,max:w.rpe}));const volData=sorted.map(w=>({date:w.date,max:w.blocks.reduce((a,b)=>a+b.exercises.reduce((s,e)=>s+((e.sets||0)*(e.reps||0)*(e.weight||0)),0),0)})).filter(d=>d.max>0);const avgRpe=rpeData.length?((rpeData.reduce((a,d)=>a+d.max,0)/rpeData.length).toFixed(1)):null;const avgVol=volData.length?Math.round(volData.slice(-8).reduce((a,d)=>a+d.max,0)/Math.min(volData.length,8)):null;
           return (rpeData.length>0||volData.length>0)&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"8px"}}>
-            {rpeData.length>0&&<div style={ss.card}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}><span style={{color:T.sub,fontSize:"9px",fontWeight:700,letterSpacing:"1px"}}>RPE TREND</span>{avgRpe&&<span style={{...ss.mono,color:T.accent,fontSize:"11px"}}>avg {avgRpe}</span>}</div><Chart data={rpeData} color={T.pink} h={70}/></div>}
-            {volData.length>0&&<div style={ss.card}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}><span style={{color:T.sub,fontSize:"9px",fontWeight:700,letterSpacing:"1px"}}>VOLUME LOAD</span>{avgVol&&<span style={{...ss.mono,color:T.cyan,fontSize:"11px"}}>{(avgVol/1000).toFixed(1)}k avg</span>}</div><Chart data={volData} color={T.cyan} h={70}/></div>}
+            {rpeData.length>0&&<div style={ss.card}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}><span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>RPE TREND</span>{avgRpe&&<span style={{...ss.mono,color:T.accent,fontSize:"11px"}}>avg {avgRpe}</span>}</div><Chart data={rpeData} color={T.pink} h={70}/></div>}
+            {volData.length>0&&<div style={ss.card}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}><span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>VOLUME LOAD</span>{avgVol&&<span style={{...ss.mono,color:T.cyan,fontSize:"11px"}}>{(avgVol/1000).toFixed(1)}k avg</span>}</div><Chart data={volData} color={T.cyan} h={70}/></div>}
           </div>})()}
         {(client.checkins||[]).length>0&&<div style={ss.card}>
-          <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>📊 BODY COMPOSITION TREND</div>
+          <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>📊 BODY COMPOSITION TREND</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
-            {client.checkins.some(c=>c.weight)&&<div><div style={{color:T.dim,fontSize:"9px",marginBottom:"4px"}}>Weight</div><Chart data={client.checkins.filter(c=>c.weight).map(c=>({date:c.date,max:c.weight}))} color={T.blue} h={70}/></div>}
-            {client.checkins.some(c=>c.bodyFat)&&<div><div style={{color:T.dim,fontSize:"9px",marginBottom:"4px"}}>Body Fat %</div><Chart data={client.checkins.filter(c=>c.bodyFat).map(c=>({date:c.date,max:c.bodyFat}))} color={T.pink} h={70}/></div>}
+            {client.checkins.some(c=>c.weight)&&<div><div style={{color:T.dim,fontSize:"10px",marginBottom:"4px"}}>Weight</div><Chart data={client.checkins.filter(c=>c.weight).map(c=>({date:c.date,max:c.weight}))} color={T.blue} h={70}/></div>}
+            {client.checkins.some(c=>c.bodyFat)&&<div><div style={{color:T.dim,fontSize:"10px",marginBottom:"4px"}}>Body Fat %</div><Chart data={client.checkins.filter(c=>c.bodyFat).map(c=>({date:c.date,max:c.bodyFat}))} color={T.pink} h={70}/></div>}
           </div>
         </div>}
-        {tl.map(l=><div key={l.name} style={ss.card}><div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>{l.name.toUpperCase()}</div><Chart data={l.prog} color={l.color}/></div>)}
-        <div style={ss.card}><div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>MUSCLE BALANCE (LAST 8)</div><Bars ws={sorted}/></div>
-        <div style={ss.card}><div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>TOP EXERCISES</div>
-          {topEx.map(([n,d])=><div key={n} onClick={()=>setSelEx(n)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:`1px solid ${T.border}15`,cursor:"pointer"}}><div><span style={{color:T.text,fontSize:"11px",fontWeight:500}}>{n}</span><div style={{display:"flex",gap:"2px",marginTop:"1px"}}>{(MM[n]||[]).filter(m=>m!=="Grip").slice(0,3).map(m=><Pill key={m} g={m}/>)}</div></div><div style={{textAlign:"right"}}><span style={{...ss.mono,color:T.accent,fontSize:"12px",fontWeight:600}}>{d.count}×</span>{d.lastW&&<div style={{color:T.dim,fontSize:"8px"}}>last: {d.lastW}#</div>}</div></div>)}
+        {tl.map(l=><div key={l.name} style={ss.card}><div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>{l.name.toUpperCase()}</div><Chart data={l.prog} color={l.color}/></div>)}
+        <div style={ss.card}><div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>MUSCLE BALANCE (LAST 8)</div><Bars ws={sorted}/></div>
+        <div style={ss.card}><div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>TOP EXERCISES</div>
+          {topEx.map(([n,d])=><div key={n} onClick={()=>setSelEx(n)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:`1px solid ${T.border}15`,cursor:"pointer"}}><div><span style={{color:T.text,fontSize:"11px",fontWeight:500}}>{n}</span><div style={{display:"flex",gap:"2px",marginTop:"1px"}}>{(MM[n]||[]).filter(m=>m!=="Grip").slice(0,3).map(m=><Pill key={m} g={m}/>)}</div></div><div style={{textAlign:"right"}}><span style={{...ss.mono,color:T.accent,fontSize:"12px",fontWeight:600}}>{d.count}×</span>{d.lastW&&<div style={{color:T.dim,fontSize:"9px"}}>last: {d.lastW}#</div>}</div></div>)}
         </div>
         </>}
       </>}
@@ -1262,26 +1270,26 @@ function AddClient({onSave,onCancel}){
   return <div><div style={ss.header}><div style={{display:"flex",alignItems:"center",gap:"8px"}}><button onClick={onCancel} style={{background:"none",border:"none",color:T.sub,fontSize:"18px",cursor:"pointer"}}>‹</button><h2 style={{margin:0,fontSize:"16px"}}>New Client</h2></div></div>
     <div style={ss.content}><div style={ss.card}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"8px"}}>
-        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Name *</label><input style={inp} value={name} onChange={e=>setName(e.target.value)} placeholder="Pat"/></div>
-        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Full Name</label><input style={inp} value={full} onChange={e=>setFull(e.target.value)} placeholder="Patrick Smith"/></div>
+        <div><label style={{color:T.dim,fontSize:"11px",display:"block",marginBottom:"3px"}}>Name *</label><input style={inp} value={name} onChange={e=>setName(e.target.value)} placeholder="Pat"/></div>
+        <div><label style={{color:T.dim,fontSize:"11px",display:"block",marginBottom:"3px"}}>Full Name</label><input style={inp} value={full} onChange={e=>setFull(e.target.value)} placeholder="Patrick Smith"/></div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"8px"}}>
-        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Email</label><input type="email" style={inp} value={email} onChange={e=>setEmail(e.target.value)} placeholder="email@example.com"/></div>
-        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Phone</label><input type="tel" style={inp} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="(555) 123-4567"/></div>
+        <div><label style={{color:T.dim,fontSize:"11px",display:"block",marginBottom:"3px"}}>Email</label><input type="email" style={inp} value={email} onChange={e=>setEmail(e.target.value)} placeholder="email@example.com"/></div>
+        <div><label style={{color:T.dim,fontSize:"11px",display:"block",marginBottom:"3px"}}>Phone</label><input type="tel" style={inp} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="(555) 123-4567"/></div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"6px",marginBottom:"8px"}}>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Date of Birth</label><input type="date" style={inp} value={dob} onChange={e=>setDob(e.target.value)}/></div>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Gender</label><select style={{...inp,appearance:"auto"}} value={gender} onChange={e=>setGender(e.target.value)}><option value="">—</option><option value="M">Male</option><option value="F">Female</option><option value="Other">Other</option></select></div>
-        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Start Weight</label><input style={inp} value={startWt} onChange={e=>setStartWt(e.target.value)} placeholder="lbs"/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Date of Birth</label><input type="date" style={inp} value={dob} onChange={e=>setDob(e.target.value)}/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Gender</label><select style={{...inp,appearance:"auto"}} value={gender} onChange={e=>setGender(e.target.value)}><option value="">—</option><option value="M">Male</option><option value="F">Female</option><option value="Other">Other</option></select></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Start Weight</label><input style={inp} value={startWt} onChange={e=>setStartWt(e.target.value)} placeholder="lbs"/></div>
       </div>
-      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"4px"}}>Training Days</label>
-      <div style={{display:"flex",gap:"4px",marginBottom:"4px"}}>{[["M","Mon"],["T","Tue"],["W","Wed"],["TH","Thu"],["F","Fri"],["S","Sat"],["SU","Sun"]].map(([k,l])=><button key={k} onClick={()=>toggleDay(k)} style={{width:36,height:32,borderRadius:"6px",border:`1.5px solid ${schedDays.includes(k)?T.accent:T.border}`,background:schedDays.includes(k)?T.accent+"15":T.card,color:schedDays.includes(k)?T.accent:T.dim,fontSize:"10px",fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>{l}</button>)}</div>
+      <label style={{color:T.dim,fontSize:"11px",display:"block",marginBottom:"4px"}}>Training Days</label>
+      <div style={{display:"flex",gap:"4px",marginBottom:"4px"}}>{[["M","Mon"],["T","Tue"],["W","Wed"],["TH","Thu"],["F","Fri"],["S","Sat"],["SU","Sun"]].map(([k,l])=><button key={k} onClick={()=>toggleDay(k)} style={{width:36,height:32,borderRadius:"6px",border:`1.5px solid ${schedDays.includes(k)?T.accent:T.border}`,background:schedDays.includes(k)?T.accent+"15":T.card,color:schedDays.includes(k)?T.accent:T.dim,fontSize:"11px",fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>{l}</button>)}</div>
       <input style={{...inp,marginBottom:"10px",fontSize:"12px"}} value={schedNotes} onChange={e=>setSchedNotes(e.target.value)} placeholder="e.g. Mornings, 5:30 PM, alternating weeks..."/>
-      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"4px"}}>Workout Types *</label>
-      <div style={{display:"flex",gap:"5px",marginBottom:"10px",flexWrap:"wrap"}}>{allTypes.map(t=><button key={t} onClick={()=>toggleType(t)} style={{background:wTypes.includes(t)?(TC[t]||T.accent)+"20":"transparent",border:`1px solid ${wTypes.includes(t)?(TC[t]||T.accent)+"50":T.border}`,color:wTypes.includes(t)?(TC[t]||T.accent):T.dim,padding:"4px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{t}</button>)}</div>
-      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Focus Areas</label><textarea style={{...inp,height:"60px",resize:"vertical",marginBottom:"8px"}} value={focus} onChange={e=>setFocus(e.target.value)}/>
-      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Goals</label><textarea style={{...inp,height:"50px",resize:"vertical",marginBottom:"8px"}} value={goals} onChange={e=>setGoals(e.target.value)}/>
-      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"4px"}}>Color</label>
+      <label style={{color:T.dim,fontSize:"11px",display:"block",marginBottom:"4px"}}>Workout Types *</label>
+      <div style={{display:"flex",gap:"5px",marginBottom:"10px",flexWrap:"wrap"}}>{allTypes.map(t=><button key={t} onClick={()=>toggleType(t)} style={{background:wTypes.includes(t)?(TC[t]||T.accent)+"20":"transparent",border:`1px solid ${wTypes.includes(t)?(TC[t]||T.accent)+"50":T.border}`,color:wTypes.includes(t)?(TC[t]||T.accent):T.dim,padding:"4px 10px",borderRadius:"6px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{t}</button>)}</div>
+      <label style={{color:T.dim,fontSize:"11px",display:"block",marginBottom:"3px"}}>Focus Areas</label><textarea style={{...inp,height:"60px",resize:"vertical",marginBottom:"8px"}} value={focus} onChange={e=>setFocus(e.target.value)}/>
+      <label style={{color:T.dim,fontSize:"11px",display:"block",marginBottom:"3px"}}>Goals</label><textarea style={{...inp,height:"50px",resize:"vertical",marginBottom:"8px"}} value={goals} onChange={e=>setGoals(e.target.value)}/>
+      <label style={{color:T.dim,fontSize:"11px",display:"block",marginBottom:"4px"}}>Color</label>
       <div style={{display:"flex",gap:"6px",marginBottom:"12px"}}>{colors.map(c=><div key={c} onClick={()=>setColor(c)} style={{width:26,height:26,borderRadius:"5px",background:c,cursor:"pointer",border:color===c?`2px solid ${T.text}`:"2px solid transparent"}}/>)}</div>
       <button onClick={()=>{if(name&&wTypes.length)onSave({id:name.toLowerCase().replace(/\s+/g,"-"),name,fullName:full||name,email,phone,scheduleDays:schedDays,scheduleNotes:schedNotes,goals,focusAreas:focus,workoutTypes:wTypes,startDate:new Date().toISOString().slice(0,10),color,dob,gender,startingWeight:startWt,considerations:[],checkins:[]})}} style={{...ss.btn(true),width:"100%",padding:"10px"}} disabled={!name||!wTypes.length}>Create Client</button>
     </div></div></div>;
@@ -1294,15 +1302,16 @@ export default function Forge(){
   const client=clients.find(c=>c.id===cid);
   if(loading)return <div style={{...ss.page,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{textAlign:"center"}}><div style={{color:T.accent,fontSize:"24px",fontWeight:700}}>FORGE <span style={{color:T.cyan,fontSize:"14px"}}>AI</span></div><div style={{color:T.sub,fontSize:"12px"}}>Loading...</div></div></div>;
   return <div style={ss.page}>
+    
     {view==="addClient"?<AddClient onSave={async c=>{await saveCl(c);nav("client",c.id)}} onCancel={()=>nav("dashboard")}/>
     :view==="client"&&client?<ClientView client={client} ws={workouts[cid]||[]} onNav={nav} onSaveW={saveW} onDeleteW={deleteW} onSaveCl={saveCl} initTab={initTab}/>
     :<Dashboard clients={clients} workouts={workouts} onNav={nav}/>}
     {showPicker&&<div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.25)"}} onClick={()=>setShowPicker(false)}>
         <div onClick={e=>e.stopPropagation()} style={{position:"fixed",bottom:56,left:8,right:8,background:T.card,border:`1px solid ${T.border}`,borderRadius:"12px",boxShadow:"0 -4px 20px rgba(0,0,0,0.12)",padding:"10px",maxHeight:"50vh",overflowY:"auto"}}>
-          <div style={{color:T.dim,fontSize:"9px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px",padding:"2px 4px"}}>ALL CLIENTS</div>
+          <div style={{color:T.dim,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px",padding:"2px 4px"}}>ALL CLIENTS</div>
           {clients.map(c=><button key={c.id} onClick={()=>{nav("client",c.id);setShowPicker(false)}} style={{display:"flex",alignItems:"center",gap:"10px",width:"100%",padding:"8px",borderRadius:"8px",border:"none",background:cid===c.id?T.accent+"10":"transparent",cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
             <span style={{width:28,height:28,borderRadius:"6px",background:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</span>
-            <div><div style={{color:cid===c.id?T.accent:T.text,fontSize:"13px",fontWeight:600}}>{c.fullName||c.name}</div><div style={{color:T.dim,fontSize:"10px"}}>{(workouts[c.id]||[]).length} sessions</div></div>
+            <div><div style={{color:cid===c.id?T.accent:T.text,fontSize:"13px",fontWeight:600}}>{c.fullName||c.name}</div><div style={{color:T.dim,fontSize:"11px"}}>{(workouts[c.id]||[]).length} sessions</div></div>
           </button>)}
         </div>
       </div>}
@@ -1312,8 +1321,8 @@ export default function Forge(){
       const hasMore=clients.length>maxNav;
       return <div style={ss.navBar}>
         <button onClick={()=>nav("dashboard")} style={ss.navBtn(view==="dashboard")}><span style={{fontSize:"18px"}}>⌂</span>Home</button>
-        {visible.map(c=><button key={c.id} onClick={()=>nav("client",c.id)} style={{...ss.navBtn(view==="client"&&cid===c.id),padding:"3px 8px",minWidth:0}}><span style={{width:22,height:22,borderRadius:"5px",background:view==="client"&&cid===c.id?T.accent:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:T.bg}}>{c.name[0]}</span><span style={{fontSize:"9px",maxWidth:"48px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</span></button>)}
-        {hasMore&&<button onClick={()=>setShowPicker(!showPicker)} style={{...ss.navBtn(showPicker),padding:"3px 8px"}}><span style={{fontSize:"16px"}}>•••</span><span style={{fontSize:"9px"}}>{clients.length}</span></button>}
+        {visible.map(c=><button key={c.id} onClick={()=>nav("client",c.id)} style={{...ss.navBtn(view==="client"&&cid===c.id),padding:"3px 8px",minWidth:0}}><span style={{width:22,height:22,borderRadius:"5px",background:view==="client"&&cid===c.id?T.accent:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:T.bg}}>{c.name[0]}</span><span style={{fontSize:"10px",maxWidth:"48px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</span></button>)}
+        {hasMore&&<button onClick={()=>setShowPicker(!showPicker)} style={{...ss.navBtn(showPicker),padding:"3px 8px"}}><span style={{fontSize:"16px"}}>•••</span><span style={{fontSize:"10px"}}>{clients.length}</span></button>}
       </div>})()}
   </div>;
 }
