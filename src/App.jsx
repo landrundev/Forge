@@ -1,0 +1,1319 @@
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+
+// ═══════════════════════════════════════════════════════════════
+//  FORGE — AI-Powered Professional Training Platform v15
+//  Light theme · Smart lifts · Edit/Delete · Dashboard Today view
+// ═══════════════════════════════════════════════════════════════
+
+const T = {
+  bg:"#FFFFFF",surface:"#F5F5F7",card:"#FFFFFF",
+  border:"#E2E4E9",borderLight:"#D0D3DA",
+  accent:"#FF2D6F",text:"#1A1D23",sub:"#6B7280",dim:"#9CA3AF",
+  green:"#10B981",red:"#EF4444",blue:"#3B82F6",purple:"#8B5CF6",
+  cyan:"#14B8A6",amber:"#84CC16",pink:"#FF2D6F",
+  quads:"#EF4444",hams:"#10B981",glutes:"#84CC16",core:"#8B5CF6",
+  calves:"#14B8A6",back:"#3B82F6",chest:"#FF6B9D",arms:"#FF2D6F",
+};
+const MC={Quads:T.quads,Hamstrings:T.hams,Glutes:T.glutes,Core:T.core,Calves:T.calves,Back:T.back,Biceps:T.arms,Triceps:T.arms,Chest:T.chest,Shoulders:T.pink,Adductors:T.pink};
+const TC={quad:T.quads,glute:T.glutes,upper:T.back,lower:T.hams,push:T.chest,pull:T.back,full:T.purple};
+
+const MM={"Barbell Back Squat":["Quads","Glutes"],"Back Squat":["Quads","Glutes"],"B Stance Back Squat":["Quads","Glutes"],"Leg Extension":["Quads"],"Leg Extension Tempo":["Quads"],"S/L Leg Extension":["Quads"],"SL Leg Extension":["Quads"],"Single Leg Extension":["Quads"],"Leg Curl":["Hamstrings"],"SL Leg Curl":["Hamstrings"],"Single Leg Curl":["Hamstrings"],"Single Leg Curl Tempo":["Hamstrings"],"Hamstring Curl":["Hamstrings"],"Hamstring Curl Tempo":["Hamstrings"],"Banded Scooter Hamstring Curls":["Hamstrings"],"Banded Scooter Ham Curls":["Hamstrings"],"Barbell RDL":["Hamstrings","Glutes"],"Barbell Deficit RDL":["Hamstrings","Glutes"],"DB RDL":["Hamstrings","Glutes"],"DB Single Leg RDL":["Hamstrings","Glutes"],"DB Incline RDL":["Hamstrings","Glutes"],"Incline DB RDL":["Hamstrings","Glutes"],"Incline RDL":["Hamstrings","Glutes"],"RDL":["Hamstrings","Glutes"],"SL RDL":["Hamstrings","Glutes"],"SL RDL with Knee Drive":["Hamstrings","Glutes"],"S/L RDL with Knee Drive":["Hamstrings","Glutes"],"SL DB RDL":["Hamstrings","Glutes"],"SL Landmine RDL":["Hamstrings","Glutes"],"Landmine SL RDL":["Hamstrings","Glutes"],"KB Deficit RDL":["Hamstrings","Glutes"],"Landmine RDL":["Hamstrings","Glutes"],"Trap Bar Deadlift":["Hamstrings","Glutes","Back"],"Trap Bar RDL":["Hamstrings","Glutes"],"Sumo Deadlift":["Hamstrings","Glutes"],"Barbell Sumo Deadlift":["Hamstrings","Glutes"],"DB Deadlift to Calf Raise":["Hamstrings","Calves"],"KB Deadlift to Calf Raises":["Hamstrings","Calves"],"GHD":["Hamstrings","Glutes"],"GHD Reverse":["Hamstrings","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"DB Bulgarian Split Squat":["Quads","Glutes"],"Bulgarian Split to Lunge":["Quads","Glutes"],"Bulgarian into Lunge into Calf Raise":["Quads","Glutes","Calves"],"Incline Goblet Squats":["Quads","Glutes"],"Incline Goblet Squat":["Quads","Glutes"],"Heels Elevated Goblet Squat":["Quads","Glutes"],"DB Goblet Squat":["Quads","Glutes"],"DB Goblet Sumo Squat":["Quads","Glutes"],"DB Goblet Bench Tap Squat":["Quads","Glutes"],"KB Elevated Goblet Squat":["Quads","Glutes"],"Goblet Squats":["Quads","Glutes"],"Goblet Squat":["Quads","Glutes"],"Goblet Ballerina Squat":["Quads","Glutes"],"Goblet Squat into Cossack Squat":["Quads","Adductors"],"B Stance Goblet Squats":["Quads","Glutes"],"B Stance Goblet Squat":["Quads","Glutes"],"Sumo Squat":["Quads","Glutes"],"Sumo Squats":["Quads","Glutes"],"Elevated Sumo Squat":["Quads","Glutes"],"DB Front Squat":["Quads","Glutes"],"Jump Squats":["Quads","Glutes"],"Squat Jumps":["Quads","Glutes"],"BW Jump Squats":["Quads","Glutes"],"Cossack Squat":["Quads","Adductors"],"Landmine Hack Squat":["Quads"],"Landmine Hack Sumo Squat":["Quads"],"Landmine Thrusters":["Quads","Shoulders"],"Hack Squats":["Quads"],"Walking Lunges":["Quads","Glutes"],"DB Walking Lunges":["Quads","Glutes"],"Barbell Walking Lunges":["Quads","Glutes"],"BW Walking Lunges":["Quads","Glutes"],"Sandbag Walking Lunges":["Quads","Glutes"],"Reverse Lunges":["Quads","Glutes"],"Reverse + Curtsy Lunges":["Quads","Glutes"],"Deficit Reverse Lunge":["Quads","Glutes"],"Alt Curtsy Lunges":["Quads","Glutes"],"Curtsy Lunge":["Quads","Glutes"],"Lunge Pulse":["Quads","Glutes"],"Alt Jump Lunges":["Quads","Glutes"],"Side Lunges":["Quads","Glutes"],"Split Stance Lunge":["Quads","Glutes"],"Box Step Ups":["Quads","Glutes"],"DB Step Ups":["Quads","Glutes"],"Box Step Overs":["Quads","Glutes"],"Bench Step Downs":["Quads","Glutes"],"DB Bench Step Downs":["Quads","Glutes"],"BW Bench Step Downs":["Quads","Glutes"],"Squat Step Backs":["Quads","Glutes"],"Squat Hold Step Backs":["Quads","Glutes"],"BW Squat Step Back":["Quads","Glutes"],"Bulgarian Split Jumps":["Quads","Glutes"],"Wall Sit":["Quads"],"Squat Hold":["Quads"],"Sled Push":["Quads"],"Sled Push Down/Pull Back":["Quads","Hamstrings"],"Sled Push/Drag":["Quads","Hamstrings"],"Sled Drag":["Hamstrings"],"Sled Pull":["Hamstrings"],"Calf Raises":["Calves"],"KB Calf Raises":["Calves"],"S/L Calf Raises":["Calves"],"SL Calf Raises":["Calves"],"Elevated Calf Raises":["Calves"],"Lunge Hold Calf Raises":["Calves"],"Plate Calf Raises":["Calves"],"BW Calf Raises":["Calves"],"Bent Knee Calf Raise":["Calves"],"S/L Bench Hip Thrusts":["Glutes"],"Landmine S/L Hip Thrust":["Glutes"],"Hip Thruster":["Glutes"],"Barbell Hip Thrust":["Glutes"],"Banded Hip Thrust":["Glutes"],"Glute Bridge":["Glutes"],"Banded Glute Bridge":["Glutes"],"Banded Glute Bridge + Pulse":["Glutes"],"Banded Glute Bridge Abductor Pulse":["Glutes"],"Glute Bridge March":["Glutes"],"KB Swings":["Hamstrings","Glutes"],"Farmer's Carry":["Core"],"KB Farmer's Carry":["Core"],"Power Beast":["Core"],"Beast to Plank":["Core"],"Plank to Beast":["Core"],"Copenhagen":["Adductors"],"Copenhagen Lifts":["Adductors"],"Copenhagen on Box":["Adductors"],"Banded Adductor":["Adductors"],"Banded Abductor":["Glutes"],"Adductor Plate Slides":["Adductors"],"Side Lying Abductors":["Glutes"],"Banded March":["Glutes"],"Banded Bridge Wide Pulse":["Glutes"],"Banded Bridge Scooter Curls":["Hamstrings"],"Banded Clamshells":["Glutes"],"Clamshells":["Glutes"],"Hip Thrust Hold Adductors":["Glutes","Adductors"],"Banded Sissy Squat to Fold Over":["Quads"],"DB Suitcase Squat to Curtsy":["Quads","Glutes"],"Ballerina Bulgarian":["Quads","Glutes"],"Barbell Bench":["Chest"],"DB Bench Press":["Chest"],"Incline Crush Grip Press":["Chest"],"Push Ups":["Chest"],"DB Chest Fly":["Chest"],"Barbell Row":["Back"],"Pendlay Row":["Back"],"DB Row":["Back"],"Cable Row":["Back"],"Gorilla Row":["Back"],"Lat Pull Over":["Back"],"Cable Lat Pull Down":["Back"],"Chin Ups":["Back","Biceps"],"Pull Ups":["Back","Biceps"],"Banded Chin Up":["Back","Biceps"],"Dead Hang":["Back"],"Renegade Rows":["Back","Core"],"Kelso Shrugs":["Back"],"Meadows Row":["Back"],"Landmine Around the World":["Core","Back"],"Landmine Row":["Back"],"DB Bicep Curls":["Biceps"],"Barbell Curl":["Biceps"],"Hammer Curl":["Biceps"],"Concentration Curl":["Biceps"],"Incline Curl":["Biceps"],"KB Curl":["Biceps"],"Cable Tricep Extension":["Triceps"],"Skull Crushers":["Triceps"],"Bench Dips":["Triceps"],"Tricep Kickbacks":["Triceps"],"DB Reverse Fly":["Back"],"Seated Arnold Press":["Shoulders"],"DB T Raise":["Shoulders"],"Lateral Raise":["Shoulders"],"Face Pull":["Back","Shoulders"],"Weighted Situps":["Core"],"Weighted Sit Ups":["Core"],"Weighted Med Ball Situps":["Core"],"Weighted Crunch":["Core"],"Russian Twists":["Core"],"Russian Twist on Box":["Core"],"Ab Rollouts":["Core"],"Ab Rollout":["Core"],"Butterfly Situps":["Core"],"Demon Crunch":["Core"],"Demon Crunch on Box":["Core"],"V-Ups":["Core"],"Weighted V-Ups":["Core"],"Box V-Ups":["Core"],"Box Crunches":["Core"],"Leg Lifts":["Core"],"Leg Raise":["Core"],"Plate Leg Lift":["Core"],"Plate Leg V-Up Crunch":["Core"],"Plate Leg Raise Sit Ups":["Core"],"Plate Reverse Crunch":["Core"],"Plate Reverse Crunch to Leg Raise":["Core"],"Plate Crunch to Leg Raise":["Core"],"Plate Flutter Kicks":["Core"],"Plate Crunches":["Core"],"Shin Plate Crunch":["Core"],"Flutter Kicks":["Core"],"Crunch":["Core"],"Jack Knife V-Ups":["Core"],"Band Hold Crunch to Leg Lift":["Core"],"Band Hold Leg Lifts to Crunch":["Core"],"Band Hollow Hold":["Core"],"Wall Ball Feet to Hands Crunch":["Core"],"Beast Wall Ball Rotations":["Core"],"Med Ball Leg Lifts":["Core"],"Plank":["Core"],"Dead Bug":["Core"],"Banded Deadbug":["Core"],"Weighted Deadbugs":["Core"],"Weighted Deadbug Crunch":["Core"],"Deadbug Crunch":["Core"],"Side Crunch":["Core"],"Cable Crunch":["Core"],"Cable Crunch Hold":["Core"],"Hanging Knee Tucks":["Core"],"Hollow Hold":["Core"],"Medball Slams":["Core"],"Wood Chops":["Core"],"Halo":["Core"],"Kneeling Plate Hip Halo":["Core"],"KB Side Crunch":["Core"],"KB Hip Circles":["Core"],"Heel Taps":["Core"],"Side Plank Dips":["Core"],"Landmine Rainbows":["Core"],"Hip Flexor":["Core"],"KB Suitcase Deadlift":["Hamstrings","Glutes"],"KB Sumo Squat Pulse":["Quads","Glutes"],"KB Sumo Squats":["Quads","Glutes"],"Sumo Squat .5+1":["Quads","Glutes"],"Sumo Squat 1.5s":["Quads","Glutes"],"Sumo Squat Plie":["Quads","Glutes"],"BW Sumo Squats":["Quads","Glutes"],"Lunge/Lunge/Squat":["Quads","Glutes"],"DB Bulgarian into Front Lunge":["Quads","Glutes"],"Bulgarian BW":["Quads","Glutes"],"Bulgarian Calf Raises":["Quads","Calves"],"Bulgarian Split Squat BW":["Quads","Glutes"],"Bulgarian Split Pulse BW":["Quads","Glutes"],"Bike":[],"Bike Legs Only":[],"Bike Both":[],"Ski":[],"Row":[],"Front Lunge":["Quads","Glutes"],"Walking Lunge":["Quads","Glutes"],"DB Walking Lunge":["Quads","Glutes"],"Barbell Walking Lunge":["Quads","Glutes"],"BW Walking Lunge":["Quads","Glutes"],"Walking DB Lunge":["Quads","Glutes"],"Calf Raise":["Calves"],"KB Elevated Calf Raise":["Calves"],"Single Leg Calf Raise":["Calves"],"Single Leg Elevated Calf Raise":["Calves"],"BW Bent Knee Calf Raise":["Calves"],"Plate Bent Knee Calf Raise":["Calves"],"Lunge Hold Calf Raise":["Calves"],"Leg Lift":["Core"],"Flutter Kick":["Core"],"Deadbug With Band":["Core"],"Weighted Deadbug":["Core"],"Deadbug Crunch":["Core"],"DB Stiff Leg Deadlift":["Hamstrings","Glutes"],"Single Leg RDL":["Hamstrings","Glutes"],"Elevated Curtsy Lunge":["Quads","Glutes"],"Deficit Curtsy Lunge":["Quads","Glutes"],"Squat to Curtsy Lunge":["Quads","Glutes"],"Reverse + Curtsy Lunge":["Quads","Glutes"],"Bulgarian Pulse":["Quads","Glutes"],"Bulgarian Into Lunge":["Quads","Glutes"],"BW Jump Squat":["Quads","Glutes"],"BW Sumo Squat":["Quads","Glutes"],"KB Sumo Squat 1.5":["Quads","Glutes"],"Landmine Sumo Squat":["Quads","Glutes"],"Landmine Side Crunch":["Core"],"Landmine RDL With Knee Drive":["Hamstrings","Glutes"],"Landmine Hack Squat":["Quads"],"Single Leg Hamstring Curl":["Hamstrings"],"Leg Curl With Pause":["Hamstrings"],"Plate Behind Head Crunch":["Core"],"Plate Leg Raise to Situp":["Core"],"Plate Hold Glute Bridge March":["Glutes"],"Cable Side Crunch Hold":["Core"],"Alt Cable Crunch":["Core"],"Side Plank Hip Dip":["Core"],"Banded Lat Hold Leg Lift":["Core"],"Banded Lat Pull Hollow Hold":["Core"],"Banded Abductor Pulse":["Glutes"],"Adductor Plate Slide":["Adductors"],"Banded Clamshell":["Glutes"],"Clamshell":["Glutes"],"Hip Thrust Hold Adductor":["Glutes","Adductors"],"Band Hold Leg Lift":["Core"],"Wall Sit Hold":["Quads"],"Weighted Situp":["Core"],"Russian Twist":["Core"],"Weighted Crunch":["Core"],"Bench Step Down":["Quads","Glutes"],"KB Kneeling Hip Circle":["Core"],"KB Swing":["Hamstrings","Glutes"],"Farmer Carry":["Core"],"KB Farmer Carry":["Core"],"Sled Push Down/Pull Back":["Quads","Hamstrings"],"Incline Chest Press":["Chest"],"DB Chest Press":["Chest"],"Single Arm Tricep Extension":["Triceps"],"Single Arm Tricep Pushdown":["Triceps"],"Incline Row":["Back"],"KB High Pull":["Back","Shoulders"],"Single Arm Cable Lat Pulldown":["Back"],"Treadmill Interval":[],"Bike Interval":[],"Crunch On Box":["Core"],"Wall Ball Ab Pass":["Core"],"Ab Rotation":["Core"],"Wall Ball Feet Pass Crunch":["Core"],"Beast Wallball Side Rotation":["Core"],"Weighted Shin Box to High Kneel":["Glutes"],"Wall Band Butt Tap":["Glutes"],"Weighted L-Stretch":[],"Weighted Pigeon":[],"Windshield Wiper":[],"Banded Pigeon":[],"Banded Hamstring Stretch":[],"Single Leg Sit Back":[],"Glute Bridge March":["Glutes"],"Weighted Flutter Kick":["Core"],"Kneeling Plate Halo":["Core"],"Barbell Bench Press":["Chest"],"Barbell Military Press":["Shoulders"],"DB Thruster":["Quads","Shoulders"],"DB Push Press":["Shoulders"],"DB Incline Chest Press":["Chest"],"DB Skull Crushers":["Triceps"],"DB Halo With Twist":["Core"],"DB Single Arm Press March":["Core","Shoulders"],"DB Deadbug":["Core"],"DB Deadbug Crunch":["Core"],"DB Squat to High Pull":["Quads","Shoulders"],"DB Squat to Curtsy Lunge":["Quads","Glutes"],"DB Bent Over Row Into RDL":["Back","Hamstrings"],"DB ISO Bicep Curl":["Biceps"],"DB ISO Hold Bicep Curl":["Biceps"],"DB Incline Curl":["Biceps"],"DB Incline Hammer Curl":["Biceps"],"DB Incline Lateral Raise":["Shoulders"],"DB Lat Pullover":["Back"],"DB Leaning Lateral Raise":["Shoulders"],"DB Wide Bicep Curl":["Biceps"],"DB Bicep Curl Down Rack":["Biceps"],"DB Curl Slow Eccentric":["Biceps"],"DB Clean & Squat":["Quads","Shoulders"],"DB Hammer Curl to Push Press":["Biceps","Shoulders"],"DB Front Raise":["Shoulders"],"DB T Raise":["Shoulders"],"ISO Bicep Curl":["Biceps"],"Zottman Curl":["Biceps"],"Hammer Curl Down Rack":["Biceps"],"5-5-5 Curl":["Biceps"],"7-7-7 Curl":["Biceps"],"8-8-8 Bicep Curl":["Biceps"],"Curl Into Serve Extension":["Biceps","Triceps"],"Barbell Curl":["Biceps"],"Cable Tricep Kickback":["Triceps"],"Cable Overhead Tricep Extension":["Triceps"],"Cable Lat Pullover":["Back"],"Cable Kneeling Crossover Pulldown":["Back"],"Cable Chop Hold":["Core"],"Tricep Machine":["Triceps"],"Banded Tricep Kickback":["Triceps"],"Banded Tricep Pushdown":["Triceps"],"Diagonal Tricep Cable":["Triceps"],"Diagonal Tricep Extension":["Triceps"],"Kneeling Lat Pulldown":["Back"],"Landmine Thruster":["Quads","Shoulders"],"Landmine Seated Push Press":["Shoulders"],"Landmine Kneeling Push Press":["Shoulders"],"Landmine Side Drop":["Core"],"Ground to Overhead":["Shoulders","Quads"],"Sumo Ground to Overhead":["Shoulders","Quads"],"Devil Press":["Shoulders","Quads"],"Chimera Squat":["Quads","Core"],"KB Squat Clean Press":["Quads","Shoulders"],"KB Clean & Squat":["Quads","Shoulders"],"KB Shoulder Shrug":["Back"],"Plate Front Raise Reverse Lunge":["Shoulders","Quads"],"Plate Front Raise Press":["Shoulders"],"Plate Halo With Twist":["Core"],"Plate Press March":["Core","Shoulders"],"Plate Crunch":["Core"],"Overhead Plate Reverse Lunge":["Shoulders","Quads"],"Lunge Plate Front Raise":["Shoulders","Quads"],"Seated Push Press":["Shoulders"],"Seated Shoulder Press":["Shoulders"],"Seated Arnold Press":["Shoulders"],"DB Incline Crush Grip Press":["Chest"],"Glute Bridge KB Lat Pullover":["Glutes","Back"],"Glute Bridge Banded Abductor":["Glutes"],"RDL Into Calf Raise":["Hamstrings","Calves"],"Alt V-Ups":["Core"],"V-Ups":["Core"],"Around the World":["Shoulders"],"Sandbag Walking Lunges":["Quads","Glutes"],"DB Bulgarian Split Squat":["Quads","Glutes"],"Elevated Calf Raise":["Calves"],"Single Arm DB Row":["Back"],"Demon Crunch on Box":["Core"],"Incline Push Up":["Chest"],"Barbell Incline Push Up":["Chest"],"KB Sumo Squat to High Pull":["Quads","Shoulders"],"KB Squat to High Pull":["Quads","Shoulders"],"KB Curl":["Biceps"],"Incline Hammer Curl":["Biceps"],"ISO Hammer Curl":["Biceps"],"DB Crush Grip Press":["Chest"],"Cable Face Pull":["Back","Shoulders"],"Banded Face Pull":["Back","Shoulders"],"DB Chest Press":["Chest"],"Plate Overhead Press":["Shoulders"],"Plate Front Raise":["Shoulders"],"Plate March":["Core"],"Plate Halo":["Core"],"Cable Diagonal Tricep":["Triceps"],"DB Side Crunch":["Core"],"Side Crunch":["Core"],"Barbell Row":["Back"],"Gorilla Row":["Back"],"Banded Sissy Squat":["Quads"],"Yoga Ball Squat":["Quads"],"Tempo Split Squat Lunge":["Quads","Glutes"],"DB Lunge Pulse":["Quads","Glutes"],"BW Curtsy Lunge":["Quads","Glutes"],"Sumo Squat Pulse":["Quads","Glutes"],"Deficit Sumo Squat":["Quads","Glutes"],"KB Sumo Squat":["Quads","Glutes"],"Squat Hold Step Back":["Quads"],"Step Down":["Quads","Glutes"],"Step Down Toe Tap":["Quads","Glutes"],"Rig Assisted Step Down":["Quads","Glutes"],"Step Up":["Quads","Glutes"],"Box Step Ups":["Quads","Glutes"],"Wall Bent Knee Calf Raise":["Calves"],"Assisted Bent Leg Calf Raise":["Calves"],"Scissor Leg Lift":["Core"],"Hollow Hold":["Core"],"Knee Tuck on Box":["Core"],"Low Plank Hold":["Core"],"Low Plank Scap Dip":["Core"],"Banded Bird Dog":["Core"],"Alt Bird Dog":["Core"],"Bird Dog Knee Elbow":["Core"],"Rig Hold Leg Lower":["Core"],"Banded Roller Curl":["Biceps"],"Band Curl":["Biceps"],"Bicep Curl Good Arm ISO Hold Bad":["Biceps"],"Banded Chest Press":["Chest"],"Band Pull Apart":["Back"],"Scap Push Up":["Back"],"Band Scap Abduction":["Back"],"Scap Depression":["Back"],"Band Y/T/W":["Back","Shoulders"],"Band Shoulder Stretch":[],"Band Shoulder Circle":[],"Band Shoulder Capsule Stretch":[],"Band Scap Press":["Back"],"Scap Dip":["Back"],"Band Wall Slide":["Back","Shoulders"],"Band Row":["Back"],"Banded Tricep Extension":["Triceps"],"Banded Tricep Kickback":["Triceps"],"Cable Crunch":["Core"],"Banded Glute Bridge Lat Pullover":["Glutes","Back"],"Banded Glute Bridge Abductor Pulse":["Glutes"],"Banded Glute Bridge March":["Glutes"],"Banded Glute Bridge Adductor Pulse":["Glutes"],"Banded Glute Bridge Adductor Slow Down":["Glutes","Adductors"],"Banded Adductor Pulse":["Adductors"],"Row Machine":[],"Ski Erg":[],"Medball Slam":["Core"],"Walk or Bike":[],"Walk or Row":[],"Cardio":[],"DB Chest Fly":["Chest"],"Seated DB Reverse Fly":["Back"],"Farmer's Carry High Knee":["Core"],"KB High Pull":["Back","Shoulders"],"DB Reverse Fly":["Back"]};
+
+// ── STORAGE ──────────────────────────────────────────
+const S={
+  async get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}},
+  async set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch{return false}},
+  async del(k){try{localStorage.removeItem(k)}catch{}},
+};
+
+// ── SEED DATA ────────────────────────────────────────
+const WU={std:"3 min bike, banded side steps",quad:"3 min bike & banded side steps, lower back mobility & sissy squats",glute:"3 min bike, banded side steps x2",upper:"Arm warm up",lower:"3 min bike, banded side steps, leg stretches",rleg:"3 min bike, leg stretch routine, banded side steps",rglute:"Banded side steps, glute activation",abike:"3 min bike, banded side steps",amob:"3 min bike, banded side steps, hip openers (windshield wipers, KB weighted L-stretch)",apvc:"3 min bike, PVC pipe mobility",ahip:"3 min bike, banded side steps, hip wiper progression, forward fold walkouts"};
+function mk(d,t,l,wk,blocks){return{id:`${d}-${t}`,date:d,type:t,label:l,warmup:WU[wk]||wk,status:"completed",blocks:blocks.map(b=>({name:b[0],exercises:b.slice(1).map(e=>({name:e[0],sets:e[1],reps:e[2],weight:e[3]||null,notes:e[4]||"",done:true}))}))};}
+
+const SEED_PAT=[
+  mk("2024-01-06","quad","Quad Day","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,7,135],["Barbell Back Squat",1,7,185],["Barbell Back Squat",3,7,225]],["Superset – 4 rds",["Leg Extension",4,15,90],["DB Walking Lunges",4,10,50]],["Superset – 3 rds",["Hamstring Curl",3,10,90],["SL RDL",3,8,55]]]),
+  mk("2024-01-13","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,7,135],["Barbell Back Squat",2,7,185],["Barbell Back Squat",2,7,225],["Barbell Back Squat",1,10,165]],["Leg Extension – 3 rds",["Leg Extension",3,10,90]],["Sled Push – 3 rds",["Sled Push",3,1,245]],["Hamstring Curl – 3 rds",["Hamstring Curl",3,10,90]],["SL RDL – 3 rds",["SL RDL",3,8,80]]]),
+  mk("2024-01-20","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,10,135],["Barbell Back Squat",2,7,185],["Barbell Back Squat",2,7,225],["Barbell Back Squat",1,10,165]],["Leg Extension – 3 rds",["Leg Extension",3,12,90]],["Sled Push – 3 rds",["Sled Push",3,1,245]],["Hamstring Curl – 3 rds",["Hamstring Curl",3,12,90]]]),
+  mk("2024-01-27","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,10,135],["Barbell Back Squat",2,7,185],["Barbell Back Squat",2,7,225],["Barbell Back Squat",1,10,165]],["Leg Extension – 3 rds",["Leg Extension",3,12,90]],["Goblet Squats – 3 rds",["Goblet Squats",3,10,null]],["Hamstring Curl – 3 rds",["Hamstring Curl",3,12,90]],["DB RDL – 3 rds",["DB RDL",3,10,45]]]),
+  mk("2024-02-10","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,7,135],["Barbell Back Squat",1,7,185],["Barbell Back Squat",3,7,225]],["Superset – 4 rds",["Leg Extension",4,15,90],["DB Goblet Squat",4,10,85]],["Superset – 3 rds",["Hamstring Curl",3,10,90],["Reverse Lunges",3,8,50]]]),
+  mk("2024-03-31","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,10,135],["Barbell Back Squat",1,8,185],["Barbell Back Squat",3,6,225]],["Superset – 3 rds",["Leg Extension",3,15,90],["Heels Elevated Goblet Squat",3,10,85]],["Superset – 3 rds",["Hamstring Curl",3,15,90],["Reverse Lunges",3,8,50]],["Finisher – 3 rds",["Trap Bar Deadlift",3,8,185]]]),
+  mk("2024-06-10","quad","Lower Body","std",[["B Stance Back Squat",["Barbell Back Squat",1,10,135],["B Stance Back Squat",3,8,155]],["Superset – 4 rds",["Leg Extension",4,10,100],["Landmine Thrusters",4,10,50]],["Conditioning – 3 rds",["Bike",3,15,null,"15cal"],["GHD",3,10,15]],["Superset – 4 rds",["Hamstring Curl",4,10,100],["Landmine RDL",4,8,null]]]),
+  mk("2024-06-17","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,155],["Barbell Back Squat",1,8,175],["Barbell Back Squat",1,8,185],["Barbell Back Squat",1,6,195],["Barbell Back Squat",1,6,205]],["Core – 4 rds",["Landmine Rainbows",4,10,10],["Dead Bug",4,10,20]],["Circuit – 4 rds",["Row",4,1,null,"500m"],["Leg Extension",4,10,100],["Jump Squats",4,10,null],["Leg Curl",4,10,90],["Hack Squats",4,10,50]],["Superset – 4 rds",["DB RDL",4,8,50],["Calf Raises",4,15,null]]]),
+  mk("2024-06-24","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,155],["Barbell Back Squat",1,8,175],["Barbell Back Squat",1,8,185],["Barbell Back Squat",1,6,195],["Barbell Back Squat",1,6,205]],["Glutes/Core – 3 rds",["Banded Glute Bridge",3,10,null],["Leg Lifts",3,10,null]],["Circuit – 4 rds",["Bike",4,15,null,"15cal"],["Leg Extension",4,10,115],["Barbell RDL",4,10,null]],["Superset – 4 rds",["Sled Pull",4,1,225],["Calf Raises",4,15,null],["GHD",4,10,null]]]),
+  mk("2024-07-08","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,7,135],["Barbell Back Squat",1,7,185],["Barbell Back Squat",3,7,225]],["Superset – 4 rds",["Leg Extension",4,15,90],["DB Walking Lunges",4,10,50]],["Superset – 3 rds",["Hamstring Curl",3,10,90],["SL RDL",3,8,55]],["Conditioning – 4 rds",["Bike",4,20,null,"20cal"],["Sumo Squat",4,15,null],["Calf Raises",4,20,null]]]),
+  mk("2024-07-29","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",1,8,185],["Barbell Back Squat",3,6,225]],["Superset – 4 rds",["Leg Curl",4,10,90],["Barbell RDL",4,8,135]],["Superset – 4 rds",["Leg Extension",4,10,90],["Walking Lunges",4,10,null]]]),
+  mk("2024-08-25","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",1,8,185],["Barbell Back Squat",3,6,225]],["Core – 3 rds",["V-Ups",3,10,15],["Leg Lifts",3,20,null]],["Superset – 4 rds",["Leg Extension",4,10,90],["Walking Lunges",4,10,null]]]),
+  mk("2024-09-04","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,155],["Barbell Back Squat",1,8,175],["Barbell Back Squat",1,8,185],["Barbell Back Squat",1,6,195],["Barbell Back Squat",1,6,205]],["Core – 3 rds",["Glute Bridge",3,15,null],["Side Plank Dips",3,10,null]],["Conditioning – 4 rds",["Sled Pull",4,1,225],["Calf Raises",4,15,null]],["Circuit – 4 rds",["Bike",4,15,null,"15cal"],["Leg Curl",4,10,115],["Farmer's Carry",4,2,null]]]),
+  mk("2024-10-02","quad","Legs + Back","upper",[["BB Back Squat (Tempo)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",2,6,185],["Barbell Back Squat",2,6,195]],["Superset – 4 rds",["Leg Extension Tempo",4,10,90],["DB RDL",4,10,45]],["Superset – 4 rds",["Hamstring Curl Tempo",4,10,90],["Hack Squats",4,10,null]]]),
+  mk("2024-10-06","quad","Leg Day","upper",[["BB Back Squat (Tempo)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",2,6,185],["Barbell Back Squat",2,6,195]],["Core – 4 rds",["Weighted Situps",4,10,null],["Russian Twists",4,20,null]],["Superset – 4 rds",["Leg Extension Tempo",4,10,90],["Landmine Hack Squat",4,10,45]],["Superset – 4 rds",["Hamstring Curl Tempo",4,10,90],["Landmine RDL",4,8,25]]]),
+  mk("2024-10-27","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",1,8,185],["Barbell Back Squat",3,6,225]],["Core – 4 rds",["Weighted Situps",4,10,null],["Leg Lifts",4,20,null]],["Superset – 4 rds",["Leg Extension Tempo",4,10,90],["Landmine Hack Squat",4,10,55]],["Superset – 4 rds",["Hamstring Curl Tempo",4,10,90],["Landmine RDL",4,8,35]]]),
+  mk("2024-11-03","quad","Leg Day (Tempo)","upper",[["BB Back Squat (Tempo)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",2,6,185],["Barbell Back Squat",2,6,195]],["Core – 4 rds",["Weighted Situps",4,10,null],["Russian Twists",4,20,null]],["Superset – 4 rds",["Leg Extension Tempo",4,10,90],["Cossack Squat",4,6,null]],["Superset – 4 rds",["Hamstring Curl Tempo",4,10,90],["Barbell RDL",4,8,45]]]),
+  mk("2024-11-10","quad","Leg Day","upper",[["BB Back Squat (Tempo)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",2,6,185],["Barbell Back Squat",2,6,195]],["Core – 4 rds",["Weighted Situps",4,10,null],["Russian Twists",4,20,null]],["Superset – 4 rds",["S/L Leg Extension",4,10,55],["Incline Goblet Squats",4,10,35]],["Superset – 4 rds",["Single Leg Curl",4,10,60],["Landmine RDL",4,8,30]]]),
+  mk("2024-11-17","quad","Leg Day (Tempo)","upper",[["BB Back Squat (Tempo)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",2,6,185],["Barbell Back Squat",2,6,195]],["Superset – 4 rds",["Leg Extension Tempo",4,8,100],["Cossack Squat",4,6,null]],["Core – 4 rds",["Demon Crunch",4,8,30],["Russian Twists",4,20,30]],["Conditioning – 4 rds",["Sled Drag",4,1,null,"6pl"],["KB Calf Raises",4,15,null]]]),
+  mk("2024-11-24","quad","Legs","upper",[["B Stance Back Squat",["Barbell Back Squat",1,10,135],["B Stance Back Squat",3,8,155]],["Superset – 4 rds",["Leg Extension",4,10,105],["Incline Goblet Squats",4,10,55]],["Superset – 4 rds",["Hamstring Curl",4,10,105],["KB Deficit RDL",4,10,null]],["Core – 3 rds",["Hollow Hold",3,10,null],["Leg Lifts",3,30,null]]]),
+  mk("2024-12-15","quad","Quads","upper",[["B Stance Back Squat",["Barbell Back Squat",1,10,135],["B Stance Back Squat",3,8,155]],["Superset – 4 rds",["Leg Extension",4,10,105],["Incline Goblet Squats",4,10,55],["Squat Step Backs",4,20,null]],["Core – 4 rds",["Hollow Hold",4,10,null],["Leg Lifts",4,20,null]],["Conditioning – 4 rds",["Sandbag Walking Lunges",4,1,null],["Calf Raises",4,12,null]]]),
+  mk("2024-12-16","quad","Quad Day","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,7,135],["Barbell Back Squat",1,7,185],["Barbell Back Squat",3,7,225]],["Superset – 4 rds",["Leg Extension Tempo",4,10,90],["DB Goblet Squat",4,10,85]],["Superset – 3 rds",["Hamstring Curl Tempo",3,10,90],["Reverse Lunges",3,8,50]]]),
+  // 2024 UPPER/BACK
+  mk("2024-01-06b","upper","Back Day","upper",[["Pull – 4 rds",["DB Row",4,10,45],["Kelso Shrugs",4,10,45]],["Arms – 4 rds",["Barbell Curl",4,10,25],["Lat Pull Over",4,10,90],["Bench Dips",4,10,null]],["AMRAP",["Row",1,1,null,"300m"],["Gorilla Row",1,10,null],["Medball Slams",1,10,30]]]),
+  mk("2024-01-27b","upper","Back Day","upper",[["Landmine – 4 rds",["Meadows Row",4,8,null],["Landmine Around the World",4,10,null],["Lat Pull Over",4,10,null]],["Core – 4 rds",["Plank",4,10,null],["Heel Taps",4,20,null]],["Arms – 4 rds",["Barbell Curl",4,12,20],["DB Reverse Fly",4,10,null],["Skull Crushers",4,10,50]]]),
+  mk("2024-02-03","upper","Upper Body","upper",[["Pull – 4 rds",["DB Row",4,10,45,"incline TEMPO"],["Kelso Shrugs",4,10,45],["Dead Hang",4,1,null,"30s"],["Cable Row",4,10,null]],["Arms – 4 rds",["Barbell Curl",4,10,20],["Cable Lat Pull Down",4,10,95],["Cable Tricep Extension",4,10,null]],["AMRAP",["Row",1,1,null,"250m"],["Power Beast",1,10,null],["Medball Slams",1,10,30]]]),
+  mk("2024-02-10b","upper","Upper Body","upper",[["Conditioning – 3 rds",["Sled Pull",3,1,null,"4pl"]],["Arms – 4 rds",["Concentration Curl",4,8,null],["DB Reverse Fly",4,10,40],["Bench Dips",4,10,15]],["Core – 4 rds",["Wood Chops",4,10,null],["Weighted Situps",4,10,15]],["AMRAP",["Ski",1,15,null],["Power Beast",1,8,null],["Hammer Curl",1,8,30]]]),
+  mk("2024-02-17b","upper","Back Day","upper",[["Pull – 4 rds",["DB Row",4,8,50,"incline TEMPO"],["Kelso Shrugs",4,10,70],["Face Pull",4,10,null]],["Arms – 4 rds",["Barbell Curl",4,10,30],["Lat Pull Over",4,6,100],["Tricep Kickbacks",4,10,null]],["AMRAP",["Row",1,1,null,"750m"],["Hammer Curl",1,10,30],["Butterfly Situps",1,10,null],["Renegade Rows",1,8,null]]]),
+  mk("2024-05-29","upper","Back Day","upper",[["Pull – 4 rds",["Barbell Row",4,10,null],["Lat Pull Over",4,10,null],["Cable Row",4,10,null]],["Core – 4 rds",["Halo",4,10,null],["Side Crunch",4,10,null]],["Arms – 4 rds",["Incline Curl",4,10,null],["DB Reverse Fly",4,10,null],["Cable Tricep Extension",4,10,null]],["AMRAP",["Row",1,1,null,"300m"],["KB Curl",1,8,null],["Gorilla Row",1,16,null]]]),
+  mk("2024-06-05","upper","Back Day","upper",[["Landmine – 4 rds",["Meadows Row",4,8,null],["Landmine Around the World",4,10,null],["Lat Pull Over",4,10,null]],["Core – 4 rds",["Plank",4,10,null],["Heel Taps",4,20,null]],["Arms – 4 rds",["Hammer Curl",4,15,null],["DB Reverse Fly",4,10,null],["Cable Tricep Extension",4,10,null]],["AMRAP",["Ski",1,14,null],["Push Ups",1,10,null]]]),
+  mk("2024-06-12","upper","Back Day","upper",[["Pull – 4 rds",["Landmine Row",4,10,null],["Lat Pull Over",4,10,null],["Cable Row",4,10,null]],["Core – 4 rds",["Halo",4,10,25],["Side Crunch",4,10,null]],["Arms – 4 rds",["Incline Curl",4,10,null],["DB Reverse Fly",4,10,null],["Cable Tricep Extension",4,10,null]]]),
+  mk("2024-06-26","upper","Back Day","upper",[["Arms – 4 rds",["Barbell Curl",4,15,30],["Lat Pull Over",4,10,null],["Cable Tricep Extension",4,10,null]],["Core – 4 rds",["Plank",4,10,null],["Heel Taps",4,20,null]],["Pull – 4 rds",["Barbell Row",4,10,null],["Lateral Raise",4,8,22],["Cable Row",4,10,null]],["AMRAP",["Ski",1,14,null],["Medball Slams",1,10,null],["KB Side Crunch",1,10,null]]]),
+  mk("2024-07-10","upper","Back Day","upper",[["Pull – 4 rds",["DB Row",4,10,45],["Kelso Shrugs",4,10,45],["Cable Row",4,10,null]],["Arms – 4 rds",["Hammer Curl",4,15,30],["Cable Lat Pull Down",4,10,null],["Cable Tricep Extension",4,10,null]],["AMRAP",["Row",1,1,null,"300m"],["Power Beast",1,10,null],["Medball Slams",1,12,null],["Butterfly Situps",1,15,null]]]),
+  mk("2024-07-17","upper","Upper Body","upper",[["Conditioning – 4 rds",["Sled Pull",4,1,null,"4-5pl"],["Push Ups",4,15,null]],["Arms – 4 rds",["Incline Curl",4,10,null],["DB Reverse Fly",4,10,null],["Bench Dips",4,10,15]],["Core – 4 rds",["Wood Chops",4,10,null],["Halo",4,5,null]],["AMRAP",["Ski",1,15,null],["Gorilla Row",1,10,null],["KB Curl",1,10,null]]]),
+  mk("2024-07-24","upper","Back Day","upper",[["Pull – 4 rds",["DB Row",4,10,45],["Kelso Shrugs",4,10,45],["Cable Row",4,10,null]],["Core – 4 rds",["Plank",4,10,null],["Heel Taps",4,20,null]],["Arms – 4 rds",["Hammer Curl",4,15,30],["DB Reverse Fly",4,10,45],["Cable Tricep Extension",4,10,null]],["AMRAP",["Row",1,1,null,"300m"],["Medball Slams",1,10,null],["KB Curl",1,10,null]]]),
+  mk("2024-08-07","upper","Back Day","upper",[["Landmine – 4 rds",["Meadows Row",4,10,25],["Landmine Around the World",4,10,null],["Lat Pull Over",4,10,null]],["Core – 4 rds",["Power Beast",4,10,null],["Plank",4,20,null]],["Arms – 4 rds",["Hammer Curl",4,8,null],["DB Reverse Fly",4,10,null],["Cable Tricep Extension",4,10,null]],["AMRAP",["Ski",1,20,null],["Renegade Rows",1,8,null],["Halo",1,10,null]]]),
+  mk("2024-08-19","upper","Back Day","upper",[["Arms – 4 rds",["Barbell Curl",4,10,25],["Barbell Row",4,10,null],["Cable Tricep Extension",4,10,null]],["Core – 3 rds",["Cable Crunch",3,6,null],["Glute Bridge",3,15,null]],["AMRAP",["Ski",1,15,null],["Renegade Rows",1,8,null],["Halo",1,10,null]]]),
+  mk("2024-08-26","upper","Back Day","upper",[["Conditioning – 4 rds",["Sled Pull",4,1,null,"4pl"],["Power Beast",4,10,null]],["Core",["Leg Lifts",3,10,null],["KB Side Crunch",3,10,null]],["Pull – 4 rds",["DB Row",4,10,45],["Kelso Shrugs",4,10,45]],["Arms – 4 rds",["Barbell Curl",4,10,25],["DB Reverse Fly",4,10,null],["Cable Tricep Extension",4,10,null]]]),
+  mk("2024-09-02","upper","Back Day","upper",[["Arms – 4 rds",["Incline Curl",4,8,30],["Cable Tricep Extension",4,10,null],["DB Reverse Fly",4,8,30]],["Pull – 4 rds",["Barbell Row",4,10,null],["Lat Pull Over",4,10,null],["Cable Crunch",4,10,null]],["AMRAP",["Ski",1,14,null],["Gorilla Row",1,10,null],["Ab Rollouts",1,10,null]]]),
+  mk("2024-09-09","upper","Back Day","upper",[["Pull – 4 rds",["Barbell Row",4,10,null],["Lat Pull Over",4,10,45],["Banded Chin Up",4,10,null]],["Core – 4 rds",["Weighted Situps",4,10,null],["Leg Lifts",4,10,null],["Russian Twists",4,20,null]],["Arms – 4 rds",["Concentration Curl",4,8,40],["DB Reverse Fly",4,10,35],["Cable Tricep Extension",4,10,65]],["AMRAP",["Row",1,1,null,"300m"],["KB Curl",1,8,null],["Gorilla Row",1,16,null]]]),
+  mk("2024-09-16","upper","Back Day","upper",[["Pull – 4 rds",["DB Row",4,10,45],["Kelso Shrugs",4,10,45],["Cable Row",4,10,null]],["Arms – 4 rds",["Hammer Curl",4,15,30],["Cable Lat Pull Down",4,10,null],["Cable Tricep Extension",4,10,null]],["AMRAP",["Row",1,1,null,"300m"],["Power Beast",1,10,null],["Medball Slams",1,12,null]]]),
+  mk("2024-09-23","upper","Back Day","upper",[["Arms – 4 rds",["Barbell Curl",4,8,25],["Cable Tricep Extension",4,10,null],["DB Reverse Fly",4,8,30]],["Pull – 4 rds",["Barbell Row",4,10,null],["Cable Lat Pull Down",4,10,null],["Chin Ups",4,10,null]],["AMRAP",["Ski",1,14,null],["Gorilla Row",1,10,null],["Ab Rollouts",1,10,null]]]),
+  mk("2024-10-07","upper","Back Day","upper",[["Landmine – 4 rds",["Meadows Row",4,10,null],["Landmine Around the World",4,10,null],["Cable Lat Pull Down",4,10,null]],["Core – 4 rds",["Power Beast",4,10,null],["Plank",4,20,null]],["Arms – 4 rds",["Hammer Curl",4,8,null],["DB Reverse Fly",4,10,null],["Cable Tricep Extension",4,10,null]]]),
+  mk("2024-10-21","upper","Back Day","upper",[["Arms – 4 rds",["Concentration Curl",4,8,35],["DB Reverse Fly",4,8,30],["Cable Tricep Extension",4,10,null]],["Core – 4 rds",["Glute Bridge",4,10,null],["Dead Bug",4,20,null]],["Pull – 4 rds",["Barbell Row",4,10,null],["Cable Lat Pull Down",4,10,null],["Chin Ups",4,10,null]]]),
+  mk("2024-10-28","upper","Back Day","upper",[["Landmine – 4 rds",["Meadows Row",4,10,35],["Landmine Around the World",4,10,35],["Lat Pull Over",4,10,null]],["Arms – 4 rds",["Hammer Curl",4,15,null],["Push Ups",4,10,null],["Cable Tricep Extension",4,10,40]],["Core – 4 rds",["Plank",4,10,null],["Plank",4,5,null]]]),
+  mk("2024-11-04","upper","Back Day","upper",[["Arms – 4 rds",["Barbell Curl",4,10,25],["Cable Tricep Extension",4,10,null],["DB Reverse Fly",4,8,30]],["Pull – 4 rds",["Barbell Row",4,10,null],["Face Pull",4,10,null],["Dead Hang",4,10,null]],["AMRAP",["Ski",1,12,null],["Ab Rollouts",1,10,null],["Row",1,1,null,"200m"],["Gorilla Row",1,10,null]]]),
+  mk("2024-11-11","upper","Back Day","upper",[["Pull – 4 rds",["DB Row",4,10,45],["Kelso Shrugs",4,10,45],["Dead Hang",4,1,null],["Cable Row",4,10,null]],["Arms – 4 rds",["Barbell Curl",4,10,20],["Cable Lat Pull Down",4,10,95],["Cable Tricep Extension",4,10,null]],["Core – 3 rds",["Glute Bridge",3,10,null],["Russian Twists",3,20,null]]]),
+  mk("2024-11-18","upper","Back Day","upper",[["Conditioning – 3 rds",["Sled Pull",3,1,null,"3pl"],["Barbell Row",3,10,null]],["Core",["Ab Rollouts",3,10,null],["KB Side Crunch",3,10,null]],["Arms – 4 rds",["Barbell Curl",4,8,30],["DB Reverse Fly",4,10,40],["Cable Tricep Extension",4,10,40]]]),
+  mk("2024-11-25","upper","Back Day","upper",[["Landmine – 4 rds",["Meadows Row",4,8,null],["Landmine Around the World",4,10,null],["Lat Pull Over",4,10,null]],["Core – 4 rds",["Plank",4,10,null],["Heel Taps",4,20,null]],["Arms – 4 rds",["Barbell Curl",4,12,20],["DB Reverse Fly",4,10,null],["Skull Crushers",4,10,50]]]),
+  mk("2024-12-02","upper","Back Day","upper",[["Pull – 4 rds",["DB Row",4,8,50],["Kelso Shrugs",4,10,45],["Cable Row",4,10,null]],["Arms – 4 rds",["Barbell Curl",4,15,25],["Lat Pull Over",4,6,100],["Tricep Kickbacks",4,10,null]]]),
+  mk("2024-12-09","upper","Back Day","upper",[["Arms – 4 rds",["Hammer Curl",4,8,30],["DB Reverse Fly",4,10,35],["Cable Tricep Extension",4,10,null]],["Pull – 4 rds",["DB Row",4,8,50],["Pull Ups",4,10,null],["Cable Row",4,10,80]],["Core – 4 rds",["Halo",4,10,25],["Side Crunch",4,8,null]]]),
+  mk("2024-12-16b","upper","Back Day","upper",[["Conditioning – 4 rds",["Sled Pull",4,1,null,"3pl"],["Barbell Row",4,10,null]],["Core",["Ab Rollouts",3,10,null],["Russian Twists",3,20,null]],["Arms – 4 rds",["Barbell Curl",4,8,30],["DB Reverse Fly",4,10,40],["Cable Tricep Extension",4,10,40]]]),
+  // 2025 QUAD
+  mk("2025-01-12","quad","Quads","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,155],["Barbell Back Squat",1,8,205],["Barbell Back Squat",2,5,235],["Barbell Back Squat",1,8,165]],["Superset – 4 rds",["Bulgarian Split to Lunge",4,7,20],["Cable Crunch",4,10,null]],["Core – 4 rds",["V-Ups",4,16,null],["Hollow Hold",4,1,null]],["Superset – 4 rds",["Leg Extension",4,10,100],["Box Step Ups",4,10,25],["Calf Raises",4,12,null]]]),
+  mk("2025-01-20","upper","Biceps/Back","upper",[["Legs – 4 rds",["Leg Extension",4,10,100],["Box Step Ups",4,10,25],["Bent Knee Calf Raise",4,12,null]],["Upper – 4 rds",["DB Bicep Curls",4,12,35],["Cable Lat Pull Down",4,8,90],["Tricep Kickbacks",4,10,null]],["Finisher",["Cable Row",1,10,null],["Dead Hang",1,1,null]]]),
+  mk("2025-01-26","quad","Quad Day","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",2,6,185],["Barbell Back Squat",2,6,225],["Barbell Back Squat",1,10,165]],["Core – 4 rds",["Hollow Hold",4,10,null],["Leg Lifts",4,16,null]],["Superset – 4 rds",["Single Leg Extension",4,8,55],["Hack Squats",4,8,40],["Calf Raises",4,12,null]],["Conditioning – 4 rds",["Bike",4,1,null,"30s"],["Sandbag Walking Lunges",4,10,null]]]),
+  mk("2025-02-16","quad","Quad Day","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",1,6,185],["Barbell Back Squat",2,6,205],["Barbell Back Squat",1,10,165]],["Core – 3 rds",["Leg Lifts",3,8,null],["Weighted Situps",3,10,null]],["Superset – 4 rds",["Single Leg Extension",4,8,55],["Box Step Overs",4,10,null]],["Conditioning – 4 rds",["Bike",4,1,null],["Banded Glute Bridge",4,10,null],["Calf Raises",4,12,null]]]),
+  mk("2025-02-24","quad","Legs","std",[["BB Back Squat (Volume)",["Barbell Back Squat",5,10,135]],["Superset – 4 rds",["Leg Extension",4,10,90],["Jump Squats",4,10,null]],["Trap Bar DL – 4 rds",["Trap Bar Deadlift",4,10,185]],["Superset – 4 rds",["Hamstring Curl",4,10,90],["Walking Lunges",4,20,null]]]),
+  mk("2025-03-03","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,7,135],["Barbell Back Squat",1,7,185],["Barbell Back Squat",3,7,225]],["Conditioning – 4 rds",["Sled Push",4,1,135],["Butterfly Situps",4,10,null],["Leg Lifts",4,10,null]],["Superset – 4 rds",["Leg Extension",4,10,90],["Barbell Deficit RDL",4,8,185]],["Superset – 4 rds",["Leg Curl",4,10,90],["Incline Goblet Squats",4,10,45]]]),
+  mk("2025-03-10","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,10,135],["Barbell Back Squat",2,7,185],["Barbell Back Squat",2,4,225]],["Conditioning – 4 rds",["Sled Push",4,1,135],["Weighted Situps",4,10,null],["Side Crunch",4,10,null]],["Superset – 4 rds",["Leg Extension",4,10,100],["Barbell RDL",4,10,135]],["Superset – 4 rds",["Leg Curl",4,10,100],["Incline Goblet Squats",4,10,45]]]),
+  mk("2025-03-17","quad","Legs","std",[["BB Back Squat (Volume)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",4,8,155]],["Core – 4 rds",["Ab Rollouts",4,10,null],["Russian Twists",4,20,null]],["Conditioning – 3 rds",["Bike",3,12,null],["Leg Extension",3,6,115]],["Conditioning – 3 rds",["Ski",3,12,null],["Leg Curl",3,6,115]],["Superset – 4 rds",["Walking Lunges",4,1,null],["Barbell RDL",4,8,135]]]),
+  mk("2025-04-14","quad","Legs","std",[["BB Back Squat (Tempo 3ct)",["Barbell Back Squat",1,10,135],["Barbell Back Squat",4,8,175]],["Conditioning – 3 rds",["Sled Push",3,1,135],["Weighted Situps",3,10,null]],["Conditioning – 3 rds",["Ski",3,12,null],["Leg Extension",3,6,115]],["Superset – 3 rds",["Box Step Ups",3,8,null],["Leg Curl",3,6,115]]]),
+  mk("2025-04-21","quad","Legs","std",[["BB Back Squat",["Barbell Back Squat",1,10,145],["Barbell Back Squat",4,8,185]],["Superset – 3 rds",["Sandbag Walking Lunges",3,1,null],["Weighted Situps",3,10,null]],["Conditioning – 3 rds",["Row",3,1,null,"250m"],["Leg Extension",3,6,115],["Ski",3,1,null],["Leg Curl",3,6,115]]]),
+  mk("2025-04-28","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",1,8,155],["Barbell Back Squat",1,8,175],["Barbell Back Squat",1,6,185],["Barbell Back Squat",1,6,195]],["Conditioning – 3 rds",["Bike",3,12,null],["Leg Extension",3,7,115],["Weighted Situps",3,10,null]],["Superset – 3 rds",["Bulgarian Split Squat",3,8,20],["Barbell Deficit RDL",3,8,null]]]),
+  mk("2025-05-05","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",1,8,155],["Barbell Back Squat",1,8,175],["Barbell Back Squat",1,6,185],["Barbell Back Squat",1,6,195]],["Superset – 4 rds",["Leg Extension",4,10,90],["Sumo Squat",4,10,null]],["Superset – 4 rds",["Leg Curl",4,10,90],["DB Single Leg RDL",4,8,45]]]),
+  mk("2025-05-12","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",1,8,155],["Barbell Back Squat",1,8,175],["Barbell Back Squat",1,6,185],["Barbell Back Squat",1,6,195]],["Conditioning – 3 rds",["Bike",3,15,null],["Leg Extension",3,8,115],["Weighted Situps",3,10,null]],["Superset – 3 rds",["Sled Pull",3,1,225],["DB RDL",3,8,50]]]),
+  mk("2025-05-19","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",2,8,185],["Barbell Back Squat",2,5,195]],["Conditioning – 4 rds",["Row",4,1,null,"250m"],["Leg Extension",4,6,115],["Ski",4,1,null],["Leg Curl",4,6,115]]]),
+  mk("2025-05-27","quad","Legs","std",[["BB Back Squat (Tempo)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",4,6,155]],["Conditioning – 4 rds",["Sled Push",4,1,null],["Butterfly Situps",4,20,null],["Calf Raises",4,15,null]],["Superset – 4 rds",["Leg Extension",4,8,90],["DB Single Leg RDL",4,8,45]],["Superset – 4 rds",["Leg Curl",4,10,90],["B Stance Goblet Squats",4,8,null]]]),
+  mk("2025-06-03","quad","Legs","std",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,155],["Barbell Back Squat",1,8,175],["Barbell Back Squat",1,8,185],["Barbell Back Squat",1,6,195],["Barbell Back Squat",1,6,205]],["Core",["Hollow Hold",3,10,null],["Banded Glute Bridge",3,10,null]],["Circuit – 5 rds",["Bike",5,15,null],["Leg Extension",5,10,115],["Barbell RDL",5,10,null]],["Superset – 3 rds",["Sled Pull",3,1,225],["GHD",3,10,null],["Calf Raises",3,15,null]]]),
+  mk("2025-07-01","quad","Legs","std",[["BB Back Squat",["Barbell Back Squat",1,10,145],["Barbell Back Squat",4,8,185]],["Superset – 4 rds",["Sandbag Walking Lunges",4,1,null],["KB Calf Raises",4,15,null],["Weighted Situps",4,10,null]],["Circuit – 5 rds",["Bike",5,15,null],["Jump Squats",5,12,null],["Leg Curl",5,12,90]]]),
+  mk("2025-07-15","quad","Legs","std",[["BB Back Squat (Tempo)",["Barbell Back Squat",1,10,145],["Barbell Back Squat",2,6,185],["Barbell Back Squat",2,6,195]],["Core",["Hollow Hold",3,10,null],["Banded Glute Bridge",3,10,null]],["Superset – 4 rds",["Sled Pull",4,1,270],["GHD",4,10,null],["Calf Raises",4,15,null]],["Circuit – 4 rds",["Bike",4,15,null],["Power Beast",4,10,null],["DB RDL",4,10,45]]]),
+  mk("2025-09-14","quad","Quad Day","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",2,6,185],["Barbell Back Squat",2,6,225],["Barbell Back Squat",1,10,165]],["Core – 3 rds",["Weighted Situps",3,10,null],["V-Ups",3,16,null]],["Superset – 4 rds",["Single Leg Extension",4,8,55],["Incline Goblet Squats",4,10,null]],["Conditioning – 4 rds",["Sandbag Walking Lunges",4,1,null],["Calf Raises",4,12,null]]]),
+  mk("2025-10-23","quad","Leg Day","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",2,5,185],["Barbell Back Squat",2,5,225],["Barbell Back Squat",1,10,165]],["Core – 3 rds",["Demon Crunch",3,10,25],["KB Side Crunch",3,10,null]],["Superset – 4 rds",["Leg Extension Tempo",4,8,80],["Sumo Squat",4,10,null],["Wall Sit",4,1,null]],["Superset – 4 rds",["Reverse Lunges",4,8,20],["Calf Raises",4,10,null]],["AMRAP",["Bike",1,15,null],["RDL",1,8,70],["Farmer's Carry",1,2,null]]]),
+  mk("2025-12-01","quad","Quad Day","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",2,5,185],["Barbell Back Squat",2,5,225],["Barbell Back Squat",1,10,165]],["Core – 3 rds",["Demon Crunch",3,10,25],["KB Side Crunch",3,10,null]],["Superset – 4 rds",["Leg Extension Tempo",4,8,80],["Sumo Squat",4,10,null],["Wall Sit",4,1,null]],["Superset – 4 rds",["Reverse Lunges",4,8,20],["Calf Raises",4,10,null]]]),
+  mk("2025-12-08","quad","Quad Day","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,135],["Barbell Back Squat",2,5,185],["Barbell Back Squat",2,5,225],["Barbell Back Squat",1,10,165]],["Superset – 4 rds",["Sled Drag",4,1,null,"6pl"],["Cable Crunch",4,16,null],["KB Calf Raises",4,15,null]],["AMRAP",["Bike",1,12,null],["Jump Squats",1,10,null],["Squat Step Backs",1,10,null]]]),
+  mk("2025-12-22","quad","Quad Day","quad",[["BB Back Squat (Ramping)",["Barbell Back Squat",1,8,145],["Barbell Back Squat",2,5,195],["Barbell Back Squat",2,5,235],["Barbell Back Squat",1,10,175]],["Core – 4 rds",["Weighted Situps",4,10,null],["Russian Twists",4,20,null]],["Superset – 4 rds",["Leg Extension",4,10,105],["Incline Goblet Squats",4,10,65]],["Superset – 4 rds",["Leg Curl",4,10,110],["Box Step Overs",4,20,25]]]),
+  // 2025-26 GLUTE
+  mk("2025-08-21","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,135],["Trap Bar Deadlift",2,8,225],["Trap Bar Deadlift",2,5,315]],["Superset – 4 rds",["Leg Curl",4,10,105],["Curtsy Lunge",4,8,25]],["Core – 3 rds",["Leg Lifts",3,10,null],["Weighted Situps",3,10,null]],["AMRAP",["Bike",1,15,null],["KB Swings",1,10,null],["Beast to Plank",1,10,null]]]),
+  mk("2025-08-28","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,8,135],["Trap Bar Deadlift",2,8,225],["Trap Bar Deadlift",2,5,315]],["Core – 3 rds",["Demon Crunch",3,10,35],["Halo",3,10,null]],["Superset – 4 rds",["Leg Curl",4,8,105],["Sumo Squat",4,8,null]],["AMRAP",["KB Swings",1,1,null],["Reverse Lunges",1,8,null],["RDL",1,10,null]]]),
+  mk("2025-09-18","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,135],["Trap Bar Deadlift",2,8,225],["Trap Bar Deadlift",2,5,315]],["Core",["Plank",1,1,null],["Heel Taps",1,20,null]],["Superset – 4 rds",["Leg Curl",4,10,105],["Curtsy Lunge",4,10,null]],["AMRAP",["Row",1,1,null,"300m"],["KB Swings",1,10,null]]]),
+  mk("2025-09-25","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,8,135],["Trap Bar Deadlift",2,8,225],["Trap Bar Deadlift",2,5,315]],["Core – 3 rds",["Demon Crunch",3,10,35],["Halo",3,10,null]],["Superset – 4 rds",["Leg Curl",4,8,105],["Sumo Squat",4,8,null]]]),
+  mk("2025-10-09","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,135],["Trap Bar Deadlift",2,8,225],["Trap Bar Deadlift",2,5,315]],["Superset – 4 rds",["Leg Curl",4,10,105],["Curtsy Lunge",4,8,25]],["Core – 3 rds",["Leg Lifts",3,10,null],["Weighted Situps",3,10,null]],["Bulgarians – 4 rds",["Bulgarian Split Squat",4,7,25],["Calf Raises",4,7,null]],["AMRAP",["Bike",1,15,null],["RDL",1,8,70],["Farmer's Carry",1,2,null]]]),
+  mk("2025-10-30","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,145],["Trap Bar Deadlift",2,8,235],["Trap Bar Deadlift",2,5,325]],["Core/Hinge",["Cable Crunch",1,10,80],["Barbell RDL",1,10,null]],["Superset – 4 rds",["Leg Curl",4,10,105],["Squat Step Backs",4,10,null]],["AMRAP",["Row",1,1,null,"300m"],["Sumo Squat",1,20,null],["Squat Step Backs",1,10,null]]]),
+  mk("2025-11-06","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,145],["Trap Bar Deadlift",2,8,235],["Trap Bar Deadlift",2,5,325]],["Superset – 4 rds",["Leg Curl",4,8,100],["Curtsy Lunge",4,10,null]],["Core – 3 rds",["Leg Lifts",3,10,null],["Dead Bug",3,20,null]],["Superset – 4 rds",["DB Incline RDL",4,8,45],["Farmer's Carry",4,2,null],["S/L Calf Raises",4,10,null]]]),
+  mk("2025-11-13","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,145],["Trap Bar Deadlift",2,8,235],["Trap Bar Deadlift",2,5,325]],["Bulgarians – 4 rds",["Bulgarian Split Squat",4,7,25],["Calf Raises",4,7,null]],["Superset – 4 rds",["Leg Curl",4,10,null],["Farmer's Carry",4,2,null]],["Core",["Leg Lifts",3,10,null],["Weighted Situps",3,10,null]]]),
+  mk("2025-11-20","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,145],["Trap Bar Deadlift",2,8,235],["Trap Bar Deadlift",2,5,325]],["Superset – 4 rds",["Leg Curl",4,8,100],["Sumo Squat",4,10,null]],["Core – 4 rds",["Leg Lifts",4,10,null],["Hollow Hold",4,10,null]],["Superset – 4 rds",["S/L RDL with Knee Drive",4,8,30],["Copenhagen",4,10,null],["Calf Raises",4,12,null]]]),
+  mk("2025-12-04","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,165],["Trap Bar Deadlift",2,8,245],["Trap Bar Deadlift",2,5,335]],["Superset – 4 rds",["Single Leg Curl Tempo",4,8,60],["Heels Elevated Goblet Squat",4,8,60]],["Core",["V-Ups",3,10,14],["Side Plank Dips",3,10,null]],["Superset – 4 rds",["Reverse Lunges",4,10,30],["KB Calf Raises",4,10,null]]]),
+  mk("2025-12-11","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,165],["Trap Bar Deadlift",2,8,245],["Trap Bar Deadlift",2,5,335]],["Banded Circuit – 4 rds",["Banded Scooter Hamstring Curls",4,10,null],["Banded Glute Bridge",4,20,null],["Heel Taps",4,20,null]],["Accessories",["Hack Squats",3,8,35],["Copenhagen",3,10,null],["Cable Crunch",3,16,null]],["AMRAP",["Bike",1,1,null],["Sumo Squat",1,10,null],["Squat Step Backs",1,20,null]]]),
+  mk("2025-12-18","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,165],["Trap Bar Deadlift",2,8,255],["Trap Bar Deadlift",2,5,345]],["Superset – 4 rds",["Leg Curl",4,10,110],["Landmine S/L Hip Thrust",4,10,25]],["Landmine Core – 4 rds",["Landmine Around the World",4,10,null],["Plank",4,8,null]],["Landmine – 4 rds",["Incline Goblet Squats",4,10,25],["Landmine RDL",4,8,25]]]),
+  mk("2026-01-08","glute","Glutes","glute",[["Trap Bar DL",["Trap Bar Deadlift",1,10,165],["Trap Bar Deadlift",4,5,245]],["Superset – 4 rds",["Single Leg Curl",4,8,60],["Bent Knee Calf Raise",4,15,null]],["Core",["Weighted Situps",3,10,null],["Halo",3,8,null],["Plank",3,1,null]],["Superset – 4 rds",["S/L Bench Hip Thrusts",4,10,40],["RDL",4,8,135]]]),
+  mk("2026-01-13","upper","Back","upper",[["Pull – 4 rds",["Pendlay Row",4,8,55],["Cable Lat Pull Down",4,10,90],["Banded Chin Up",4,10,null]],["Core – 4 rds",["Halo",4,10,null],["Side Crunch",4,10,null]],["Arms – 4 rds",["Concentration Curl",4,8,33],["DB Reverse Fly",4,8,40],["Cable Tricep Extension",4,10,45]],["Finisher",["Row",1,1,null,"300m"],["Renegade Rows",1,10,35],["Heel Taps",1,10,null]]]),
+  mk("2026-01-22","glute","Glutes","glute",[["Trap Bar DL",["Trap Bar Deadlift",4,8,145]],["Superset – 4 rds",["Leg Curl",4,8,115],["Sumo Squat",4,10,null]],["Conditioning – 4 rds",["Row",4,1,null,"250m"],["S/L RDL with Knee Drive",4,8,null]],["Core",["Dead Bug",3,20,15],["Heel Taps",3,20,null]]]),
+  mk("2026-01-29","glute","Glutes","glute",[["Trap Bar DL (Ramping)",["Trap Bar Deadlift",1,10,145],["Trap Bar Deadlift",3,8,235]],["Bulgarians – 4 rds",["Bulgarian Split Squat",4,7,30],["Calf Raises",4,7,null]],["Superset – 4 rds",["Leg Curl",4,10,105],["Farmer's Carry",4,2,null]],["AMRAP",["Bike",1,1,null],["Weighted Situps",1,10,20],["Russian Twists",1,20,null]]]),
+];
+
+const SEED_RACHEL=[
+  mk("2025-01-13","quad","Leg Day","rleg",[["Back Squat (Ramping)",["Back Squat",1,5,95],["Back Squat",1,5,105],["Back Squat",1,5,110],["Back Squat",1,5,115],["Back Squat",1,5,125]],["Superset – 4 rds",["Barbell Hip Thrust",4,10,185],["DB Walking Lunges",4,10,30,"each"]],["Superset – 4 rds",["DB Bulgarian Split Squat",4,15,25,"each"],["Leg Extension",4,15,null,"3s hold"]],["Finisher – 3 rds",["DB Step Ups",3,7,20,"each"],["Jump Squats",3,20,null]]]),
+  mk("2025-01-20","quad","Leg Day","rleg",[["Back Squat (Ramping)",["Back Squat",1,7,95],["Back Squat",1,7,105],["Back Squat",1,7,110],["Back Squat",1,7,115],["Back Squat",1,7,120]],["Superset – 4 rds",["Barbell Hip Thrust",4,10,205],["DB Walking Lunges",4,10,35,"each"]],["Superset – 4 rds",["DB Bulgarian Split Squat",4,8,35,"each"],["Leg Extension",4,10,null]],["Finisher – 3 rds",["DB Step Ups",3,7,25,"each"],["Jump Squats",3,20,null]]]),
+  mk("2025-01-27","quad","Leg Day","rleg",[["Back Squat – 5 rds",["Back Squat",5,10,105]],["Superset – 5 rds",["DB Goblet Squat",5,8,50],["Leg Extension",5,12,null]],["Superset – 4 rds",["Box Step Ups",4,8,25,"each"],["Bulgarian Split Jumps",4,20,null,"each"]]]),
+  mk("2025-02-03","quad","Leg Day","rleg",[["Back Squat (Ramping)",["Back Squat",1,5,95],["Back Squat",1,5,105],["Back Squat",1,5,110],["Back Squat",1,5,115],["Back Squat",1,5,125]],["Superset – 4 rds",["Barbell Hip Thrust",4,10,185],["DB Walking Lunges",4,10,30,"each"]],["Superset – 4 rds",["DB Bulgarian Split Squat",4,12,25],["Leg Extension",4,12,null]]]),
+  mk("2025-02-17","quad","Leg Day","rleg",[["Back Squat (Ramping)",["Back Squat",1,10,95],["Back Squat",2,8,115],["Back Squat",1,5,125],["Back Squat",1,5,135]],["Superset – 4 rds",["DB Goblet Sumo Squat",4,10,50],["Leg Extension",4,10,null]],["Superset – 4 rds",["Bench Step Downs",4,8,25,"each"],["Curtsy Lunge",4,8,20]],["Finisher – 4 rds",["Squat Hold",4,30,null,"sec"]]]),
+  mk("2025-02-24","quad","Leg Day","rleg",[["Back Squat",["Back Squat",1,10,75],["Back Squat",4,10,95]],["Superset – 4 rds",["Leg Extension",4,10,null],["BW Jump Squats",4,10,null]],["Superset – 4 rds",["Trap Bar Deadlift",4,10,95],["Banded Adductor",4,15,null]],["Superset – 4 rds",["Hamstring Curl",4,10,null],["Alt Jump Lunges",4,20,null]],["Abs – 3 rds",["Weighted Deadbugs",3,20,null],["Russian Twists",3,20,null]]]),
+  mk("2025-03-03","quad","Leg Day","rleg",[["Back Squat (Ramping)",["Back Squat",1,10,95],["Back Squat",1,10,110],["Back Squat",1,8,120],["Back Squat",1,5,140]],["Core – 4 rds",["Weighted Med Ball Situps",4,10,null],["Med Ball Leg Lifts",4,10,null]],["Superset – 4 rds",["Sled Push",4,1,null,"2 plates"],["BW Sumo Squats",4,10,null]],["Superset – 4 rds",["Barbell Hip Thrust",4,10,175],["BW Walking Lunges",4,1,null,"DnB"]],["Superset – 4 rds",["Barbell Deficit RDL",4,8,75],["KB Farmer's Carry",4,2,null,"DnB"]]]),
+  mk("2025-03-17","quad","Leg Day","rleg",[["Back Squat – 5 rds",["Back Squat",5,10,115]],["Core – 4 rds",["Ab Rollouts",4,10,null],["Russian Twists",4,20,null]],["Superset – 4 rds",["DB Goblet Squat",4,10,50],["Leg Extension",4,12,null]],["Superset – 4 rds",["Box Step Ups",4,8,25,"each"],["Banded Bridge Scooter Curls",4,10,null]],["Conditioning – 4 rds",["Row",4,1,null,"200m"],["Lunge/Lunge/Squat",4,10,null]]]),
+  mk("2025-03-24","quad","Leg Day","rleg",[["Back Squat (Ramping)",["Back Squat",1,8,95],["Back Squat",1,8,110],["Back Squat",1,5,120],["Back Squat",1,5,140],["Back Squat",1,3,160]],["Core – 4 rds",["Weighted Med Ball Situps",4,10,null],["Med Ball Leg Lifts",4,10,null]],["Superset – 4 rds",["Sled Push",4,1,null,"2 plates"],["BW Sumo Squats",4,8,null]],["Superset – 4 rds",["Barbell Hip Thrust",4,10,155],["BW Walking Lunges",4,1,null,"DnB"]]]),
+  mk("2025-04-07","lower","Leg Day","rleg",[["Back Squat",["Back Squat",1,8,115],["Back Squat",4,8,135]],["Abs – 3 rds",["Weighted Deadbug Crunch",3,10,null],["Glute Bridge March",3,16,null]],["Superset – 4 rds",["Leg Extension",4,10,null,"2s pause"],["KB Sumo Squat Pulse",4,20,null]],["Superset – 4 rds",["Hamstring Curl",4,10,null,"2s pause"],["Lunge Pulse",4,15,null,"each"]],["Superset – 4 rds",["KB Suitcase Deadlift",4,10,null],["GHD Reverse",4,10,null]]]),
+  mk("2025-04-14","lower","Leg Day","rleg",[["Back Squat – 5 rds",["Back Squat",5,5,115,"3ct descent"]],["Core – 4 rds",["Ab Rollouts",4,10,null],["Russian Twists",4,20,null]],["Superset – 4 rds",["DB Goblet Squat",4,10,50],["Leg Extension",4,10,null]],["Superset – 4 rds",["Sumo Squats",4,10,null],["Leg Curl",4,10,null]],["Superset – 4 rds",["Barbell Hip Thrust",4,10,null],["SL DB RDL",4,8,null,"each"]]]),
+  mk("2025-04-21","lower","Leg Day","rleg",[["Barbell Sumo Deadlift (Ramping)",["Barbell Sumo Deadlift",1,8,95],["Barbell Sumo Deadlift",2,5,115],["Barbell Sumo Deadlift",2,5,135]],["Superset – 4 rds",["Leg Extension",4,8,null],["Barbell RDL",4,8,95]],["Core",["Weighted Crunch",1,10,null],["Heel Taps",1,20,null]],["Superset – 4 rds",["Leg Curl",4,10,null],["KB Calf Raises",4,10,null]],["Superset – 4 rds",["Barbell Walking Lunges",4,10,null,"DnB"],["GHD",4,10,null]]]),
+  mk("2025-04-28","lower","Leg Day","rleg",[["Barbell Sumo Deadlift (Ramping)",["Barbell Sumo Deadlift",1,8,95],["Barbell Sumo Deadlift",2,8,115],["Barbell Sumo Deadlift",1,8,135]],["Core",["Ab Rollout",1,10,null]],["Superset – 4 rds",["Barbell Hip Thrust",4,10,185],["DB Walking Lunges",4,10,30,"each"]],["Superset – 4 rds",["Leg Extension",4,8,null],["KB Elevated Goblet Squat",4,8,null],["Ab Rollout",4,10,null]],["Superset – 4 rds",["Bulgarian Split Squat",4,8,25,"each"],["KB Calf Raises",4,10,null],["KB Side Crunch",4,10,null,"each"]]]),
+  mk("2025-05-05","lower","Leg Day","rleg",[["Barbell Sumo Deadlift (Ramping)",["Barbell Sumo Deadlift",1,8,105],["Barbell Sumo Deadlift",2,8,115],["Barbell Sumo Deadlift",1,8,135]],["Abs – 3 rds",["Weighted Situps",3,10,null],["Flutter Kicks",3,30,null]],["Superset – 4 rds",["Leg Extension",4,10,null,"2s pause"],["Goblet Squat",4,10,null]],["Superset – 4 rds",["Hamstring Curl",4,10,null,"2s pause"],["Trap Bar RDL",4,10,25]],["Superset – 4 rds",["Bulgarian Split Squat",4,8,20],["Banded Adductor",4,15,null]]]),
+  mk("2025-05-12","lower","Leg Day","rleg",[["Barbell Sumo Deadlift (Ramping)",["Barbell Sumo Deadlift",1,8,115],["Barbell Sumo Deadlift",2,8,125],["Barbell Sumo Deadlift",1,8,145]],["Glute Activation – 3 rds",["Banded Hip Thrust",3,10,null],["Hip Thrust Hold Adductors",3,10,null]],["Superset – 4 rds",["Leg Extension",4,10,null,"2s pause"],["Incline Goblet Squat",4,10,null]],["Superset – 4 rds",["Hamstring Curl",4,10,null,"2s pause"],["SL RDL",4,8,35,"each"]],["Superset – 4 rds",["Bulgarian Split Squat",4,8,20],["Bulgarian Split Squat BW",4,8,null],["Calf Raises",4,10,null]]]),
+  mk("2025-05-19","lower","Leg Day","rleg",[["Barbell Sumo Deadlift (Ramping)",["Barbell Sumo Deadlift",1,8,95],["Barbell Sumo Deadlift",2,5,115],["Barbell Sumo Deadlift",2,5,135]],["Core – 4 rds",["Ab Rollouts",4,10,null],["KB Side Crunch",4,10,null,"each"]],["Superset – 4 rds",["Leg Extension",4,10,null],["Squat Hold Step Backs",4,10,null]],["Superset – 4 rds",["Leg Curl",4,10,null],["Incline RDL",4,8,30,"2s pause"]],["Superset – 4 rds",["GHD",4,8,null],["Goblet Squats",4,8,45]]]),
+  mk("2025-06-02","quad","Leg Day","rleg",[["Back Squat (Ramping)",["Back Squat",1,8,95],["Back Squat",1,8,115],["Back Squat",1,8,125],["Back Squat",1,8,135],["Back Squat",1,8,145]],["Superset – 4 rds",["Barbell Hip Thrust",4,10,205],["DB Walking Lunges",4,10,35,"each"]],["Superset – 4 rds",["DB Bulgarian Split Squat",4,8,35,"each"],["Leg Extension",4,8,null]],["Finisher – 3 rds",["KB Sumo Squats",3,10,null],["Jump Squats",3,20,null]]]),
+  mk("2025-06-16","lower","Lower Body","rleg",[["Sumo Deadlift (Ramping)",["Sumo Deadlift",1,8,125],["Sumo Deadlift",1,8,135],["Sumo Deadlift",1,5,145],["Sumo Deadlift",1,5,150],["Sumo Deadlift",1,3,155]],["Core – 4 rds",["Landmine Rainbows",4,10,10],["Deadbug Crunch",4,10,null]],["Superset – 4 rds",["Leg Extension",4,10,null],["Landmine Hack Squat",4,10,50]],["Superset – 4 rds",["Leg Curl",4,10,null],["Landmine SL RDL",4,8,25,"each"]],["Conditioning – 4 rds",["Sled Drag",4,1,null,"5 plates"],["BW Calf Raises",4,15,null]]]),
+  mk("2025-06-23","lower","Lower Body","rleg",[["Sumo Deadlift (Ramping)",["Sumo Deadlift",1,8,125],["Sumo Deadlift",1,8,135],["Sumo Deadlift",1,6,145],["Sumo Deadlift",1,6,150],["Sumo Deadlift",1,4,155]],["Core – 4 rds",["Wood Chops",4,8,20,"each"],["Cable Crunch",4,10,null]],["Conditioning – 4 rds",["Sled Push",4,1,null,"4 plates DnB"],["Calf Raises",4,10,null]],["Superset – 4 rds",["Leg Extension",4,10,null],["DB Incline RDL",4,10,35]]]),
+  mk("2025-06-30","lower","Lower Body","rleg",[["Barbell Sumo Deadlift (Ramping)",["Barbell Sumo Deadlift",1,8,115],["Barbell Sumo Deadlift",2,8,125],["Barbell Sumo Deadlift",2,8,145]],["Core – 4 rds",["Banded Glute Bridge",4,10,30],["Banded Glute Bridge Abductor Pulse",4,10,null]],["Superset – 4 rds",["Leg Extension",4,10,null],["Incline Goblet Squat",4,10,50]],["Superset – 4 rds",["Hamstring Curl",4,10,null],["Incline RDL",4,10,35]],["Superset – 3 rds",["Bulgarian Split Squat",3,8,20],["Bulgarian Split Pulse BW",3,10,null],["Calf Raises",3,10,null]]]),
+  mk("2025-07-14","lower","Lower Body","rleg",[["Sumo Squat (Ramping)",["Sumo Squat",1,8,125],["Sumo Squat",1,8,135],["Sumo Squat",1,5,145],["Sumo Squat",1,5,155],["Sumo Squat",1,5,165]],["Superset – 4 rds",["Bench Step Downs",4,8,null,"each"],["Calf Raises",4,20,null],["Incline DB RDL",4,10,35]],["Core",["Plate Leg Raise Sit Ups",1,10,15],["Plate Reverse Crunch",1,10,15],["Kneeling Plate Hip Halo",1,10,15]],["Conditioning – 4 rds",["Sled Drag",4,1,null,"4 plates DnB"],["GHD",4,10,null]]]),
+  mk("2025-07-21","lower","Lower Body","rleg",[["Sumo Squat (Ramping)",["Sumo Squat",1,8,125],["Sumo Squat",1,8,135],["Sumo Squat",1,5,145],["Sumo Squat",1,5,155],["Sumo Squat",1,5,165]],["Superset – 4 rds",["Barbell Hip Thrust",4,10,185],["DB Walking Lunges",4,10,30,"each"]],["Core",["Plate Reverse Crunch to Leg Raise",1,10,15],["KB Hip Circles",1,10,null,"each"]],["Superset – 4 rds",["DB Bulgarian Split Squat",4,12,25,"each"],["Leg Extension",4,12,null]]]),
+  mk("2025-07-28","lower","Lower Body","rleg",[["Sumo Squat (Ramping)",["Sumo Squat",1,8,125],["Sumo Squat",1,8,135],["Sumo Squat",3,5,150]],["Superset – 4 rds",["DB Walking Lunges",4,10,40,"progressive, each"]],["Core",["Plate Crunch to Leg Raise",1,10,15],["KB Side Crunch",1,10,null,"each"]],["Superset – 4 rds",["DB Bulgarian Split Squat",4,7,25],["Bulgarian BW",4,7,null],["Bulgarian Calf Raises",4,7,null]]]),
+  mk("2025-08-04","lower","Lower Body","rleg",[["Sumo Squat (Ramping)",["Sumo Squat",1,8,125],["Sumo Squat",1,8,135],["Sumo Squat",3,5,150]],["Superset – 4 rds",["Leg Extension",4,10,null,"2s pause"],["DB Front Squat",4,10,35]],["Superset – 4 rds",["Hamstring Curl",4,10,null,"2s pause"],["Deficit Reverse Lunge",4,10,25]],["Core – 4 rds",["Weighted Sit Ups",4,10,null],["Russian Twists",4,20,null]],["Conditioning",["Sled Drag",1,1,null,"4 plates DnB"],["GHD",1,10,null]]]),
+  mk("2025-08-18","lower","Lower Body","rleg",[["Sumo Squat (Ramping)",["Sumo Squat",1,8,135],["Sumo Squat",2,6,155],["Sumo Squat",2,6,165]],["Superset – 4 rds",["DB Goblet Bench Tap Squat",4,10,50],["Leg Extension",4,10,null]],["Superset – 4 rds",["Bulgarian Split Squat",4,7,30,"each"],["Bulgarian BW",4,7,null],["Bulgarian Calf Raises",4,7,null]]]),
+  mk("2025-08-25","lower","Lower Body","rleg",[["Sumo Squat (Ramping)",["Sumo Squat",1,8,135],["Sumo Squat",2,6,155],["Sumo Squat",1,3,175],["Sumo Squat",1,3,195]],["Core – 3 rds",["Plate Leg V-Up Crunch",3,10,15],["Plate Flutter Kicks",3,30,null]],["Superset – 4 rds",["Leg Extension",4,10,null],["Sandbag Walking Lunges",4,10,null,"DnB"]],["Superset – 4 rds",["BW Bench Step Downs",4,8,null,"each"],["KB Calf Raises",4,10,null],["Plank to Beast",4,10,null]],["Conditioning – 4 rds",["Sled Drag",4,1,null,"5 plates DnB"]]]),
+  mk("2025-09-08","lower","Lower Body","rleg",[["Sumo Squat (Ramping)",["Sumo Squat",1,8,135],["Sumo Squat",1,6,155],["Sumo Squat",1,6,175],["Sumo Squat",1,3,195],["Sumo Squat",1,1,205]],["Superset – 4 rds",["DB Walking Lunges",4,10,40,"progressive, each"]],["Core",["Crunch",1,10,15],["Leg Raise",1,10,15]],["Superset – 4 rds",["DB Bulgarian Split Squat",4,8,25,"each"],["Bulgarian BW",4,8,null,"each"],["KB Calf Raises",4,10,null]]]),
+  mk("2025-09-14","lower","Lower Body","rleg",[["Sumo Squat (Ramping)",["Sumo Squat",1,8,135],["Sumo Squat",1,6,155],["Sumo Squat",1,6,175],["Sumo Squat",1,3,195],["Sumo Squat",1,1,205]],["Superset – 4 rds",["Leg Extension",4,10,null,"2s pause"],["Incline Goblet Squat",4,10,null]],["Superset – 4 rds",["Hamstring Curl",4,10,null,"2s pause"],["Curtsy Lunge",4,8,25,"each"]],["Conditioning – 4 rds",["Bike",4,1,null,"1 min legs only"],["Farmer's Carry",4,2,null,"DnB"],["Calf Raises",4,10,null]]]),
+  mk("2025-09-22","lower","Lower Body","rleg",[["Sumo Deadlift (Ramping)",["Sumo Deadlift",1,8,135],["Sumo Deadlift",1,6,155],["Sumo Deadlift",1,6,175],["Sumo Deadlift",1,3,195],["Sumo Deadlift",1,1,205]],["Core – 3 rds",["Plate Crunches",3,10,null],["Jack Knife V-Ups",3,16,null]],["Superset – 4 rds",["SL Leg Extension",4,8,null,"each"],["B Stance Goblet Squat",4,8,null,"each"]],["Conditioning – 4 rds",["Sandbag Walking Lunges",4,1,null,"DnB"],["Plate Calf Raises",4,12,null]],["Bike EMOM",["Bike",1,1,null,"8-10 min"],["Farmer's Carry",1,2,null,"DnB"]]]),
+  mk("2025-09-29","lower","Lower Body","rleg",[["Sumo Deadlift (Ramping)",["Sumo Deadlift",1,8,135],["Sumo Deadlift",1,6,155],["Sumo Deadlift",1,6,175],["Sumo Deadlift",1,3,195],["Sumo Deadlift",1,1,205]],["Superset – 4 rds",["Leg Extension",4,8,null],["Incline Goblet Squat",4,10,50],["Cable Crunch Hold",4,10,null]],["Conditioning – 4 rds",["Sled Drag",4,1,null,"4 plates"],["Sumo Squat Plie",4,10,null]],["Superset – 4 rds",["DB Bulgarian into Front Lunge",4,7,15,"each"]]]),
+  mk("2025-10-06","lower","Lower Body","rleg",[["Sumo Squat (Ramping)",["Sumo Squat",1,8,135],["Sumo Squat",2,6,155],["Sumo Squat",1,3,175],["Sumo Squat",1,3,195]],["Core – 3 rds",["Plate Leg V-Up Crunch",3,10,15],["Plate Flutter Kicks",3,30,null]],["Superset – 4 rds",["Leg Extension",4,10,null],["Sandbag Walking Lunges",4,10,null,"DnB"]],["Superset – 4 rds",["DB Bench Step Downs",4,8,null,"each"],["KB Calf Raises",4,10,null],["Plank to Beast",4,10,null]],["Conditioning – 4 rds",["Sled Drag",4,1,null,"5 plates"]]]),
+  mk("2025-10-13","lower","Lower Body","rleg",[["Trap Bar Deadlift (Ramping)",["Trap Bar Deadlift",1,8,135],["Trap Bar Deadlift",2,6,155],["Trap Bar Deadlift",1,3,175],["Trap Bar Deadlift",1,3,195]],["Core – 3 rds",["Demon Crunch on Box",3,10,25],["KB Side Crunch",3,10,null,"each"]],["Superset – 4 rds",["Leg Extension",4,8,null,"tempo"],["Sumo Squat 1.5s",4,10,null],["Wall Sit",4,30,null,"sec"]],["Superset – 4 rds",["Reverse + Curtsy Lunges",4,8,20,"each"],["Elevated Calf Raises",4,10,null],["Adductor Plate Slides",4,20,10]]]),
+  mk("2025-10-20","lower","Lower Body","rleg",[["Trap Bar Deadlift (Ramping)",["Trap Bar Deadlift",1,8,135],["Trap Bar Deadlift",2,6,155],["Trap Bar Deadlift",1,3,175],["Trap Bar Deadlift",1,3,195]],["Core – 3 rds",["Weighted Crunch",3,10,null],["Leg Lifts",3,10,null]],["Superset – 4 rds",["Leg Extension",4,8,null,"tempo"],["Elevated Sumo Squat",4,8,null],["Squat Hold",4,30,null,"sec"]],["Superset – 4 rds",["Alt Curtsy Lunges",4,10,25],["Elevated Calf Raises",4,10,null],["Copenhagen Lifts",4,10,null,"each"]]]),
+  mk("2025-10-27","lower","Lower Body","rleg",[["Trap Bar Deadlift (Ramping)",["Trap Bar Deadlift",1,8,135],["Trap Bar Deadlift",1,8,155],["Trap Bar Deadlift",1,5,175],["Trap Bar Deadlift",1,5,195],["Trap Bar Deadlift",1,3,200]],["Core – 4 rds",["Landmine Around the World",4,10,10],["Hanging Knee Tucks",4,10,null]],["Superset – 4 rds",["SL Leg Extension",4,8,null],["Landmine Hack Sumo Squat",4,10,45]],["Superset – 4 rds",["Leg Curl",4,8,null],["SL Landmine RDL",4,8,35,"each"]],["Conditioning – 4 rds",["Sled Drag",4,1,null,"5 plates DnB"],["Calf Raises",4,10,null],["Copenhagen",4,10,null]]]),
+  mk("2025-11-03","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,225],["Hip Thruster",1,8,255],["Hip Thruster",1,6,290],["Hip Thruster",1,6,310],["Hip Thruster",1,6,320]],["Superset – 4 rds",["Leg Curl",4,8,null],["DB Suitcase Squat to Curtsy",4,10,25]],["Core – 3 rds",["Plate Leg Lift",3,10,null],["Banded Deadbug",3,20,null]],["Superset – 4 rds",["DB Incline RDL",4,8,40],["Farmer's Carry",4,2,null,"DnB"],["SL Calf Raises",4,10,null]]]),
+  mk("2025-11-17","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,225],["Hip Thruster",2,5,255],["Hip Thruster",2,5,290],["Hip Thruster",1,3,310]],["Superset – 4 rds",["Leg Curl",4,8,null,"pause"],["Sumo Squat .5+1",4,10,null]],["Core – 4 rds",["Demon Crunch on Box",4,8,25],["Russian Twist on Box",4,20,25]],["Superset – 4 rds",["SL RDL with Knee Drive",4,8,30,"each"],["Copenhagen on Box",4,10,null,"each"],["Calf Raises",4,12,null]]]),
+  mk("2025-12-01","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,225],["Hip Thruster",2,6,255],["Hip Thruster",2,6,290],["Hip Thruster",1,5,310]],["Superset – 4 rds",["SL Leg Curl",4,8,null,"tempo"],["Elevated Sumo Squat",4,10,null],["Wall Sit",4,30,null,"sec"]],["Core",["Weighted V-Ups",1,10,null],["Side Plank Dips",1,10,null,"each"]],["Superset – 4 rds",["Alt Curtsy Lunges",4,10,25],["Elevated Calf Raises",4,10,null]]]),
+  mk("2025-12-08","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,255],["Hip Thruster",1,5,290],["Hip Thruster",1,5,315],["Hip Thruster",1,5,345],["Hip Thruster",1,3,365]],["Accessory – 4 rds",["Banded Scooter Ham Curls",4,10,null],["Banded March",4,20,null],["Banded Glute Bridge + Pulse",4,20,null],["Heel Taps",4,20,null]],["Finisher",["Banded Sissy Squat to Fold Over",1,10,null],["SL Calf Raises",1,10,null],["Cable Crunch",1,16,null]],["Bike EMOM – 8 min",["Bike Legs Only",1,1,null],["Bike Both",1,1,null]]]),
+  mk("2025-12-15","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,255],["Hip Thruster",1,5,290],["Hip Thruster",1,5,315],["Hip Thruster",1,5,345],["Hip Thruster",1,3,365]],["Superset – 4 rds",["Leg Curl",4,8,null,"pause"],["Sumo Squat .5+1",4,8,null],["Lunge Hold Calf Raises",4,10,20,"each"]],["Core – 4 rds",["Hanging Knee Tucks",4,10,null],["KB Side Crunch",4,10,null],["KB Hip Circles",4,10,null]],["Superset – 4 rds",["SL RDL with Knee Drive",4,8,30,"each"],["Copenhagen",4,10,null,"each"]]]),
+  mk("2025-12-22","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,255],["Hip Thruster",1,8,290],["Hip Thruster",1,5,315],["Hip Thruster",1,5,345],["Hip Thruster",1,3,365]],["Core",["Box Crunches",1,10,null],["Box V-Ups",1,10,null],["Russian Twists",1,20,20]],["Superset – 4 rds",["Leg Curl",4,10,null],["Goblet Ballerina Squat",4,8,45,"each"]],["Superset – 4 rds",["DB Bulgarian Split Squat",4,10,25],["BW Bulgarian",4,10,null],["Calf Raises",4,10,null]]]),
+  mk("2025-12-29","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,255],["Hip Thruster",1,8,295],["Hip Thruster",1,5,315],["Hip Thruster",1,5,345],["Hip Thruster",1,3,365]],["Core",["Band Hold Leg Lifts to Crunch",1,10,null],["Flutter Kicks",1,20,null]],["Superset – 4 rds",["Leg Curl",4,10,null],["Ballerina Bulgarian",4,8,25,"each"],["Side Lying Abductors",4,10,null]],["AMRAP – 4 rds",["Bike",4,10,null,"cal"],["Squat Jumps",4,10,null],["SL RDL",4,8,35,"each"],["Calf Raises",4,10,null]]]),
+  mk("2026-01-05","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,255],["Hip Thruster",4,8,295]],["Superset – 4 rds",["SL Leg Curl",4,8,45,"tempo"],["Incline Goblet Squat",4,10,null],["Wall Sit",4,30,null,"sec"]],["Core",["Weighted V-Ups",1,10,null],["Banded Clamshells",1,10,null,"each"]],["Conditioning – 4 rds",["Sled Push Down/Pull Back",4,1,null,"5 plates"],["Elevated Calf Raises",4,10,null]]]),
+  mk("2026-01-12","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,255],["Hip Thruster",4,8,295]],["Superset – 4 rds",["Bulgarian into Lunge into Calf Raise",4,7,20,"each"]],["Core",["Wall Ball Feet to Hands Crunch",1,10,null],["Beast Wall Ball Rotations",1,8,null,"each"],["Plank",1,20,null,"sec"]],["Superset – 4 rds",["Leg Curl",4,8,null],["DB Incline RDL",4,8,35]]]),
+  mk("2026-01-19","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,255],["Hip Thruster",1,5,290],["Hip Thruster",1,5,315],["Hip Thruster",1,5,345],["Hip Thruster",1,3,365]],["Conditioning – 4 rds",["Bike",4,10,null,"cal"],["Sled Push/Drag",4,1,null,"5 plates"]],["Accessory – 4 rds",["Banded Scooter Ham Curls",4,10,null],["Banded March",4,20,null],["Banded Bridge Wide Pulse",4,15,null]],["Finisher",["GHD",1,10,null],["Calf Raises",1,10,null],["BW Squat Step Back",1,20,null]]]),
+  mk("2026-01-26","glute","Glutes","rglute",[["Superset – 4 rds",["Back Squat",4,7,65],["Leg Curl",4,10,null],["Calf Raises",4,10,null]],["Core – 4 rds",["Band Hold Crunch to Leg Lift",4,10,null],["Band Hollow Hold",4,20,null,"sec"]],["AMRAP",["Bike",1,1,null,"1 min"],["Sandbag Walking Lunges",1,10,null,"DnB"],["SL RDL",1,8,45,"each"]]]),
+  mk("2026-02-02","glute","Glutes","rglute",[["Hip Thruster (Ramping)",["Hip Thruster",1,8,255],["Hip Thruster",4,5,295]],["Superset – 4 rds",["SL Leg Curl",4,8,45,"tempo"],["Incline Goblet Squat",4,10,null],["Wall Sit",4,30,null,"sec"]],["Core",["Weighted V-Ups",1,10,null],["Clamshells",1,10,null,"each"]],["Conditioning – 4 rds",["Sled Push Down/Pull Back",4,1,null,"5 plates"],["Calf Raises",4,10,null]]]),
+  mk("2026-02-09","glute","Glutes","rglute",[["Back Squat",["Back Squat",1,7,75],["Back Squat",2,7,85],["Back Squat",2,7,95]],["Superset – 4 rds",["Leg Curl",4,8,null,"pause"],["Goblet Squat into Cossack Squat",4,10,null]],["Core – 4 rds",["Demon Crunch on Box",4,8,25],["Russian Twist on Box",4,20,25],["Copenhagen",4,10,null]],["Superset – 4 rds",["SL RDL with Knee Drive",4,8,30,"each"],["Calf Raises",4,12,null]]]),
+  mk("2026-02-16","glute","Glutes","rglute",[["Back Squat",["Back Squat",1,7,75],["Back Squat",2,7,95],["Back Squat",2,5,105]],["Core – 3 rds",["Shin Plate Crunch",3,10,10],["Side Plank Dips",3,6,null,"each"]],["Superset – 4 rds",["Leg Curl",4,10,15],["Box Step Overs",4,10,null],["Hip Flexor",4,8,null,"each"]],["Superset – 4 rds",["Barbell RDL",4,8,75],["Banded Abductor",4,10,null,"each"]]]),
+];
+
+const SEED_ANGELA=[
+mk("2025-01-13","quad","Squat Percentage Work","abike",[["Pre-exhaust",["Leg Curl",4,15,null,"2-45 plates"],["Leg Extension",4,15,null,"2-45 plates"]],["Squat",["Barbell Back Squat",1,12,88],["Barbell Back Squat",5,12,110,"80%"]],["Accessories",["Walking DB Lunge",4,20,20,"10 down/10 back"],["Hip Thruster",4,10,165]]]),
+mk("2025-01-20","quad","Squat Strength Day","abike",[["Warmup SS",["DB Single Leg RDL",3,12,25],["Leg Extension",3,15,null,"2-45 plates"]],["Squat",["Barbell Back Squat",1,8,101],["Barbell Back Squat",2,5,115],["Barbell Back Squat",3,3,128]],["Accessories",["Walking DB Lunge",4,20,20],["Hip Thruster",4,10,165]]]),
+mk("2025-02-03","quad","Squat Volume","abike",[["Squat",["Barbell Back Squat",1,12,95,"70%"],["Barbell Back Squat",5,5,115,"85%"]],["Accessories",["DB Stiff Leg Deadlift",4,12,null],["Leg Extension",4,12,null,"2-45/5"],["Leg Curl",4,15,null,"2-45 plates"]],["Finisher",["Walking DB Lunge",4,20,20],["Hip Thruster",4,10,null]]]),
+mk("2025-02-10","quad","Squat Intensity","abike",[["Pre-exhaust",["Leg Curl",4,12,null,"2-45 plates"],["Leg Extension",4,15,null,"2-45 plates"]],["Squat",["Barbell Back Squat",5,5,115,"85%"]],["Accessories",["Walking DB Lunge",4,20,20],["Hip Thruster",4,10,null]],["Finisher",["Squat Hold",3,1,null,"30s on/30s off"]]]),
+mk("2025-03-03","quad","Lower Rep Squat + Accessories","abike",[["Squat",["Barbell Back Squat",1,10,75],["Barbell Back Squat",2,8,95],["Barbell Back Squat",2,8,115]],["Circuit 1",["Leg Extension",4,10,null,"2sec pause"],["BW Jump Squat",4,10,null]],["Circuit 2",["Trap Bar Deadlift",4,10,95],["Banded Adductor",4,15,null]],["Circuit 3",["Hamstring Curl",4,10,null,"2sec pause"],["Front Lunge",4,20,15,"alt"]],["Core",["Weighted Deadbug",3,20,null],["Russian Twist",3,20,null]]]),
+mk("2025-03-10","quad","Squat + Sled Push","abike",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",1,10,110],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,3,140]],["Core",["Weighted Situp",4,10,null,"medball"],["Leg Lift",4,10,null,"medball"]],["Circuit 1",["Sled Push",4,1,null,"2-45 plates"],["BW Sumo Squat",4,10,null]],["Circuit 2",["Barbell Hip Thrust",4,10,175],["BW Walking Lunge",4,1,null,"DnB"]],["Circuit 3",["Barbell Deficit RDL",4,8,75],["KB Farmer Carry",4,1,null,"Browns DnB"]]]),
+mk("2025-03-24","quad","Squat + Trap Bar","abike",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",1,10,110],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,3,140]],["Core",["Weighted Deadbug",3,20,null],["Russian Twist",3,20,null]],["Circuit 1",["Leg Extension",4,10,null,"2sec pause"],["BW Jump Squat",4,10,null]],["Circuit 2",["Trap Bar Deadlift",4,10,95],["Banded Adductor",4,20,null]],["Circuit 3",["Hamstring Curl",4,10,null,"2sec pause"],["Front Lunge",4,20,15]]]),
+mk("2025-03-31","quad","Squat Percentage + Lunges","abike",[["Pre-exhaust",["Leg Curl",4,15,null,"2-45 plates"],["Leg Extension",4,15,null,"2-45 plates"]],["Squat",["Barbell Back Squat",1,12,88,"65%"],["Barbell Back Squat",5,10,110,"80%"]],["Core",["Weighted Situp",3,10,null],["Weighted Flutter Kick",3,1,null]],["Accessories",["Walking DB Lunge",4,20,20],["Hip Thruster",4,10,null]]]),
+mk("2025-04-07","quad","Squat + KB Suitcase","abike",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",1,10,110],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,3,140]],["Core",["Weighted Deadbug Crunch",3,10,null,"2 legs"],["Glute Bridge March",3,10,null]],["Circuit 1",["Leg Extension",4,10,null,"2sec pause"],["KB Sumo Squat Pulse",4,20,null]],["Circuit 2",["Hamstring Curl",4,10,null,"2sec pause"],["Lunge Pulse",4,15,null,"each leg"]],["Circuit 3",["KB Suitcase Deadlift",4,10,null,"yellow"],["Calf Raise",4,10,null],["GHD",4,10,null]]]),
+mk("2025-04-21","lower","Sumo DL Intro","abike",[["Main",["Barbell Sumo Deadlift",1,8,95],["Barbell Sumo Deadlift",2,5,115],["Barbell Sumo Deadlift",2,5,135]],["Circuit 1",["Leg Extension",4,8,null,"2-45/5"],["Barbell RDL",4,8,95]],["Core",["Weighted Crunch",1,10,null],["Heel Taps",1,10,null]],["Circuit 2",["Leg Curl",4,10,null,"2-45/5"],["KB Elevated Calf Raise",4,10,null]],["Finisher",["Barbell Walking Lunge",4,1,null,"10 down/10 back"],["GHD",4,10,null]]]),
+mk("2025-04-28","lower","Sumo DL Volume","abike",[["Main",["Barbell Sumo Deadlift",1,8,95],["Barbell Sumo Deadlift",2,8,115],["Barbell Sumo Deadlift",1,8,135]],["Core",["Weighted Crunch",1,10,null],["Heel Taps",1,10,null]],["Finisher",["BW Walking Lunge",4,1,null,"lunge/lunge/squat"],["GHD",4,10,null]],["Circuit 1",["Leg Extension",4,8,null,"2-45/5"],["Barbell RDL",4,8,95]],["Circuit 2",["Leg Curl",4,10,null,"2-45/5"],["KB Elevated Calf Raise",4,10,null]]]),
+mk("2025-05-05","lower","Sumo DL Progression","abike",[["Main",["Barbell Sumo Deadlift",1,8,105],["Barbell Sumo Deadlift",2,8,115],["Barbell Sumo Deadlift",1,8,135]],["Core",["Weighted Situp",3,10,null],["Flutter Kick",3,30,null]],["Circuit 1",["Leg Extension",4,10,null,"2sec pause"],["Goblet Squat",4,10,null]],["Circuit 2",["Hamstring Curl",4,10,null,"2sec pause"],["Trap Bar RDL",4,10,null]],["Circuit 3",["Bulgarian Split Squat",4,8,20],["Banded Adductor",4,15,null]]]),
+mk("2025-05-12","lower","Sumo DL Peak","abike",[["Main",["Barbell Sumo Deadlift",1,8,115],["Barbell Sumo Deadlift",2,8,125],["Barbell Sumo Deadlift",1,6,145]],["Core",["Banded Hip Thrust",3,10,null],["Hip Thrust Hold Adductor",3,10,null]],["Circuit 1",["Leg Extension",4,10,null,"2-45 plates"],["Incline Goblet Squat",4,10,null]],["Circuit 2",["Hamstring Curl",3,10,null,"2-45 plates"],["Single Leg RDL",3,8,35,"each"]],["Circuit 3",["Bulgarian Split Squat",3,8,20],["Bulgarian Split Squat",3,8,null,"BW"],["Calf Raise",3,10,null]]]),
+mk("2025-05-19","quad","Squat + Hip Flexor","ahip",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",1,8,115],["Barbell Back Squat",1,8,125],["Barbell Back Squat",1,5,135],["Barbell Back Squat",1,5,140]],["Hip Flexors",["Deadbug With Band",3,10,null,"each"],["Banded Hip Thrust",3,8,null]],["Circuit 1",["Leg Extension",4,8,null,"2-45 plates"],["KB Swing",4,10,null,"yellow"]],["Circuit 2",["Hamstring Curl",4,8,null,"2-45 plates"],["Incline Goblet Squat",4,8,50]]]),
+mk("2025-06-02","quad","Squat + Deficit Lunge","ahip",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",1,8,115],["Barbell Back Squat",1,8,125],["Barbell Back Squat",1,5,135],["Barbell Back Squat",1,5,140]],["Hip Flexors",["Deadbug With Band",3,10,null,"medball, each"],["Banded Hip Thrust",3,8,null,"medball"]],["Circuit 1",["Leg Extension",4,8,null,"2-45 plates"],["Deficit Reverse Lunge",4,8,20,"each"]],["Circuit 2",["Hamstring Curl",4,8,null,"2-45 plates"],["Incline Goblet Squat",4,8,50]]]),
+mk("2025-06-09","quad","Squat + KB Suitcase","abike",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",1,10,110],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,3,140]],["Core",["Deadbug Crunch",3,10,null,"2 legs"],["Russian Twist",3,20,null]],["Circuit 1",["Leg Extension",4,10,null,"2sec pause"],["KB Sumo Squat Pulse",4,20,null]],["Circuit 2",["Hamstring Curl",4,10,null,"2sec pause"],["Lunge Pulse",4,15,null,"each leg"]],["Circuit 3",["KB Suitcase Deadlift",4,10,null,"yellow"],["Calf Raise",4,10,null],["GHD",4,10,null]]]),
+mk("2025-06-23","quad","Light Squat + Landmine","abike",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",3,10,115]],["Circuit 1",["Hip Thruster",4,10,125],["DB Walking Lunge",4,10,20]],["Core",["Banded Deadbug",4,20,null],["Reverse Crunch",4,10,null]],["Circuit 2",["Leg Extension",4,8,null,"2-45/5"],["Landmine Hack Squat",4,10,15]],["Circuit 3",["Leg Curl",4,10,null,"2-45/5"],["GHD",4,10,null]]]),
+mk("2025-06-30","quad","Squat + Sumo Pulse","abike",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",1,10,110],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,5,130],["Barbell Back Squat",1,5,140]],["Core",["Weighted Situp",3,10,20,"medball"],["Russian Twist",3,20,20,"medball"]],["Circuit 1",["Leg Extension",4,10,null,"2sec pause"],["KB Sumo Squat Pulse",4,20,null,"red"]],["Circuit 2",["Hamstring Curl",4,10,null,"2sec pause"],["Lunge Pulse",4,15,15,"each leg"]],["Circuit 3",["KB Suitcase Deadlift",4,10,null,"brown"],["Calf Raise",4,10,null],["Farmer Carry",4,1,null,"DnB"]]]),
+mk("2025-07-07","quad","Squat + Trap Bar + Bike","abike",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",1,10,110],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,5,130],["Barbell Back Squat",1,5,140]],["Hip Flexors",["Deadbug With Band",3,10,null,"medball"],["Glute Bridge",3,10,null],["Banded Abductor Pulse",3,15,null]],["Circuit 1",["Leg Extension",4,10,null,"2sec pause"],["BW Jump Squat",4,10,null]],["Circuit 2",["Trap Bar Deadlift",4,10,95],["Banded Adductor",4,20,null]],["Circuit 3",["Hamstring Curl",4,10,null,"2sec pause"],["Front Lunge",4,20,15,"alt"]],["Finisher",["Bike Interval",3,2,null,"1min legs/1min arms"]]]),
+mk("2025-07-14","quad","Squat PR 145 + Sled","abike",[["Core",["Plate Leg Raise to Situp",3,10,15],["Plate Reverse Crunch",3,10,15],["Kneeling Plate Halo",3,10,15]],["Squat",["Barbell Back Squat",1,8,95],["Barbell Back Squat",1,6,120],["Barbell Back Squat",1,6,130],["Barbell Back Squat",1,5,140],["Barbell Back Squat",1,5,145]],["Circuit 1",["Bench Step Down",4,8,null,"each"],["Calf Raise",4,20,null,"browns"],["Barbell RDL",4,10,null]],["Circuit 2",["Sled Drag",4,1,null,"DnB, 4 plates"],["GHD",4,8,15,"plate"]]]),
+mk("2025-07-28","quad","Squat 150 + RDL","apvc",[["Core",["Plate Behind Head Crunch",4,10,null],["KB Kneeling Hip Circle",4,10,null]],["Squat",["Barbell Back Squat",1,8,95],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,8,130],["Barbell Back Squat",1,5,140],["Barbell Back Squat",1,5,150]],["Circuit 1",["Leg Extension",4,8,null,"2-45/10"],["Calf Raise",4,20,null,"browns"],["Barbell RDL",4,10,95]],["Circuit 2",["Leg Curl",4,8,null,"2-45/10"],["Incline Goblet Squat",4,10,null,"red"]]]),
+mk("2025-08-04","quad","Squat 150 Repeat","apvc",[["Squat",["Barbell Back Squat",1,8,95],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,8,130],["Barbell Back Squat",1,5,140],["Barbell Back Squat",1,5,150]],["Core",["Weighted Situp",4,10,null],["Russian Twist",4,10,null]],["Circuit 1",["Leg Extension",4,8,null,"2-45 plates"],["Barbell RDL",4,8,null,"25s"]],["Circuit 2",["Hamstring Curl",4,8,null,"2-45 plates"],["Incline Goblet Squat",4,8,50]],["Finisher",["Sled Drag",4,1,null,"3-4 plates"],["KB Calf Raise",4,10,null,"purple"]]]),
+mk("2025-08-11","quad","Squat 150 + Sled","apvc",[["Squat",["Barbell Back Squat",1,8,95],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,8,130],["Barbell Back Squat",1,5,140],["Barbell Back Squat",1,5,150]],["Core",["Plate Behind Head Crunch",3,10,null,"2 legs"],["Plate Hold Glute Bridge March",3,10,null]],["Circuit 1",["Sled Drag",4,1,null,"3-4 plates"],["KB Calf Raise",4,10,null,"purple"]],["Circuit 2",["Hamstring Curl",4,10,null,"2-45 plates"],["KB Sumo Squat Pulse",4,20,null]]]),
+mk("2025-08-18","quad","Squat + HT Combo","apvc",[["Squat",["Barbell Back Squat",1,7,95],["Barbell Back Squat",1,7,120],["Barbell Back Squat",1,7,130],["Barbell Back Squat",1,7,140]],["Core",["Plate Reverse Crunch",1,10,15],["Banded Adductor",1,20,null]],["Hip Thrust",["Hip Thruster",1,8,140],["Hip Thruster",1,8,160],["Hip Thruster",1,8,180]],["Finisher",["Walking Lunge",1,10,null,"DnB"],["KB Calf Raise",1,10,null]]]),
+mk("2025-08-25","quad","Squat + Bulgarian","abike",[["Squat",["Barbell Back Squat",1,10,95],["Barbell Back Squat",1,10,110],["Barbell Back Squat",1,8,120],["Barbell Back Squat",1,3,140]],["Core",["Weighted Deadbug Crunch",3,10,null,"2 legs"],["Glute Bridge March",3,10,null]],["Circuit 1",["Leg Extension",4,8,null,"2sec pause"],["KB Sumo Squat Pulse",4,20,null,"red"]],["Circuit 2",["Hamstring Curl",4,8,null,"2sec pause"],["Bulgarian Pulse",4,15,null,"each, inner DB"]],["Circuit 3",["KB Suitcase Deadlift",4,10,null,"purple"],["Calf Raise",4,10,null]]]),
+mk("2025-09-08","glute","HT Ramp Up","apvc",[["Main",["Hip Thruster",1,10,145],["Hip Thruster",1,10,165],["Hip Thruster",1,8,185],["Hip Thruster",1,8,195]],["Circuit 1",["Leg Extension",3,10,null,"2-45 plates"],["Curtsy Lunge",3,8,25,"each"],["Calf Raise",3,10,null,"45 plate"]],["Circuit 2",["Leg Curl",3,10,null,"2-45 plates"],["Sumo Squat",3,10,null,"red"]],["Core",["Plate Reverse Crunch",1,10,15],["Banded Adductor",1,20,null]]]),
+mk("2025-09-15","glute","HT + Reverse Lunge","apvc",[["Main",["Hip Thruster",1,10,145],["Hip Thruster",1,10,165],["Hip Thruster",1,8,185],["Hip Thruster",1,8,195]],["Circuit 1",["Leg Extension",4,10,null,"2-45 plates"],["Deficit Reverse Lunge",4,8,20,"each"]],["Circuit 2",["Hamstring Curl",4,10,null,"2-45 plates"],["Incline Goblet Squat",4,8,50]],["Core",["Ab Rollout",3,10,null],["Russian Twist",3,20,null]]]),
+mk("2025-09-22","glute","HT + Curtsy","apvc",[["Main",["Hip Thruster",1,10,145],["Hip Thruster",1,10,165],["Hip Thruster",1,8,185],["Hip Thruster",1,8,195]],["Circuit 1",["Leg Extension",4,8,null,"2-45 plates"],["Barbell RDL",4,8,null,"15s"],["Cable Side Crunch Hold",4,10,50]],["Circuit 2",["Hamstring Curl",4,10,null,"2-45 plates"],["Squat to Curtsy Lunge",4,10,20]]]),
+mk("2025-09-29","quad","Squat + Walking Lunge","abike",[["Squat",["Barbell Back Squat",1,7,95],["Barbell Back Squat",1,7,120],["Barbell Back Squat",1,7,130],["Barbell Back Squat",1,5,140]],["Core",["Weighted Crunch",1,10,null],["Heel Taps",1,10,null]],["Circuit 1",["Walking Lunge",4,1,10,"lunge/lunge/squat DnB"],["GHD",4,10,null]],["Circuit 2",["Leg Curl",4,10,null,"2-45/5"],["KB Elevated Calf Raise",4,10,null,"yellows"]],["Circuit 3",["Single Leg Extension",4,8,null,"45 plate"],["Barbell RDL",4,8,95]]]),
+mk("2025-10-06","quad","Mobility Focus + Extensions","amob",[["Mobility",["Banded Pigeon",1,1,null],["Banded Hamstring Stretch",1,1,null],["Weighted L-Stretch",1,10,null,"toes up on box"]],["Circuit 1",["Single Leg Extension",4,8,null,"45 plate"],["Wall Band Butt Tap",4,10,null,"slow"]],["Circuit 2",["Leg Curl",4,10,null,"2-45/5"],["Weighted Shin Box to High Kneel",4,8,null,"pinks, each"]],["Finisher",["Bike Interval",1,1,null]]]),
+mk("2025-10-20","quad","Descending Squat + Curtsy","amob",[["Squat",["Barbell Back Squat",1,8,95,"warmup"],["Barbell Back Squat",1,5,150],["Barbell Back Squat",1,5,140],["Barbell Back Squat",1,8,130],["Barbell Back Squat",1,8,120]],["Circuit 1",["Leg Extension",4,8,null,"2-45 plates"],["Barbell RDL",4,8,null,"15s"],["Cable Side Crunch Hold",4,10,50]],["Circuit 2",["Hamstring Curl",4,8,null,"2-45 plates"],["Elevated Curtsy Lunge",4,8,20,"each"],["KB Side Crunch",4,10,null,"each"]]]),
+mk("2025-10-27","quad","Squat + Bulgarian Pulse","amob",[["Squat",["Barbell Back Squat",1,7,95],["Barbell Back Squat",1,7,120],["Barbell Back Squat",1,7,130],["Barbell Back Squat",1,5,140]],["Core",["Banded Glute Bridge",3,10,null,"blue"],["Banded Abductor Pulse",3,20,null]],["Circuit 1",["Leg Extension",4,8,null,"tempo, 45/35"],["KB Sumo Squat 1.5",4,10,null,"red"]],["Circuit 2",["Hamstring Curl",4,8,null,"tempo, 45/35"],["Bulgarian Pulse",4,15,null,"each, inner DB"]],["Circuit 3",["KB Suitcase Deadlift",4,10,null,"purple"],["Calf Raise",4,10,null]]]),
+mk("2025-11-03","glute","HT + Sled Pull","amob",[["Main",["Hip Thruster",1,10,145],["Hip Thruster",1,10,165],["Hip Thruster",1,8,185],["Hip Thruster",1,8,195]],["Circuit 1",["Hamstring Curl",4,10,null,"2-45 plates"],["Sled Pull",4,1,null,"4-5 plates"],["Single Leg Calf Raise",4,12,null,"BW"]],["Circuit 2",["Cable Crunch Hold",4,10,null],["Adductor Plate Slide",4,10,5]]]),
+mk("2025-11-10","glute","HT + RDL","amob",[["Main",["Hip Thruster",1,10,145],["Hip Thruster",1,10,165],["Hip Thruster",1,8,185],["Hip Thruster",1,8,195]],["Circuit 1",["Single Leg Extension",4,8,null,"45 plate"],["Cable Crunch Hold",4,10,null],["Barbell RDL",4,8,85]],["Circuit 2",["Leg Curl",4,10,null,"2-45/5"],["Single Leg Elevated Calf Raise",4,10,null,"each"]]]),
+mk("2025-11-17","glute","Heavy HT 255","apvc",[["Main",["Hip Thruster",1,8,165],["Hip Thruster",1,8,195],["Hip Thruster",1,5,225],["Hip Thruster",2,5,255]],["Circuit 1",["Sled Drag",4,1,null,"4 plates DnB"],["Calf Raise",4,12,null]],["Circuit 2",["Single Leg Hamstring Curl",4,10,null,"45 plate"],["Barbell RDL",4,8,null,"20s"]],["Core",["Banded Lat Hold Leg Lift",3,10,null],["Banded Lat Pull Hollow Hold",3,10,null]]]),
+mk("2025-11-24","glute","HT 255 + Bulgarian","apvc",[["Main",["Hip Thruster",1,8,165],["Hip Thruster",1,8,195],["Hip Thruster",1,5,225],["Hip Thruster",2,5,255]],["Circuit 1",["Single Leg Extension",4,10,null,"45 plate"],["Barbell RDL",4,8,null,"25s"]],["Circuit 2",["Single Leg Hamstring Curl",4,10,null,"45 plate"],["Curtsy Lunge",4,8,25,"each"]],["Circuit 3",["KB Suitcase Deadlift",4,10,null,"purple"],["Calf Raise",4,10,null],["Cable Crunch Hold",4,10,null]]]),
+mk("2025-12-12","glute","HT 255 + Sled","apvc",[["Main",["Hip Thruster",1,8,165],["Hip Thruster",1,8,195],["Hip Thruster",1,5,225],["Hip Thruster",2,5,255]],["Circuit 1",["Sled Drag",4,1,null,"4 plates DnB"],["Alt Cable Crunch",4,16,null,"slow"],["Bent Knee Calf Raise",4,12,null]],["Circuit 2",["Single Leg Hamstring Curl",4,10,null,"45 plate"],["Curtsy Lunge",4,8,25,"each"]],["Core",["Ab Rollout",4,10,null],["Side Plank Hip Dip",4,10,null,"each"]]]),
+mk("2025-12-19","glute","HT 265 + Landmine","apvc",[["Main",["Hip Thruster",1,8,165],["Hip Thruster",1,8,185],["Hip Thruster",1,5,235],["Hip Thruster",2,5,265]],["Circuit 1",["Leg Curl With Pause",4,8,null,"2-45 plates"],["Landmine Sumo Squat",4,10,35]],["Circuit 2",["Landmine Around the World",4,10,null],["Landmine Side Crunch",4,10,null,"each"]],["Circuit 3",["Landmine RDL With Knee Drive",4,8,10,"each"],["Lunge Hold Calf Raise",4,10,20,"each"]]]),
+mk("2025-12-26","glute","HT 265 + Ballerina","apvc",[["Main",["Hip Thruster",1,8,165],["Hip Thruster",1,8,185],["Hip Thruster",1,5,235],["Hip Thruster",2,5,265]],["Circuit 1",["Single Leg Extension",4,10,null,"45 plate"],["Barbell RDL",4,8,null,"25s"]],["Circuit 2",["Single Leg Hamstring Curl",4,10,null,"45 plate"],["Ballerina Bulgarian",4,8,null,"pinks, each"]],["Circuit 3",["KB Suitcase Deadlift",4,10,null,"purple"],["Calf Raise",4,10,null],["Cable Crunch Hold",4,10,null]]]),
+mk("2026-01-02","full","Full Body HT Focus","abike",[["Main",["Hip Thruster",1,8,165],["Hip Thruster",1,8,185],["Hip Thruster",1,5,235],["Hip Thruster",2,5,265]],["Upper Circuit",["Concentration Curl",4,10,15,"15-20"],["Incline Chest Press",4,8,20,"20-25"],["Single Arm Tricep Extension",4,12,90]],["Core",["Band Hold Leg Lift",1,10,null],["Flutter Kick",1,20,null]],["Lower Circuit",["Leg Extension",4,10,null,"2-45 plates"],["Cable Row",4,10,55,"55-60"],["Deficit Curtsy Lunge",4,10,20]]]),
+mk("2026-01-09","glute","Glute HT 195","abike",[["Main",["Hip Thruster",1,8,165],["Hip Thruster",5,5,195,".5 & 1 full"]],["Circuit 1",["Single Leg Curl",4,8,null,"tempo, 45 plate"],["Incline Goblet Squat",4,8,null,"green"],["BW Bent Knee Calf Raise",4,12,null]],["Core",["Leg Raise",1,10,null],["Banded Clamshell",1,10,null,"each"]],["Finisher",["Treadmill Interval",6,1,null,"60s on/90s off"]]]),
+mk("2026-01-16","glute","Glute HT 205","abike",[["Main",["Hip Thruster",1,8,185],["Hip Thruster",4,8,205]],["Circuit 1",["Bulgarian Into Lunge",3,5,10,"each, BW/10"]],["Core",["Wall Ball Feet Pass Crunch",1,6,null],["Beast Wallball Side Rotation",1,8,null,"each"]],["Circuit 2",["Leg Curl",4,8,null,"45/35"],["Sumo Squat",4,10,null,"red"]],["Finisher",["Treadmill Interval",6,1,null,"1min run/90s walk"]]]),
+mk("2026-01-19","upper","Upper Body","abike",[["Circuit 1",["Incline Curl",4,8,12,"12-15"],["Single Arm Tricep Pushdown",4,10,40],["Incline Row",4,6,35,"35-40"]],["Core",["Wall Ball Ab Pass",3,6,null],["Ab Rotation",3,1,null]],["Circuit 2",["KB High Pull",4,8,null,"yellow"],["Single Arm Cable Lat Pulldown",4,8,40],["DB Chest Press",4,8,25]],["Finisher",["Treadmill Interval",6,1,null,"1min run/90s walk"]]]),
+mk("2026-01-23","glute","HT 275 PR","apvc",[["Main",["Hip Thruster",1,8,165],["Hip Thruster",1,8,185],["Hip Thruster",1,5,235],["Hip Thruster",2,5,275]],["Circuit 1",["Leg Curl With Pause",4,8,null,"2-45 plates"],["Landmine Sumo Squat",4,10,35]],["Circuit 2",["Landmine Around the World",4,10,null],["Landmine Side Crunch",4,10,null,"each"]],["Circuit 3",["Landmine RDL With Knee Drive",4,8,10,"each"],["Lunge Hold Calf Raise",4,10,20,"each"]]]),
+mk("2026-02-06","glute","Glute HT 205 + Sled","abike",[["Main",["Hip Thruster",1,8,185],["Hip Thruster",4,5,205]],["Circuit 1",["Single Leg Curl",4,8,null,"45 plate"],["Sumo Squat",4,10,null,"red/white"],["Wall Sit Hold",4,1,null,"30s"]],["Core",["Leg Lift",1,10,null],["Clamshell",1,10,null,"each"]],["Circuit 2",["Sled Push",4,1,null,"5 plates DnB"],["Calf Raise",4,10,null,"purples"]],["Finisher",["Treadmill Interval",8,1,null,"1min run/30s walk"]]]),
+mk("2026-02-13","lower","Trap Bar Heavy 195","abike",[["Main",["Trap Bar Deadlift",1,8,135],["Trap Bar Deadlift",2,6,155],["Trap Bar Deadlift",1,3,175],["Trap Bar Deadlift",1,3,195]],["Core",["Crunch On Box",3,10,null],["Hip Flexor",3,8,null,"each"]],["Circuit 1",["Leg Curl",4,8,null,"tempo, 45/35"],["Reverse + Curtsy Lunge",4,8,20,"each"],["Plate Bent Knee Calf Raise",4,10,null],["Adductor Plate Slide",4,20,10]],["Finisher",["Treadmill Interval",1,1,null,"1:15 run/30s walk"]]]),
+];
+
+const SEED_ADAM=[
+// Dec 2024: Bench max 175→185
+mk("2024-12-23","push","Push Day","abike",[["Core",["V-Ups",3,14,null],["Butterfly Situps",3,10,null]],["Bench",["Barbell Bench Press",1,10,115,"65%"],["Barbell Bench Press",3,5,140,"80%"],["Barbell Bench Press",2,8,115,"failure 65%"]],["Circuit 1",["Push Ups",4,1,null,"1min on/1min off"]],["Circuit 2",["DB Front Raise",4,15,15],["DB Incline Crush Grip Press",4,10,30],["Cable Tricep Extension",4,12,80]]]),
+mk("2024-12-30","push","Push Day","abike",[["Core",["V-Ups",3,14,null],["Butterfly Situps",3,10,null]],["Bench",["Barbell Bench Press",1,12,120,"65%"],["Barbell Bench Press",2,5,148,"80%"],["Barbell Bench Press",2,2,166,"90%"],["Barbell Bench Press",1,8,null,"failure 70%"]],["Circuit 1",["Push Ups",4,20,null],["DB Skull Crushers",4,12,40]],["Circuit 2",["DB Front Raise",4,15,15],["DB Incline Crush Grip Press",4,10,30],["Cable Tricep Extension",4,12,80]]]),
+// Jan 2025
+mk("2025-01-13","push","Push Day","abike",[["Core",["Alt V-Ups",3,20,null,"total"],["Butterfly Situps",3,12,null]],["Bench",["Barbell Bench Press",1,12,null,"70%"],["Barbell Bench Press",2,8,null,"80%"],["Barbell Bench Press",2,3,null,"90%"],["Barbell Bench Press",1,12,null,"70%"]],["Circuit 1",["Barbell Military Press",4,7,75],["Push Ups",4,20,null],["DB Skull Crushers",4,12,50]],["Circuit 2",["DB Front Raise",4,15,15],["DB Incline Crush Grip Press",4,10,30],["Lateral Raise",4,15,15]]]),
+mk("2025-01-20","push","Push Day","abike",[["Core",["Alt V-Ups",3,20,null],["Butterfly Situps",3,12,null]],["Bench",["Barbell Bench Press",1,12,130,"70%"],["Barbell Bench Press",5,5,157,"85%"]],["Circuit 1",["DB Incline Chest Press",4,8,40],["DB Push Press",4,10,35]],["Circuit 2",["Push Ups",3,1,null,"1min on/1min off"]],["Circuit 3",["DB Front Raise",4,15,15],["DB Incline Crush Grip Press",4,10,30],["Lateral Raise",4,15,15]]]),
+mk("2025-01-27","push","Bench PR Attempt","abike",[["Core",["Alt V-Ups",3,20,null],["Butterfly Situps",3,12,null]],["Bench",["Barbell Bench Press",1,8,null,"65%"],["Barbell Bench Press",1,1,null,"85%"],["Barbell Bench Press",1,1,null,"PR attempt"]],["Circuit 1",["DB Incline Chest Press",4,8,40],["DB Push Press",4,10,35]],["Circuit 2",["Push Ups",3,1,null,"1min on/1min off"]],["Circuit 3",["DB Front Raise",4,15,15],["DB Incline Crush Grip Press",4,10,30],["Lateral Raise",4,15,15]]]),
+// Feb 2025: Bench max 200
+mk("2025-02-03","push","Push Day","abike",[["Core",["Russian Twist",3,20,20],["Weighted Situp",3,10,20]],["Bench",["Barbell Bench Press",1,10,130,"65%"],["Barbell Bench Press",3,5,160,"80%"],["Barbell Bench Press",2,8,130,"failure 65%"]],["Circuit 1",["DB Bicep Curl",4,10,25],["Seated Arnold Press",4,8,35]],["Circuit 2",["DB T Raise",4,15,15],["Cable Tricep Extension",4,12,80]],["Finisher",["Push Ups",3,1,null,"to failure, 1min rest"]]]),
+mk("2025-02-10","push","Push Day","abike",[["Core",["Weighted Deadbug",3,1,20,"lat pullover"]],["Bench",["Barbell Bench Press",1,12,130,"65%"],["Barbell Bench Press",2,5,160,"80%"],["Barbell Bench Press",2,2,180,"90%"],["Barbell Bench Press",1,8,140,"70%"]],["Circuit 1",["DB Hammer Curl to Push Press",4,10,null],["KB Farmer Carry",4,1,null,"DnB + shrugs"]],["Circuit 2",["Lateral Raise",4,15,12],["DB Incline Crush Grip Press",4,10,30],["Cable Tricep Extension",4,12,90]]]),
+mk("2025-02-17","push","Push Day","abike",[["Core",["Weighted Deadbug",3,1,null,"lat pullover"]],["Bench",["Barbell Bench Press",1,12,140,"70%"],["Barbell Bench Press",2,8,160,"80%"],["Barbell Bench Press",2,3,180,"90%"],["Barbell Bench Press",1,12,140,"70%"]],["Circuit 1",["Barbell Military Press",4,7,75],["Bench Dips",4,15,null],["DB Skull Crushers",4,12,35]],["Circuit 2",["DB Front Raise",4,15,15],["DB Incline Crush Grip Press",4,10,30],["Lateral Raise",4,15,15]]]),
+mk("2025-02-24","push","Push Day","abike",[["Core",["DB Halo With Twist",3,12,25],["DB Single Arm Press March",3,20,25]],["Bench",["Barbell Bench Press",1,12,130,"65%"],["Barbell Bench Press",4,8,166,"83%"]],["Circuit 1",["DB Thruster",4,8,35],["Cable Row",4,10,null]],["Circuit 2",["Plate Front Raise Reverse Lunge",4,8,25,"each"],["Incline Curl",4,10,null]],["Circuit 3",["Leg Extension",4,10,null,"2-45 plates"],["Cable Tricep Extension",4,12,80]],["Finisher",["Bike Interval",3,2,null,"arms 1min/legs 1min"]]]),
+// Mar 2025
+mk("2025-03-03","push","Push + Accessories","abike",[["Core",["DB Halo With Twist",3,12,25],["DB Single Arm Press March",3,20,25]],["Bench",["Barbell Bench Press",1,10,130,"65%"],["Barbell Bench Press",3,5,160,"80%"],["Barbell Bench Press",2,8,130,"failure 65%"]],["Circuit 1",["DB Thruster",4,10,25],["Cable Lat Pulldown",4,10,null]],["Circuit 2",["5-5-5 Curl",4,1,20],["Seated Arnold Press",4,10,30],["Tricep Kickback",4,10,20]],["Circuit 3",["Leg Extension",4,10,null,"2sec pause"],["KB Shoulder Shrug",4,10,null,"greens"],["KB Suitcase Deadlift",4,10,null,"greens"]],["Finisher",["Bike Interval",3,2,null,"arms/legs"]]]),
+mk("2025-03-10","push","Bench Max Test","abike",[["Core",["Russian Twist",3,20,20],["Weighted Situp",3,10,20]],["Bench",["Barbell Bench Press",1,10,130,"65%"],["Barbell Bench Press",1,5,160,"80%"],["Barbell Bench Press",1,3,180,"90%"],["Barbell Bench Press",1,1,200,"100%"],["Barbell Bench Press",1,8,140,"70%"]],["Circuit 1",["DB Bicep Curl",4,10,25],["DB Squat to High Pull",4,10,null],["Seated Arnold Press",4,8,35]],["Circuit 2",["Leg Extension",3,10,null,"2sec pause"],["Push Ups",3,10,null]],["Circuit 3",["DB T Raise",4,10,12],["Banded Tricep Pushdown",4,15,null]],["Circuit 4",["Leg Curl",3,10,null,"2sec pause"],["Push Ups",3,10,null]],["Finisher",["Bike Interval",3,2,null,"arms/legs"]]]),
+mk("2025-03-17","push","Upper Focus + Lower","abike",[["Core",["Ab Rollout",3,10,null],["Russian Twist",3,20,20]],["Bench",["Barbell Bench Press",1,12,130,"65%"],["Barbell Bench Press",4,8,170,"85%"]],["Circuit 1",["DB Thruster",4,8,30],["DB Lat Pullover",4,10,25]],["Circuit 2",["Leg Extension",4,10,null,"2-45 plates"],["DB ISO Hold Bicep Curl",4,8,null]],["Circuit 3",["Plate Front Raise Reverse Lunge",4,8,25,"each"],["Tricep Kickback",4,12,80]],["Circuit 4",["Barbell RDL",3,8,125],["Push Ups",3,10,null]],["Finisher",["Bike Interval",3,2,null,"arms/legs"]]]),
+mk("2025-03-24","push","Bench + Clean & Squat","abike",[["Core",["DB Halo With Twist",3,10,25],["DB Deadbug",3,20,25]],["Bench",["Barbell Bench Press",1,10,130,"65%"],["Barbell Bench Press",3,5,160,"80%"],["Barbell Bench Press",2,8,130,"failure 65%"]],["Circuit 1",["KB Clean & Squat",4,10,null,"brown"],["Single Arm DB Row",4,8,45,"each"]],["Circuit 2",["7-7-7 Curl",4,1,20],["Tricep Machine",4,10,80]],["Circuit 3",["Leg Extension",4,10,null,"2sec pause"],["Barbell RDL",4,10,null]],["Finisher",["Push Ups",3,1,null,"30sec work/30sec rest"]]]),
+mk("2025-03-31","push","Bench 185 + Thrusters","abike",[["Core",["DB Halo With Twist",3,12,25],["DB Single Arm Press March",3,20,30]],["Bench",["Barbell Bench Press",1,10,130,"65%"],["Barbell Bench Press",4,6,185,null]],["Circuit 1",["DB Thruster",4,8,35],["Cable Row",4,10,45]],["Circuit 2",["Plate Front Raise Reverse Lunge",4,8,25,"each"],["Incline Curl",4,8,20],["DB Incline Crush Grip Press",4,8,null]],["Circuit 3",["Push Ups",4,10,null],["Leg Extension",4,10,null],["Cable Tricep Extension",4,12,80]],["Finisher",["Bike Interval",3,2,null,"arms/legs"]]]),
+// Apr 2025
+mk("2025-04-07","push","Bench + DB Curls","abike",[["Core",["DB Deadbug Crunch",3,10,20],["Heel Taps",3,20,null]],["Bench",["Barbell Bench Press",1,10,130,"65%"],["Barbell Bench Press",3,5,160,"80%"],["Barbell Bench Press",2,8,130,"failure 65%"]],["Circuit 1",["DB Clean & Squat",4,8,null,"brown"],["Single Arm DB Row",4,8,45,"each"]],["Circuit 2",["DB Bicep Curl",4,8,20],["DB Wide Bicep Curl",4,8,20],["Tricep Machine",4,10,80]],["Circuit 3",["Seated Push Press",4,8,null],["Lateral Raise",4,8,null],["Push Ups",4,8,null]],["Circuit 4",["Leg Extension",4,10,null,"2sec pause"],["Barbell RDL",4,10,null]]]),
+mk("2025-04-14","push","Upper Focus + Lower","abike",[["Core",["Ab Rollout",3,10,null],["Russian Twist",3,20,20]],["Bench",["Barbell Bench Press",1,10,130,"65%, 3ct descent"],["Barbell Bench Press",4,8,170,"85%"]],["Circuit 1",["DB Thruster",4,8,30],["DB ISO Hold Bicep Curl",4,8,null]],["Circuit 2",["Leg Extension",4,10,null,"2-45 plates"],["Kneeling Lat Pulldown",4,10,50]],["Circuit 3",["Leg Curl",3,10,null,"2-45 plates"],["Push Ups",3,10,null]],["Circuit 4",["Plate Front Raise Reverse Lunge",4,8,25,"each"],["Tricep Kickback",4,12,80]],["Finisher",["Bike Interval",3,2,null,"arms/legs"]]]),
+mk("2025-04-21","push","Bench Ramp + Farmers","abike",[["Bench",["Barbell Bench Press",1,10,135],["Barbell Bench Press",1,8,150],["Barbell Bench Press",1,6,165],["Barbell Bench Press",1,1,185,"before failure"],["Bench Dips",4,10,null]],["Circuit 1",["DB T Raise",4,8,15],["Incline Curl",4,8,20]],["Core",["Russian Twist",3,20,null],["Weighted Situp",3,15,null]],["Circuit 2",["Push Ups",4,10,null],["Heels Elevated Goblet Squat",4,8,50]],["Circuit 3",["DB Push Press",4,8,null],["Farmer's Carry",4,1,null,"heavy DnB"]]]),
+// May 2025: Max 200→210
+mk("2025-05-05","push","Bench Pyramid","abike",[["Core",["Weighted Situp",3,10,null],["Flutter Kick",3,30,null]],["Bench",["Barbell Bench Press",1,12,130,"65%"],["Barbell Bench Press",2,6,160,"80%"],["Barbell Bench Press",2,3,180,"90%"],["Barbell Bench Press",1,8,140,"70%"]],["Circuit 1",["DB Bicep Curl",4,8,null],["DB Wide Bicep Curl",4,8,null],["Diagonal Tricep Cable",4,8,null,"each"]],["Circuit 2",["Leg Extension",4,10,null],["Goblet Squat",4,10,null]],["Circuit 3",["Leg Curl",4,10,null],["KB Calf Raise",4,10,null,"red"]],["Finisher",["Push Ups",3,1,null,"to failure, 1min rest"]]]),
+mk("2025-05-12","push","Bench Ramp + T's","abike",[["Bench",["Barbell Bench Press",1,10,135],["Barbell Bench Press",1,8,150],["Barbell Bench Press",1,6,165],["Barbell Bench Press",1,1,185,"before failure"],["Bench Dips",4,10,null]],["Circuit 1",["DB T Raise",4,15,10],["Heels Elevated Goblet Squat",4,15,35],["Incline Curl",4,15,15]],["Core",["Russian Twist",3,20,null],["Butterfly Situps",3,15,null]],["Circuit 2",["Push Ups",4,15,null],["Farmer's Carry",4,1,null,"heavy"],["DB Push Press",4,15,25]]]),
+mk("2025-05-19","push","Bench Max Test 210","abike",[["Core",["Plate Halo With Twist",3,12,25],["Plate Press March",3,20,25]],["Bench",["Barbell Bench Press",1,10,137,"65%"],["Barbell Bench Press",3,5,168,"80%"],["Barbell Bench Press",2,8,137,"failure 65%"]],["Circuit 1",["KB Squat Clean Press",4,8,null,"brown"],["Cable Lat Pulldown",4,10,null]],["Circuit 2",["DB Curl Slow Eccentric",4,10,25,"3sec"],["DB Incline Crush Grip Press",4,10,30],["Bench Dips",4,10,null]],["Circuit 3",["Leg Extension",4,10,null,"2sec pause"],["KB Shoulder Shrug",4,10,null,"greens"],["Lunge Plate Front Raise",4,8,35,"each"]],["Finisher",["Bike Interval",3,2,null,"arms/legs"]]]),
+// Jun 2025
+mk("2025-06-02","push","Upper Focus 3ct Descent","abike",[["Core",["Ab Rollout",3,10,null],["Russian Twist",3,20,20]],["Bench",["Barbell Bench Press",1,10,137,"65%, 3ct descent"],["Barbell Bench Press",4,6,179,"85%"]],["Circuit 1",["DB Thruster",4,8,30],["Incline Curl",4,10,null],["Cable Tricep Kickback",4,10,40,"each"]],["Circuit 2",["Leg Extension",4,10,null,"2-45 plates"],["Push Ups",4,15,null],["Overhead Plate Reverse Lunge",4,8,25,"each"]],["Circuit 3",["Leg Curl",3,10,null,"2-45 plates"],["Around the World",3,10,20],["Calf Raise",3,15,null,"greens"]],["Finisher",["Bike Interval",4,2,null,"arms/legs"]]]),
+mk("2025-06-09","push","Bench + Landmine","abike",[["Bench",["Barbell Bench Press",1,10,135],["Barbell Bench Press",1,10,150],["Barbell Bench Press",1,6,165],["Barbell Bench Press",1,6,175],["Barbell Bench Press",1,1,185,"before failure"]],["Circuit 1",["Landmine Thruster",4,10,35],["ISO Bicep Curl",4,10,25,"each"],["Cable Overhead Tricep Extension",4,10,null]],["Core",["Landmine Rainbows",4,10,10],["Landmine Side Crunch",4,10,null,"each"],["Push Ups",4,10,null]],["Circuit 2",["Landmine Seated Push Press",4,8,null,"each"],["Farmer's Carry",4,1,null,"heavy DnB"],["DB Front Raise",4,10,15]]]),
+mk("2025-06-23","push","Bench Ramp + Curls","abike",[["Bench",["Barbell Bench Press",1,10,135],["Barbell Bench Press",1,10,150],["Barbell Bench Press",1,6,165],["Barbell Bench Press",1,6,175],["Barbell Bench Press",1,1,185,"before failure"]],["Circuit 1",["DB Incline Curl",4,5,null],["DB Incline Hammer Curl",4,5,null],["Cable Tricep Extension",4,8,null,"each"]],["Circuit 2",["Leg Extension",4,8,null],["Lateral Raise",4,10,null],["Walking Lunges",4,10,null,"out & back"]],["Circuit 3",["Leg Curl",4,10,null],["Push Ups",4,10,null],["KB Calf Raise",4,10,null,"red"]],["Core",["Ab Rollout",3,10,null],["Russian Twist",3,20,null]]]),
+mk("2025-06-30","push","Bench 175 + Thrusters","abike",[["Bench",["Barbell Bench Press",1,10,135],["Barbell Bench Press",2,8,155],["Barbell Bench Press",2,6,175]],["Core",["Weighted Situp",3,10,20,"medball"],["Russian Twist",3,20,20,"medball"]],["Circuit 1",["DB Thruster",4,8,30],["DB ISO Bicep Curl",4,10,25],["Cable Tricep Extension",4,10,40]],["Circuit 2",["Leg Extension",4,10,null,"2-45 plates"],["Push Ups",4,10,null],["Overhead Plate Reverse Lunge",4,8,25,"each"]],["Circuit 3",["Leg Curl",3,10,null,"2-45 plates"],["Around the World",3,10,20],["KB Calf Raise",3,15,null,"greens"]]]),
+// Jul 2025: Max 210→225
+mk("2025-07-07","push","Bench 210 Full Test","abike",[["Bench",["Barbell Bench Press",1,10,136,"65%"],["Barbell Bench Press",1,5,168,"80%"],["Barbell Bench Press",1,3,189,"90%"],["Barbell Bench Press",1,1,210,"100%"],["Barbell Bench Press",1,8,140,"70%"]],["Circuit 1",["DB Bicep Curl",4,8,30],["DB Wide Bicep Curl",4,8,30],["Diagonal Tricep Cable",4,8,null,"each"]],["Circuit 2",["Leg Extension",4,10,null,"2 plates"],["Cable Chop Hold",4,10,null,"total"],["Bench Step Down",4,8,null,"each"]],["Circuit 3",["Leg Curl",4,10,null,"2 plates"],["Plate Crunch",4,10,null],["DB RDL",4,10,45]],["Finisher",["Push Ups",4,1,null,"to failure, 2min rest"]]]),
+mk("2025-07-14","push","Bench PR 220","abike",[["Bench",["Barbell Bench Press",1,8,136,"65%"],["Barbell Bench Press",1,3,179,"85%"],["Barbell Bench Press",1,1,220,"PR"]],["Circuit 1",["Landmine Thruster",4,10,45],["ISO Bicep Curl",4,10,25,"each"],["Cable Tricep Extension",4,10,45]],["Core",["Plate Leg Raise to Situp",1,10,15],["Plate Behind Head Crunch",1,10,15],["Kneeling Plate Halo",1,10,15]],["Circuit 2",["Landmine Seated Push Press",4,8,null,"each"],["Farmer's Carry",4,1,null,"heavy DnB"],["Lateral Raise",4,10,15]]]),
+mk("2025-07-28","push","Bench %s + Ground OH","abike",[["Core",["Plate Behind Head Crunch",4,10,null,"into leg lift"],["KB Kneeling Hip Circle",4,10,null]],["Bench",["Barbell Bench Press",1,10,146,"65%"],["Barbell Bench Press",3,5,191,"85%"],["Barbell Bench Press",2,8,169,"failure 75%"]],["Circuit 1",["Ground to Overhead",4,10,35],["Incline Curl",4,9,30],["Leg Curl",4,10,null,"2-45/10"]],["Circuit 2",["Leg Extension",4,10,null,"2-45/10"],["DB Leaning Lateral Raise",4,10,20,"each"],["Cable Tricep Extension",4,10,85]],["Finisher",["Sled Drag",1,1,null,"5 plates"],["Push Ups",1,10,null]]]),
+// Aug 2025: Max 225
+mk("2025-08-04","push","Bench %s + Sled","abike",[["Bench",["Barbell Bench Press",1,10,146,"65%"],["Barbell Bench Press",3,5,191,"85%"],["Barbell Bench Press",2,8,169,"failure 75%"]],["Circuit 1",["Hammer Curl Down Rack",1,15,45,"start 45"],["Bench Dips",1,10,null],["DB Front Raise",1,10,null]],["Core",["Weighted Situp",4,10,null],["Russian Twist",4,10,null]],["Finisher",["Sled Drag",4,1,null,"5 plates DnB"],["Push Ups",4,15,null]]]),
+mk("2025-08-11","push","Bench 95% + Landmine","abike",[["Bench",["Barbell Bench Press",2,8,146,"65%"],["Barbell Bench Press",2,5,191,"85%"],["Barbell Bench Press",1,3,214,"95%"]],["Circuit 1",["Landmine Side Drop",4,10,35],["ISO Bicep Curl",4,8,35,"each"],["Cable Tricep Extension",4,10,45]],["Core",["Plate Leg Raise to Situp",1,10,15],["Plate Behind Head Crunch",1,10,15]],["Circuit 2",["Landmine Kneeling Push Press",4,8,10,"each"],["Farmer's Carry",4,1,null,"heavy DnB"],["Lateral Raise",4,8,20]]]),
+mk("2025-08-18","push","Bench %s + Glute Bridge","abike",[["Bench",["Barbell Bench Press",1,10,146,"65%"],["Barbell Bench Press",3,5,191,"85%"],["Barbell Bench Press",2,8,169,"failure 75%"]],["Circuit 1",["Ground to Overhead",4,10,35],["Incline Curl",4,9,30],["Leg Curl",4,10,null,"2-45/10"]],["Circuit 2",["Glute Bridge KB Lat Pullover",4,10,null],["Glute Bridge Banded Abductor",4,20,null]],["Circuit 3",["Leg Extension",4,10,null,"2-45/10"],["DB Front Raise",4,10,20],["Cable Tricep Extension",4,10,85]],["Finisher",["Sled Drag",1,1,null,"5 plates"],["Push Ups",1,10,null]]]),
+mk("2025-08-25","push","Bench 225 Full Test","abike",[["Bench",["Barbell Bench Press",1,10,146,"65%"],["Barbell Bench Press",1,5,180,"80%"],["Barbell Bench Press",1,3,202,"90%"],["Barbell Bench Press",1,1,225,"100%"],["Barbell Bench Press",1,8,157,"70%"]],["Circuit 1",["DB Bicep Curl",4,8,30],["DB Wide Bicep Curl",4,8,30],["Diagonal Tricep Cable",4,8,null,"each"]],["Circuit 2",["Leg Extension",4,10,null,"2 plates"],["Cable Chop Hold",4,10,null],["Bench Step Down",4,8,null,"each"]],["Circuit 3",["Leg Curl",4,10,null,"2 plates"],["Plate Crunch",4,10,null],["DB RDL",4,10,45]],["Finisher",["Push Ups",4,1,null,"to failure, 2min rest"]]]),
+// Sep 2025: Max 225→240
+mk("2025-09-08","push","Bench %s + Ground OH","abike",[["Bench",["Barbell Bench Press",1,10,146,"65%"],["Barbell Bench Press",3,5,191,"85%"],["Barbell Bench Press",2,8,169,"failure 75%"]],["Circuit 1",["Ground to Overhead",4,10,35],["Incline Curl",4,8,35],["Leg Curl",4,10,null,"2-45/15"]],["Circuit 2",["Glute Bridge KB Lat Pullover",4,10,null],["Glute Bridge Banded Abductor",4,20,null]],["Circuit 3",["Leg Extension",4,10,null,"2-45/15"],["Plate Front Raise Press",4,10,35],["Cable Tricep Extension",4,10,35,"each, palm down"]],["Finisher",["Sled Drag",1,1,null,"5 plates"],["Push Ups",1,10,null]]]),
+mk("2025-09-14","push","Bench PR 240","abike",[["Bench",["Barbell Bench Press",1,8,146,"65%"],["Barbell Bench Press",1,3,191,"85%"],["Barbell Bench Press",1,3,225,"100%"],["Barbell Bench Press",1,1,240,"PR"]],["Circuit 1",["Barbell Curl",4,10,null,"10/5 plates"],["Cable Crunch Hold",4,10,80],["Bench Dips",4,10,45]],["Circuit 2",["Sled Drag",4,1,null,"5 plates"],["Calf Raise",4,10,null]],["Circuit 3",["Seated Shoulder Press",4,8,25],["Leg Curl",4,10,null,"45/45/10"],["Around the World",4,10,20]]]),
+mk("2025-09-22","push","Bench %s Post PR","abike",[["Bench",["Barbell Bench Press",1,10,null,"65%"],["Barbell Bench Press",3,5,null,"85%"],["Barbell Bench Press",2,8,null,"failure 75%"]],["Circuit 1",["Ground to Overhead",4,10,35],["Incline Curl",4,9,30],["Leg Curl",4,10,null,"2-45/10"]],["Circuit 2",["Leg Extension",4,10,null,"2-45/10"],["DB Leaning Lateral Raise",4,10,20,"each"],["Cable Tricep Extension",4,10,85]],["Finisher",["Sled Drag",1,1,null,"5 plates"],["Push Ups",1,10,null]]]),
+mk("2025-09-29","push","Bench Ramp 195","abike",[["Bench",["Barbell Bench Press",1,8,150],["Barbell Bench Press",1,8,165],["Barbell Bench Press",1,6,175],["Barbell Bench Press",1,6,185],["Barbell Bench Press",1,3,195]],["Circuit 1",["DB Incline Curl",4,5,null],["DB Incline Hammer Curl",4,5,null],["Cable Tricep Extension",4,8,null,"each"]],["Circuit 2",["Leg Extension",4,8,null],["Lateral Raise",4,10,null],["Walking Lunges",4,10,null,"out & back"]],["Circuit 3",["Leg Curl",4,10,null],["Push Ups",4,10,null],["KB Calf Raise",4,10,null,"red"]],["Core",["Ab Rollout",3,10,null],["Russian Twist",3,20,null]]]),
+// Oct 2025: Max 240
+mk("2025-10-06","push","Bench Pause + Chimera","abike",[["Bench",["Barbell Bench Press",1,8,150,"1/2 pause"],["Barbell Bench Press",2,6,165],["Barbell Bench Press",2,6,175]],["Circuit 1",["Leg Extension",4,10,null,"2-45 plates"],["DB Bent Over Row Into RDL",4,10,45,"wider stance"]],["Circuit 2",["Hamstring Curl",4,10,null,"2-45 plates"],["Chimera Squat",4,10,35,"rotational, total"]],["Circuit 3",["DB Bicep Curl Down Rack",4,6,40],["Cable Kneeling Crossover Pulldown",4,8,45,"each"]]]),
+mk("2025-10-20","push","Bench %s Max 240","abike",[["Bench",["Barbell Bench Press",1,10,156,"65%"],["Barbell Bench Press",3,5,204,"85%"],["Barbell Bench Press",2,8,180,"failure 75%"]],["Circuit 1",["Sumo Ground to Overhead",4,8,35],["Incline Curl",4,9,30],["Leg Curl",4,10,null,"2-45/10"]],["Circuit 2",["Leg Extension",4,10,null,"2-45/10"],["DB Leaning Lateral Raise",4,10,20,"each"],["Cable Tricep Extension",4,10,85]],["Finisher",["Sled Drag",1,1,null,"5 plates"],["Push Ups",1,10,null]]]),
+mk("2025-10-27","push","Bench Ramp + Zottman","abike",[["Bench",["Barbell Bench Press",1,8,150],["Barbell Bench Press",1,8,165],["Barbell Bench Press",1,6,175],["Barbell Bench Press",1,6,185],["Barbell Bench Press",1,3,195]],["Circuit 1",["Leg Extension",4,8,null,"tempo, 2-45"],["KB Sumo Squat 1.5",4,10,null,"red"],["Wall Sit Hold",4,1,null,"30sec"]],["Core",["Demon Crunch on Box",3,10,25,"plate"],["KB Side Crunch",3,10,null,"purple, each"]],["Circuit 2",["Zottman Curl",4,8,30],["Leg Curl",4,8,null,"tempo, 2-45"],["Banded Tricep Kickback",4,10,null,"black, each"]],["Circuit 3",["DB Squat to Curtsy Lunge",4,8,20,"each"],["Elevated Calf Raise",4,10,null]]]),
+// Nov 2025: Max 240→245
+mk("2025-11-03","push","Bench Ramp + Incline Curls","abike",[["Bench",["Barbell Bench Press",1,8,150],["Barbell Bench Press",1,8,165],["Barbell Bench Press",1,6,175],["Barbell Bench Press",1,6,185],["Barbell Bench Press",1,3,195]],["Circuit 1",["DB Incline Curl",4,5,null],["DB Incline Hammer Curl",4,5,null],["Cable Tricep Extension",4,8,null,"each"]],["Circuit 2",["Leg Extension",4,8,null],["Lateral Raise",4,10,null],["Walking Lunges",4,10,null,"out & back"]],["Circuit 3",["Leg Curl",4,10,null],["Push Ups",4,10,null],["KB Calf Raise",4,10,null,"red"]],["Core",["Ab Rollout",3,10,null],["Russian Twist",3,20,null]]]),
+mk("2025-11-10","push","Bench %s + Devil Press","abike",[["Bench",["Barbell Bench Press",1,10,156,"65%"],["Barbell Bench Press",2,5,204,"85%"],["Barbell Bench Press",2,8,180,"failure 75%"]],["Circuit 1",["Devil Press",4,8,30],["Leg Curl",4,10,null,"2-45/15"],["Diagonal Tricep Extension",4,10,null]],["Circuit 2",["Glute Bridge KB Lat Pullover",4,10,null],["Glute Bridge Banded Abductor",4,20,null]],["Circuit 3",["Curl Into Serve Extension",4,10,25],["Leg Extension",4,10,null,"2-45/15"],["Plate Front Raise Press",4,10,35]],["Finisher",["Sled Drag",1,1,null,"5 plates"],["Single Leg Calf Raise",1,10,null,"each"]]]),
+mk("2025-11-17","push","Bench PR 245","abike",[["Bench",["Barbell Bench Press",1,8,156,"65%"],["Barbell Bench Press",1,3,204,"85%"],["Barbell Bench Press",1,3,240,"100%"],["Barbell Bench Press",1,1,245,"PR"]],["Circuit 1",["Barbell Curl",4,8,null,"10/2.5 plates"],["Cable Crunch Hold",4,10,80],["Bench Dips",4,10,45]],["Circuit 2",["Sled Drag",4,1,null,"5 plates"],["Single Leg Calf Raise",4,10,null]],["Circuit 3",["Seated Shoulder Press",4,8,25],["Leg Curl",4,10,null,"45/45/10"],["Around the World",4,10,20]]]),
+mk("2025-11-24","push","Bench PR Repeat 245","abike",[["Bench",["Barbell Bench Press",1,8,156,"65%"],["Barbell Bench Press",1,3,204,"85%"],["Barbell Bench Press",1,3,240,"100%"],["Barbell Bench Press",1,1,245,"PR"]],["Circuit 1",["Leg Extension",4,10,null,"2-45 plates"],["DB Bent Over Row Into RDL",4,10,45,"wider stance"]],["Circuit 2",["Hamstring Curl",4,10,null,"2-45 plates"],["Chimera Squat",4,10,35,"rotational, total"]],["Circuit 3",["Barbell Curl",4,10,null,"10/2.5 plates"],["Cable Kneeling Crossover Pulldown",4,8,45,"each"]]]),
+// Dec 2025: Max 245
+mk("2025-12-01","push","Bench Ramp 205 + Zottman","abike",[["Bench",["Barbell Bench Press",1,10,165],["Barbell Bench Press",1,8,175],["Barbell Bench Press",1,8,185],["Barbell Bench Press",1,5,195],["Barbell Bench Press",1,5,205]],["Circuit 1",["Single Leg Extension",4,8,null,"45+10"],["KB Sumo Squat 1.5",4,10,null,"red"],["Wall Sit Hold",4,1,null,"30sec"]],["Core",["Demon Crunch on Box",3,10,25,"plate"],["KB Side Crunch",3,10,null,"purple, each"]],["Circuit 2",["Zottman Curl",4,8,30],["Single Leg Curl",4,8,null,"2-45+10"],["Banded Tricep Kickback",4,10,null,"black, each"]],["Circuit 3",["DB Squat to Curtsy Lunge",4,8,20,"each"],["Elevated Calf Raise",4,10,null]]]),
+mk("2025-12-08","push","Bench 205 + Back Squat","abike",[["Bench",["Barbell Bench Press",1,10,165],["Barbell Bench Press",1,8,175],["Barbell Bench Press",1,8,185],["Barbell Bench Press",1,5,195],["Barbell Bench Press",1,5,205]],["Circuit 1",["ISO Bicep Curl",1,10,35],["Seated Push Press",1,8,40],["Cable Tricep Extension",1,12,90]],["Circuit 2",["Barbell Back Squat",4,8,185],["BW Jump Squat",4,15,null],["BW Bent Knee Calf Raise",4,15,null]],["Finisher",["Push Ups",3,1,null,"to failure, 1min rest"]]]),
+mk("2025-12-15","push","Bench PR 245 + Lat Pullover","abike",[["Bench",["Barbell Bench Press",1,8,156,"65%"],["Barbell Bench Press",1,3,204,"85%"],["Barbell Bench Press",1,3,240,"100%"],["Barbell Bench Press",1,1,245,"PR"]],["Circuit 1",["DB Incline Curl",4,5,35],["DB Incline Hammer Curl",4,5,35],["Cable Lat Pullover",4,10,60,"each"]],["Circuit 2",["Leg Extension",4,10,null,"2-45"],["Bench Dips",4,10,null],["Sandbag Walking Lunges",4,1,null,"DnB"]],["Circuit 3",["Leg Curl",4,10,null],["RDL Into Calf Raise",4,8,35],["Cable Crunch",4,10,100,"slow"]]]),
+mk("2025-12-22","push","Bench %s Max 245","abike",[["Bench",["Barbell Bench Press",1,10,160,"65%"],["Barbell Bench Press",3,5,210,"85%"],["Barbell Bench Press",2,8,185,"failure 75%"]],["Circuit 1",["DB Thruster",4,10,30],["Barbell Curl",4,10,null,"10/2.5"],["Leg Curl",4,10,null,"2-45/10"]],["Circuit 2",["Leg Extension",4,10,null,"2-45/10"],["DB Leaning Lateral Raise",4,10,20,"each"],["Cable Tricep Extension",4,10,85]],["Finisher",["Sled Drag",1,1,null,"5 plates"],["Push Ups",1,10,null]]]),
+mk("2025-12-29","push","Bench Ramp 205 + Sled","abike",[["Bench",["Barbell Bench Press",1,8,160],["Barbell Bench Press",1,6,175],["Barbell Bench Press",1,6,185],["Barbell Bench Press",1,4,195],["Barbell Bench Press",1,4,205]],["Circuit 1",["DB Incline Curl",4,6,30],["DB Incline Hammer Curl",4,6,30],["Cable Tricep Extension",4,8,null,"each"]],["Circuit 2",["Sled Push/Drag",4,1,null,"4 plates"],["Push Ups",4,10,null]],["Circuit 3",["Leg Curl",4,10,null],["Cable Lat Pulldown",4,1,null,"each"],["Bent Knee Calf Raise",4,10,null]]]),
+mk("2025-12-30","push","Push-Pull Day","abike",[["Bench",["Barbell Bench Press",1,8,115,"2sec pause"],["Barbell Bench Press",1,8,135],["Barbell Bench Press",2,8,140],["Bench Dips",4,15,null]],["Circuit 1",["DB T Raise",4,10,15],["8-8-8 Bicep Curl",4,1,20]],["Circuit 2",["Renegade Rows",4,10,25,"with push up"],["Cable Tricep Extension",4,12,80]],["Core",["Russian Twist",3,20,null],["Weighted Situp",3,15,null]]]),
+// Jan 2026: Max 245
+mk("2026-01-05","push","Bench %s + KB Clean","abike",[["Bench",["Barbell Bench Press",1,10,160,"65%"],["Barbell Bench Press",3,5,210,"85%"],["Barbell Bench Press",2,8,185,"failure 75%"]],["Circuit 1",["KB Squat Clean Press",4,10,null,"green"],["Barbell Curl",4,6,80],["Leg Curl",4,10,null,"2-45/10"]],["Circuit 2",["Sled Push/Drag",4,1,null,"5 plates, squat fold to stand"],["DB Leaning Lateral Raise",4,10,20,"each"],["Cable Tricep Extension",4,10,85]],["Finisher",["Push Ups",1,10,null],["KB Calf Raise",1,10,null]]]),
+mk("2026-01-12","push","Bench Ramp 205 + Bulgarian","abike",[["Bench",["Barbell Bench Press",1,8,160],["Barbell Bench Press",1,6,175],["Barbell Bench Press",1,6,185],["Barbell Bench Press",1,4,195],["Barbell Bench Press",1,4,205]],["Circuit 1",["DB Bulgarian Split Squat",4,7,null],["Bulgarian Split Squat",4,7,null,"BW"],["Calf Raise",4,7,null]],["Circuit 2",["Curl Into Serve Extension",4,10,25],["Barbell RDL",4,8,125],["Diagonal Tricep Extension",4,10,null]],["Circuit 3",["Glute Bridge KB Lat Pullover",4,10,null],["Glute Bridge Banded Abductor",4,20,null]],["Finisher",["Bike Interval",3,2,null,"legs/both/arms"]]]),
+mk("2026-01-19","push","Bench Drop Sets 205","abike",[["Bench",["Barbell Bench Press",1,8,160],["Barbell Bench Press",1,5,205],["Barbell Bench Press",1,5,195],["Barbell Bench Press",1,7,185],["Barbell Bench Press",1,7,175]],["Circuit 1",["Barbell Curl",4,6,80],["Leg Curl",4,10,null,"2-45/10"],["DB Incline Lateral Raise",4,8,20]],["Circuit 2",["Sled Push/Drag",4,1,null,"5 plates"]],["Finisher",["Push Ups",1,10,null],["KB Calf Raise",1,10,null],["Cable Tricep Extension",1,10,85]]]),
+mk("2026-01-26","push","Bench Drop Sets 215","abike",[["Bench",["Barbell Bench Press",1,8,175],["Barbell Bench Press",1,4,215],["Barbell Bench Press",1,4,205],["Barbell Bench Press",1,5,195],["Barbell Bench Press",1,6,185]],["Circuit 1",["Barbell Curl",4,6,80],["Leg Curl",4,10,null,"2-45/10"],["Cable Tricep Extension",4,10,85]],["Circuit 2",["Bike Interval",4,1,null,"30sec"],["Walking Lunges",4,10,25],["KB Calf Raise",4,10,null]],["Finisher",["Push Ups",3,1,null,"to failure"]]]),
+// Feb 2026
+mk("2026-02-09","push","Bench Ramp 205 + Sled","abike",[["Bench",["Barbell Bench Press",1,8,160],["Barbell Bench Press",1,6,175],["Barbell Bench Press",1,6,185],["Barbell Bench Press",1,4,195],["Barbell Bench Press",1,4,205]],["Circuit 1",["Sled Push/Drag",4,1,null,"4 plates"],["Barbell RDL",4,6,null,"35s"]],["Circuit 2",["DB Incline Hammer Curl",4,1,null],["DB Incline Chest Press",4,6,35],["Leg Extension",4,10,null,"2-45"],["Cable Tricep Extension",4,10,null]],["Circuit 3",["Cable Lat Pulldown",4,1,null,"each"],["Bent Knee Calf Raise",4,10,null]]]),
+mk("2026-02-16","push","Bench Ramp 205 + Curls","abike",[["Bench",["Barbell Bench Press",1,8,160],["Barbell Bench Press",1,6,175],["Barbell Bench Press",1,6,185],["Barbell Bench Press",1,4,195],["Barbell Bench Press",1,4,205]],["Circuit 1",["Barbell Curl",4,6,75],["KB Suitcase Deadlift",4,8,null,"reds"],["Cable Tricep Extension",4,8,null,"each"]],["Circuit 2",["Leg Extension",4,8,null],["Cable Lat Pulldown",4,10,null],["Walking Lunges",4,10,25]],["Circuit 3",["Leg Curl",4,10,null],["Push Ups",4,10,null],["KB Calf Raise",4,10,null,"red"]],["Core",["Ab Rollout",3,10,null],["Russian Twist",3,20,null]]]),
+];
+
+const SEED_DEANNA=[
+// Aug 2025: Start - full body, light weights, building foundation
+mk("2025-08-19","full","Full Body Intro","abike",[["Circuit 1",["Incline Push Up",3,10,null],["KB Squat to High Pull",3,10,null,"pink"],["Bench Dips",3,8,null]],["Core",["Weighted Deadbug",3,10,10],["Russian Twist",3,20,null]],["Circuit 2",["DB Bicep Curl",3,8,10,"10-12"],["KB Sumo Squat",3,8,null,"blue"],["Farmer's Carry",3,1,null,"DnB"]],["Finisher",["Bike Interval",3,1,null,"1min"],["Medball Slam",3,10,null,"10 & 20"]]]),
+mk("2025-08-21","full","Full Body Class","abike",[["Circuit 1",["DB Push Press",4,8,null],["KB Goblet Squat",4,8,null],["DB Front Raise",4,8,null]],["Circuit 2",["Hammer Curl",4,8,null],["Box Step Ups",4,8,null,"each"],["Banded Tricep Pushdown",4,10,null]],["Finisher",["Ski Erg",4,10,null,"cal"],["KB High Pull",4,10,null]]]),
+mk("2025-08-26","full","Full Body + Ski","abike",[["Core",["Plate March",3,10,null],["Plate Halo",3,10,null]],["Circuit 1",["KB Curl",4,10,null,"blue"],["Leg Extension",4,10,null,"each"],["Cable Diagonal Tricep",4,10,null,"each"]],["Circuit 2",["DB Chest Press",4,8,null],["Lateral Raise",4,8,null,"seated"],["Leg Curl",4,8,null]],["Finisher",["Ski Erg",4,10,null,"cal"],["KB Squat to High Pull",4,10,null,"pink/blue"]]]),
+mk("2025-08-28","full","Full Body + Row","abike",[["Circuit 1",["Cable Row",4,10,null],["Goblet Squat",4,10,25],["Barbell Incline Push Up",4,10,null]],["Circuit 2",["Zottman Curl",4,8,12],["DB Lunge Pulse",4,10,10,"each"],["Cable Tricep Extension",4,10,null]],["Core",["Weighted Deadbug",4,20,8],["Heel Taps",4,20,null]],["Finisher",["Row Machine",3,1,null,"1min"],["KB High Pull",3,8,null,"blue"],["KB Curl",3,8,null,"blue"]]]),
+// Sep 2025: Twice weekly, building structure
+mk("2025-09-02","full","Full Body Light","abike",[["Circuit 1",["7-7-7 Curl",4,1,12],["Leg Curl",4,10,null,"45 plate"],["Cable Row",4,10,45]],["Circuit 2",["Seated Push Press",3,10,10],["Leg Extension",3,10,null,"45 plate"],["Cable Tricep Extension",3,10,35]],["Core",["Alt Bird Dog",3,10,null],["Side Crunch",3,10,null,"blue"]],["Finisher",["Row Machine",1,1,null,null]]]),
+mk("2025-09-04","full","Full Body + Gorilla Row","abike",[["Circuit 1",["Plate Overhead Press",4,10,35],["KB Goblet Squat",4,10,null,"blue"],["Plate Front Raise",4,10,15]],["Circuit 2",["7-7-7 Curl",4,1,12],["Leg Extension",4,10,null,"45/10"],["Single Arm DB Row",4,10,30]],["Circuit 3",["Incline Push Up",4,10,10],["Leg Curl",4,10,null,"45/10"],["DB Side Crunch",4,10,null,"yellow, each"]],["Core",["Banded Glute Bridge Lat Pullover",3,10,null],["Banded Adductor Pulse",3,20,null]],["Finisher",["Row Machine",3,1,null,"200m"],["Farmer's Carry",3,1,null,"blues DnB"],["KB Calf Raise",3,10,null,"blue"]]]),
+mk("2025-09-09","full","Full Body Iso Curls","abike",[["Circuit 1",["ISO Bicep Curl",4,1,12],["Leg Curl",4,10,null,"45 plate"],["Cable Row",4,10,45]],["Circuit 2",["Seated Push Press",3,10,10],["Leg Extension",3,10,null,"45 plate"],["Cable Tricep Extension",3,10,35]],["Core",["Alt Bird Dog",3,10,null],["Side Crunch",3,10,null,"blue"]],["Finisher",["Row Machine",1,1,null,null]]]),
+mk("2025-09-11","full","Full Body + Bench Dips","abike",[["Circuit 1",["Incline Push Up",4,10,null],["KB Sumo Squat to High Pull",4,10,null,"blue"],["Bench Dips",4,10,null]],["Core",["Weighted Deadbug",3,10,10],["Russian Twist",3,20,null]],["Circuit 2",["ISO Hammer Curl",4,8,15],["Leg Extension",4,10,null,"45/10"],["Farmer's Carry",4,1,null,"DnB"]],["Finisher",["Bike Interval",3,1,null,"arms only 1min"],["Leg Curl",3,10,null,"45/10"]]]),
+mk("2025-09-16","full","Full Body + Sled","abike",[["Circuit 1",["Plate Overhead Press",4,10,25],["Banded Sissy Squat",4,10,null],["Barbell Row",4,10,null]],["Circuit 2",["Barbell Curl",4,1,null,"10/2.5"],["Leg Extension",4,10,null,"45/10/5"],["Cable Tricep Extension",4,10,30]],["Circuit 3",["Incline Push Up",4,10,null],["Leg Curl",4,10,null,"45/10"],["DB Side Crunch",4,10,null,"yellow, each"]],["Core",["Banded Glute Bridge Lat Pullover",3,10,null],["Banded Adductor Pulse",3,20,null]],["Finisher",["Row Machine",3,1,null,"200m"],["Farmer's Carry",3,1,null,"blues DnB"],["KB Calf Raise",3,10,null,"blue"]]]),
+mk("2025-09-18","full","Full Body Bench Press","abike",[["Circuit 1",["Barbell Bench Press",4,10,45,"bar only"],["KB Sumo Squat",4,10,null,"yellow"],["Cable Lat Pulldown",4,10,null]],["Circuit 2",["Incline Hammer Curl",4,1,12],["Leg Extension",4,10,null,"45/10"],["Single Arm DB Row",4,10,30]],["Circuit 3",["Leg Curl",4,10,null,"45/10"],["Medball Slam",4,10,20],["Cable Diagonal Tricep",4,10,null,"each"]]]),
+mk("2025-09-23","full","Full Body + Yoga Ball","abike",[["Circuit 1",["Plate Overhead Press",4,10,25],["Yoga Ball Squat",4,10,null],["Gorilla Row",4,10,null,"pink"]],["Circuit 2",["Barbell Curl",4,1,null,"10/2.5"],["Leg Extension",4,10,null,"45/10/5"],["Cable Diagonal Tricep",4,10,30]],["Circuit 3",["Incline Push Up",4,10,null],["Leg Curl",4,10,null,"45/10/5"],["DB Side Crunch",4,10,null,"yellow, each"]],["Core",["Banded Glute Bridge Lat Pullover",3,10,null],["Banded Adductor Pulse",3,20,null]],["Finisher",["Row Machine",3,1,null,"200m"],["Farmer's Carry",3,1,null,"blues DnB"],["KB Calf Raise",3,10,null,"blue"]]]),
+// Oct 2025: Progressing
+mk("2025-10-14","full","Full Body Light","abike",[["Circuit 1",["7-7-7 Curl",4,1,12],["Leg Curl",4,10,null,"45 plate"],["Cable Row",4,10,45]],["Circuit 2",["Seated Push Press",3,10,10],["Leg Extension",3,10,null,"45 plate"],["Cable Tricep Extension",3,10,35]],["Core",["Alt Bird Dog",3,10,null],["Side Crunch",3,10,null,"blue"]],["Finisher",["Row Machine",1,1,null,null]]]),
+mk("2025-10-16","full","Full Body Scap Work","abike",[["Scap Work",["Band Scap Abduction",3,10,null],["Scap Depression",3,10,null],["Band Y/T/W",3,10,null,"each"]],["Circuit 1",["Incline Hammer Curl",4,10,12,"12-15"],["Sumo Squat",4,10,null,"yellow"],["Cable Face Pull",4,10,40]],["Core",["Banded Glute Bridge",3,10,null],["Banded Glute Bridge Abductor Pulse",3,20,null]],["Circuit 2",["DB Crush Grip Press",4,10,10],["Farmer's Carry",4,1,null,"browns DnB"],["Calf Raise",4,10,null]]]),
+mk("2025-10-21","full","Full Body Tempo Lunge","abike",[["Scap Work",["Band Scap Abduction",3,10,null],["Band Y/T/W",3,10,null,"each"]],["Circuit 1",["ISO Bicep Curl",4,1,12],["Leg Curl",4,10,null,"45 plate"],["Cable Tricep Extension",4,10,35]],["Circuit 2",["Leg Extension",3,10,null,"45 plate"],["Cable Lat Pulldown",3,10,30],["Tempo Split Squat Lunge",3,8,null,"each"]],["Core",["Banded Bird Dog",3,10,null],["Heel Taps",3,20,null]]]),
+mk("2025-10-23","full","Full Body Crush Press","abike",[["Circuit 1",["DB Crush Grip Press",4,10,15],["KB Sumo Squat",4,10,null,"yellow"],["Cable Crunch Hold",4,10,null]],["Circuit 2",["Incline Hammer Curl",4,1,15],["Leg Extension",4,10,null,"45/10"],["Single Arm DB Row",4,10,30]],["Circuit 3",["Leg Curl",4,10,null,"45/10"],["Plate Front Raise",4,10,20],["Cable Tricep Extension",4,10,null,"each"]]]),
+mk("2025-10-30","full","Full Body Gorilla Row","abike",[["Circuit 1",["Plate Overhead Press",4,10,25],["Banded Sissy Squat",4,10,null],["Gorilla Row",4,10,null,"blue"]],["Circuit 2",["Barbell Curl",4,1,null,"10/2.5"],["Leg Extension",4,10,null,"45/10/5"],["Cable Tricep Extension",4,10,40]],["Circuit 3",["Cable Lat Pulldown",4,10,null],["Leg Curl",4,10,null,"45/10/5"],["KB Side Crunch",4,10,null,"yellow, each"]],["Core",["Banded Glute Bridge",1,10,null],["Banded Adductor Pulse",1,20,null]],["Finisher",["Row Machine",3,1,null,"200m"],["KB High Pull",3,10,null,"blue"]]]),
+// Nov 2025
+mk("2025-11-04","full","Full Body + Bike Intervals","abike",[["Circuit 1",["Incline Push Up",4,10,null],["KB Sumo Squat to High Pull",4,10,null,"blue"],["Cable Diagonal Tricep",4,10,null,"each"]],["Core",["Banded Deadbug",3,10,null],["Russian Twist",3,20,null]],["Circuit 2",["ISO Hammer Curl",4,8,12,"12-15"],["Leg Extension",4,10,null,"45/15"],["Lateral Raise",4,10,8,"thumbs up, 8-10"]],["Circuit 3",["Bike Interval",4,1,null,"30sec legs/30sec arms"],["Leg Curl",4,10,null,"45/25"]]]),
+mk("2025-11-06","full","Full Body Sled + Ski","abike",[["Circuit 1",["Incline Hammer Curl",4,10,12,"12-15"],["DB Incline Crush Grip Press",4,10,15],["Cable Face Pull",4,10,40,"seated"]],["Core",["Banded Glute Bridge",3,10,null],["Banded Glute Bridge Abductor Pulse",3,20,null]],["Circuit 2",["Sled Drag",3,1,null,"2 plates DnB"],["Calf Raise",3,10,null]],["Finisher",["Ski Erg",3,10,null,"cal"],["KB High Pull",3,10,null,"blue"]]]),
+mk("2025-11-21","full","Full Body Incline PU","abike",[["Scap Work",["Band Scap Abduction",3,10,null],["Band Y/T/W",3,10,null,"on bench, each"]],["Circuit 1",["Leg Curl",4,10,null,"45/10/5"],["Incline Push Up",4,10,null],["Sumo Squat",4,8,null,"purple"]],["Core",["Plate Crunch",1,10,null],["Hollow Hold",1,20,null,"sec"]],["Circuit 2",["Barbell Curl",4,1,null,"10/2.5"],["Leg Extension",4,10,null,"45/10/5"],["Cable Tricep Extension",4,10,40]]]),
+// Dec 2025
+mk("2025-12-04","full","Full Body OH Press","abike",[["Circuit 1",["Plate Overhead Press",4,10,25],["Goblet Squat",4,10,null],["Gorilla Row",4,10,null,"blue"]],["Circuit 2",["Barbell Curl",4,1,null,"10/2.5"],["Leg Extension",4,10,null,"45/10/5"],["Cable Tricep Extension",4,10,40,"each"]],["Circuit 3",["Cable Lat Pulldown",4,10,null],["Leg Curl",4,10,null,"45/10/5"],["KB Side Crunch",4,10,null,"yellow, each"]],["Core",["Banded Glute Bridge",1,10,null],["Banded Adductor Pulse",1,20,null]],["Finisher",["Row Machine",3,1,null,"200m"],["KB High Pull",3,10,null,"blue"]]]),
+mk("2025-12-09","lower","Lower Body Sled","abike",[["Circuit 1",["Sled Drag",4,1,null,"2 plates DnB"],["Wall Bent Knee Calf Raise",4,12,null]],["Circuit 2",["Leg Extension",4,10,null,"45/10"],["Barbell RDL",4,8,null,"15s"]],["Core",["Banded Glute Bridge March",3,10,null],["Banded Glute Bridge Adductor Pulse",3,12,null]],["Circuit 3",["Leg Curl",4,10,null,"45/15"],["Step Down",4,8,null,"each, slow & controlled"]],["Finisher",["Cardio",1,2,null,"1.5min choice"],["Medball Slam",1,10,20]]]),
+mk("2025-12-11","upper","Upper Shoulder Rehab","abike",[["Scap Work",["Band Shoulder Stretch",1,1,null],["Band Scap Press",1,1,null]],["Circuit 1",["DB Crush Grip Press",4,8,10],["DB Chest Fly",4,8,10],["Seated DB Reverse Fly",4,8,10,"elbows"]],["Circuit 2",["Banded Tricep Kickback",4,10,null,"each"],["Cable Lat Pulldown",4,10,40],["Banded Face Pull",4,10,null]],["Core",["Ab Rollout",1,10,null],["Side Plank Hip Dip",1,10,null,"each"],["Low Plank Scap Dip",1,10,null]],["Circuit 3",["Cable Row",4,10,30,"neutral grip"],["Band Wall Slide",4,10,null,"blue"]],["Finisher",["Row Machine",1,1,null,null]]]),
+mk("2025-12-16","lower","Lower Body HT + Sled","abike",[["Main",["Hip Thruster",4,8,95]],["Core",["Scissor Leg Lift",4,20,null],["Hollow Hold",4,20,null,"sec"],["Heel Taps",4,20,null]],["Circuit 1",["Hamstring Curl",4,8,null,"45/25/10"],["Deficit Sumo Squat",4,8,45]],["Circuit 2",["Sled Drag",3,1,null,"3 plates DnB"],["Calf Raise",3,10,null,"yellows"]],["Circuit 3",["Leg Extension",4,8,null,"45/25"],["Squat Hold Step Back",4,20,null]]]),
+mk("2025-12-30","upper","Upper Shoulder Rehab 2","abike",[["Scap Work",["Band Scap Abduction",3,10,null],["Scap Push Up",3,10,null,"wall, blue band"],["Band Y/T/W",3,10,null]],["Circuit 1",["Bicep Curl Good Arm ISO Hold Bad",4,1,null],["Walking Lunges",4,10,10,"10 out/back"],["Cable Tricep Extension",4,15,30,"each"]],["Circuit 2",["Cable Lat Pulldown",4,10,null,"low weight"],["Farmer's Carry",4,1,null,"yellows"],["Band Row",4,10,null,"wall ball"]],["Core",["Bird Dog Knee Elbow",1,10,null,"each"],["Rig Hold Leg Lower",1,10,null]],["Finisher",["Row Machine",1,1,null,"200m"],["Scap Dip",1,1,null]]]),
+// Jan 2026
+mk("2026-01-06","lower","Lower Body Sled + Steps","abike",[["Circuit 1",["Sled Drag",4,1,null,"2 plates DnB"],["Assisted Bent Leg Calf Raise",4,12,null]],["Circuit 2",["Leg Extension",4,10,null,"45/15"],["Barbell RDL",4,8,null,"15s"]],["Core",["Banded Glute Bridge March",3,10,null],["Banded Clamshell",3,10,null,"each"]],["Circuit 3",["Leg Curl",4,10,null,"45/15"],["Rig Assisted Step Down",4,8,null,"each, slow toe tap"]],["Finisher",["Row Machine",1,1,null,"1min"],["Medball Slam",1,10,20]]]),
+mk("2026-01-13","lower","Lower Body Trap Bar","abike",[["Circuit 1",["Trap Bar Deadlift",4,8,null,"25 plates"],["Calf Raise",4,10,null,"yellow"]],["Core",["Cable Crunch Hold",3,10,null],["KB Side Crunch",3,10,null,"yellow"]],["Circuit 2",["Leg Extension",4,8,null,"45/15, 2sec pause"],["KB Sumo Squat Pulse",4,20,null]],["Circuit 3",["Hamstring Curl",4,10,null,"45/25, 2sec pause"],["Step Down Toe Tap",4,10,null,"each, slow"]],["Finisher",["Bike Interval",3,2,null,"1.5min"],["Medball Slam",3,10,null]]]),
+mk("2026-01-15","upper","Upper Shoulder Rehab 3","abike",[["Scap Work",["Scap Push Up",4,10,null,"wall"],["Band Scap Abduction",4,10,null],["Band Pull Apart",4,10,null]],["Circuit 1",["Band Y/T/W",3,10,null,"each"]],["Circuit 2",["Bicep Curl Good Arm ISO Hold Bad",4,1,null],["Leg Extension",4,10,null,"45/25"],["Cable Row",4,10,null]],["Circuit 3",["Cable Lat Pulldown",4,10,null,"low weight"],["Leg Curl",4,10,null,"45/25"],["Banded Tricep Extension",4,15,30]],["Core",["Cable Crunch",1,16,null],["Farmer's Carry High Knee",1,20,null,"pink"]],["Finisher",["Row Machine",1,1,null,"200m"],["Medball Slam",1,10,null]]]),
+mk("2026-01-20","lower","Lower Body Sled + Steps 2","abike",[["Circuit 1",["Sled Drag",4,1,null,"2+25 DnB"],["Assisted Bent Leg Calf Raise",4,12,null]],["Circuit 2",["Leg Extension",4,10,null,"45/15"],["Barbell RDL",4,8,null,"15s"]],["Core",["Banded Roller Curl",3,10,null],["Banded Glute Bridge March",3,10,null],["Banded Glute Bridge Adductor Slow Down",3,10,null]],["Circuit 3",["Step Up",4,7,null,"each"],["Step Down",4,7,null,"each"]],["Finisher",["Walk or Bike",1,1,null,null]]]),
+mk("2026-01-27","lower","Lower Body Trap Bar 2","abike",[["Circuit 1",["Trap Bar Deadlift",4,8,null,"25 plates"],["Bent Knee Calf Raise",4,10,null],["Cable Crunch Hold",4,10,null]],["Circuit 2",["Single Leg Extension",4,8,null,"25/5"],["KB Sumo Squat 1.5",4,8,null]],["Circuit 3",["Single Leg Curl",4,8,null,"25/10, each"],["BW Curtsy Lunge",4,8,null,"each"]],["Finisher",["Bike Interval",1,1,null,"AMRAP"],["Medball Slam",1,10,null]]]),
+mk("2026-01-29","upper","Upper Shoulder Rehab 4","abike",[["Scap Work",["Band Shoulder Capsule Stretch",1,1,null],["Band Shoulder Circle",1,1,null]],["Circuit 1",["Banded Chest Press",4,10,null,"thin red"],["Band Pull Apart",4,10,null],["Scap Push Up",4,10,null,"elbows & knees"]],["Circuit 2",["Bicep Curl Good Arm ISO Hold Bad",4,1,null],["Cable Row",4,10,45],["Banded Tricep Extension",4,10,null]],["Finisher",["Row Machine",4,1,null,"200m"],["Cable Crunch",4,10,null],["KB High Pull",4,8,null,"pink"]]]),
+// Feb 2026
+mk("2026-02-12","full","Full Body Band + Cable","abike",[["Scap Work",["Band Shoulder Stretch",1,1,null],["Band Shoulder Circle",1,1,null]],["Circuit 1",["Banded Chest Press",4,10,null,"thin red"],["Band Pull Apart",4,10,null],["Scap Push Up",4,10,null,"elbows & knees"]],["Circuit 2",["Leg Curl",4,10,null,"45/10/5"],["Cable Row",4,10,null],["Sumo Squat",4,10,null,"purple"]],["Core",["Cable Crunch Hold",1,10,null,"2sec hold"],["Low Plank Hold",1,30,null,"sec"]],["Circuit 3",["Band Curl",4,10,null],["Leg Extension",4,10,null,"45/10/5"],["Cable Tricep Extension",4,10,40]],["Finisher",["Walk or Row",1,1,null,null]]]),
+mk("2026-02-19","lower","Lower Body HT + Sumo","abike",[["Main",["Hip Thruster",4,8,95]],["Circuit 1",["Leg Extension",4,8,null,"45/25"],["Calf Raise",4,10,null,"plate, each"]],["Core",["Knee Tuck on Box",4,10,null],["Hip Flexor",4,8,null,"each"],["Banded Abductor",4,10,null,"each"]],["Circuit 2",["Hamstring Curl",4,8,null,"45/25/10"],["Sumo Squat Pulse",4,20,null,"purple"]]]),
+];
+
+const SEED_CLIENT_PAT={id:"pat",name:"Pat",fullName:"Patrick",startDate:"2024-01-06",schedule:"Tues/Thurs AM",color:T.accent,
+  focusAreas:"Lower body primary: Quad day (BB Back Squat) + Glute day (Trap Bar DL). Back/Upper 1x/week when scheduling allows.",
+  schedulePattern:"2-3 sessions/week. Typical split: Quad / Glute / Upper (Back focused)",
+  goals:"General fitness & functional strength. Progressive overload on squat and deadlift.",
+  dob:"",gender:"M",startingWeight:"",considerations:[],checkins:[]};
+const SEED_CLIENT_RACHEL={id:"rachel",name:"Rachel",fullName:"Rachel",startDate:"2025-01-13",schedule:"Sun 5:00 PM",color:"#84CC16",
+  focusAreas:"Lower body focused: Quad days (BB Back Squat), Lower Body (Sumo DL/Squat, Trap Bar DL), Glute days (Hip Thruster). Heavy emphasis on glute development.",
+  schedulePattern:"1 session/week. Evolved from Quad → Lower Body → Glutes phase",
+  goals:"Glute & lower body strength. Progressive overload on Hip Thruster (up to 365#), Sumo DL (up to 205#), Back Squat (up to 160#).",
+  dob:"",gender:"F",startingWeight:"",considerations:[],checkins:[]};
+const SEED_CLIENT_ANGELA={id:"angela",name:"Angela",fullName:"Angela",startDate:"2025-01-13",schedule:"Weekly",color:"#9C27B0",
+  focusAreas:"Lower body dominant: Quad days (BB Back Squat up to 150#), Glute days (Hip Thruster up to 275#). Sumo DL phase (Apr-May 2025, peaked 145#). Occasional upper body.",
+  schedulePattern:"1 session/week. Alternates Squat-focused and Hip Thruster-focused blocks. Includes treadmill intervals as finishers.",
+  goals:"Lower body strength & glute development. Progressive overload on Back Squat and Hip Thruster. Strong core work emphasis. Building toward heavier compound lifts.",
+  workoutTypes:["quad","glute","lower","upper","full"],
+  dob:"",gender:"F",startingWeight:"",considerations:[],checkins:[]};
+const SEED_CLIENT_ADAM={id:"adam",name:"Adam",fullName:"Adam",startDate:"2024-12-23",schedule:"Weekly",color:"#14B8A6",
+  focusAreas:"Bench press focused: Push days with accessory upper body (curls, triceps, shoulders) and supplementary lower (leg ext, leg curl, sled, lunges). Occasional landmine and sled conditioning.",
+  schedulePattern:"1-2 sessions/week. Primary: bench press percentage/ramp work + full body accessories. Occasionally a second push-only session.",
+  goals:"Bench press strength. Progressive overload — PR progression: 175→185→200→210→220→225→230→240→245#. Upper body hypertrophy and functional strength.",
+  workoutTypes:["push"],
+  dob:"",gender:"M",startingWeight:"",considerations:[],checkins:[]};
+const SEED_CLIENT_DEANNA={id:"deanna",name:"Deanna",fullName:"Deanna",startDate:"2025-08-19",schedule:"Tues/Thurs",color:"#60A5FA",
+  focusAreas:"Full body with shoulder rehab focus. Upper days: scap work, banded pressing, light curls (ISO hold on bad arm). Lower days: sled drags, leg ext/curl machines, light trap bar DL, hip thrusters (95#). Modified push exercises (incline push ups, banded chest press).",
+  schedulePattern:"2 sessions/week. Alternates: full body / lower body / upper (shoulder rehab). Heavy emphasis on scap strengthening and controlled movements.",
+  goals:"Rebuild shoulder & bicep strength (R side). Build lower body foundation around knee/foot limitations. Progress to heavier compound lifts. Core stability.",
+  workoutTypes:["full","lower","upper"],
+  considerations:[{text:"Right shoulder & bicep injury — no heavy overhead pressing, no barbell curls R arm, use banded/ISO holds, scap rehab every upper day",date:"2025-08-19",active:true},{text:"Knee & foot — controlled step downs only, assisted calf raises, no heavy impact/jumping, sled drag over running",date:"2025-08-19",active:true}],
+  substitutions:[{avoid:"Barbell Back Squat",use:"Trap Bar Deadlift, KB Sumo Squat, Goblet Squat"},{avoid:"Pull Ups",use:"Cable Lat Pulldown, Banded Lat Pull"},{avoid:"Barbell Curl",use:"ISO Hold Bad Arm, Good Arm Only Curl, Band Curl"},{avoid:"Running",use:"Bike, Row Machine, Walk"},{avoid:"Jump Squat",use:"Banded Sissy Squat, Tempo Split Squat Lunge"}],
+  dob:"",gender:"F",startingWeight:"",checkins:[]};
+
+// ── ANALYSIS ──────────────────────────────────────────
+function liftProg(ws,lift){const r=[];ws.forEach(w=>{let mx=0;w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name===lift&&e.weight)mx=Math.max(mx,e.weight)}));if(mx>0)r.push({date:w.date,max:mx})});return r}
+// Smart lift detection: find a client's top lifts by max weight, with aliases merged
+const LIFT_ALIASES={"Barbell Back Squat":["Back Squat","B Stance Back Squat"],"Trap Bar Deadlift":["Trap Bar RDL"],"Hip Thruster":["Barbell Hip Thrust","Banded Hip Thrust"],"Sumo Deadlift":["Barbell Sumo Deadlift"],"Barbell Bench Press":["Barbell Bench","DB Bench Press"],"Barbell RDL":["DB RDL","Barbell Deficit RDL"],"Goblet Squat":["DB Goblet Squat","KB Elevated Goblet Squat","Goblet Squats","Incline Goblet Squat","Incline Goblet Squats","Heels Elevated Goblet Squat"]};
+const LIFT_SHORT={"Barbell Back Squat":"Squat","Trap Bar Deadlift":"Trap DL","Hip Thruster":"Hip Thr","Sumo Deadlift":"Sumo DL","Barbell Bench Press":"Bench","Barbell RDL":"RDL","Barbell Military Press":"OHP","Goblet Squat":"Goblet","Leg Extension":"Leg Ext","Leg Curl":"Leg Curl","Hamstring Curl":"Ham Curl","Cable Row":"Cable Row"};
+const LIFT_COLORS={"Barbell Back Squat":"quads","Trap Bar Deadlift":"hams","Hip Thruster":"glutes","Sumo Deadlift":"hams","Barbell Bench Press":"chest","Barbell RDL":"hams","Barbell Military Press":"arms","Goblet Squat":"quads","Leg Extension":"quads","Leg Curl":"hams","Hamstring Curl":"hams"};
+function topLifts(ws,n=3){
+  const maxByEx={};
+  ws.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name&&e.weight&&e.weight>0){let canonical=e.name;for(const[main,aliases] of Object.entries(LIFT_ALIASES)){if(main===e.name||aliases.includes(e.name)){canonical=main;break}}if(!maxByEx[canonical])maxByEx[canonical]={max:0,count:0};if(e.weight>maxByEx[canonical].max)maxByEx[canonical].max=e.weight;maxByEx[canonical].count++}})));
+  return Object.entries(maxByEx).filter(([,d])=>d.count>=2).sort((a,b)=>b[1].max-a[1].max).slice(0,n).map(([name,d])=>{
+    const aliases=LIFT_ALIASES[name]||[];const prog=liftProg(ws,name);aliases.forEach(a=>{liftProg(ws,a).forEach(p=>{const i=prog.findIndex(x=>x.date===p.date);if(i>=0){if(p.max>prog[i].max)prog[i].max=p.max}else prog.push(p)})});prog.sort((a,b)=>a.date.localeCompare(b.date));
+    return{name,short:LIFT_SHORT[name]||name.replace(/^(Barbell|DB|KB)\s/,"").slice(0,10),max:d.max,count:d.count,prog,color:T[LIFT_COLORS[name]||"accent"]};
+  });
+}
+function exFreq(ws){const f={};ws.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(!f[e.name])f[e.name]={count:0,last:null,lastW:null,lastR:null,lastS:null};f[e.name].count++;f[e.name].last=w.date;if(e.weight)f[e.name].lastW=e.weight;f[e.name].lastR=e.reps;f[e.name].lastS=e.sets})));return f}
+function muscBal(ws,n=8){const c={};ws.slice(-n).forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{(MM[e.name]||[]).forEach(g=>{if(g!=="Grip")c[g]=(c[g]||0)+(e.sets||1)})})));return c}
+function getTypes(ws){const s=new Set();ws.forEach(w=>s.add(w.type));return[...s]}
+function workoutToText(w){
+  const dt=new Date(w.date+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+  let t=`${w.label} — ${w.type.toUpperCase()}\n${dt}\n`;
+  if(w.warmup)t+=`Warmup: ${w.warmup}\n`;t+="\n";
+  w.blocks.forEach(b=>{t+=`${b.name}\n`;b.exercises.forEach(e=>{t+=`  ${e.name}: ${e.sets}×${e.reps}${e.weight?` @ ${e.weight}#`:' (BW)'}${e.notes?` — ${e.notes}`:''}\n`});t+="\n"});
+  if(w.rpe)t+=`RPE: ${w.rpe}/10\n`;
+  if(w.trainerNotes)t+=`Notes: ${w.trainerNotes}\n`;
+  return t.trim();
+}
+// Day-of-week index: SU=0, M=1, T=2, W=3, TH=4, F=5, S=6
+const DAY_IDX={SU:0,M:1,T:2,W:3,TH:4,F:5,S:6};
+function clientStats(ws,scheduleDays){
+  const sd=scheduleDays||[];const now=new Date();
+  const validWs=ws.filter(w=>w.date&&!isNaN(new Date(w.date+"T12:00:00").getTime()));
+  const getMonday=(d)=>{const dt=new Date(d.getTime());const day=dt.getDay();const diff=day===0?-6:1-day;dt.setDate(dt.getDate()+diff);dt.setHours(0,0,0,0);return dt};
+  const thisMonday=getMonday(now);
+  const weekMap={};
+  validWs.forEach(w=>{const d=new Date(w.date+"T12:00:00");const mon=getMonday(d);const key=mon.toISOString().slice(0,10);weekMap[key]=(weekMap[key]||0)+1});
+  let streak=0;
+  const checkWeek=new Date(thisMonday.getTime());
+  const thisKey=thisMonday.toISOString().slice(0,10);
+  if(!weekMap[thisKey]){checkWeek.setDate(checkWeek.getDate()-7)}
+  for(let i=0;i<52;i++){
+    const key=checkWeek.toISOString().slice(0,10);
+    if(weekMap[key])streak++;else break;
+    checkWeek.setDate(checkWeek.getDate()-7);
+  }
+  let expected=0,hit=0;
+  if(sd.length>0){
+    for(let w=0;w<4;w++){
+      const weekStart=new Date(thisMonday.getTime());weekStart.setDate(weekStart.getDate()-w*7);
+      sd.forEach(day=>{
+        const idx=DAY_IDX[day];if(idx===undefined)return;
+        const target=new Date(weekStart.getTime());
+        const offset=idx===0?6:idx-1;
+        target.setDate(target.getDate()+offset);
+        if(target<=now){
+          expected++;
+          const tStr=target.toISOString().slice(0,10);
+          if(validWs.some(s=>s.date===tStr))hit++;
+        }
+      });
+    }
+  }
+  const adherence=expected>0?Math.round(hit/expected*100):null;
+  const thisWeekCount=weekMap[thisKey]||0;
+  return{streak,adherence,thisWeekCount,thisWeekTarget:sd.length};
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CLAUDE AI PROPOSAL ENGINE
+// ═══════════════════════════════════════════════════════════════
+async function aiGenProposal(allWs, type, client, pinnedExercises, todayReadiness) {
+  const typed = allWs.filter(w => w.type === type);
+  const recent = typed.slice(-5);
+  const af = exFreq(allWs);
+  const topExByType = Object.entries(af).filter(([n]) => (MM[n]||[]).length > 0).sort((a,b) => b[1].count - a[1].count).slice(0, 25);
+  const tl = topLifts(allWs, 5);
+  const liftMaxStr = tl.map(l => `${l.name}: ${l.max}#`).join(' | ');
+  const considerations = (client.considerations || []).filter(c => c.active).map(c => c.text);
+  const mb = muscBal(allWs);
+
+  const recentSummary = recent.map(w => {
+    const exList = w.blocks.flatMap(b => b.exercises.map(e => `${e.name} ${e.sets}x${e.reps}${e.weight ? ` @${e.weight}#` : ''}`));
+    return `${w.date} (${w.label})${w.rpe?` RPE:${w.rpe}`:""}${w.readiness?` [Sleep:${w.readiness.sleep||"?"}/5 Sore:${w.readiness.soreness||"?"}/5 Energy:${w.readiness.energy||"?"}/5]`:""}: ${exList.join(', ')}${w.trainerNotes?`\n  → Trainer notes: ${w.trainerNotes}`:""}${w.readiness&&w.readiness.note?`\n  → Pre-session: ${w.readiness.note}`:""}`;
+  }).join('\n');
+
+  const topExSummary = topExByType.map(([n, d]) => `${n}: ${d.count}x, last ${d.last}, ${d.lastW ? d.lastW+'#' : 'BW'} ${d.lastR}reps`).join('\n');
+
+  const prompt = `You are a professional personal trainer programming a workout. Return ONLY valid JSON, no markdown, no backticks, no explanation.
+
+CLIENT PROFILE:
+- Name: ${client.fullName || client.name}
+- Focus: ${client.focusAreas || 'General fitness'}
+- Schedule: ${client.scheduleNotes || client.schedulePattern || '2-3x/week'}
+- Goals: ${client.goals || 'General strength'}
+- Lift maxes: ${liftMaxStr || 'No data yet'}
+${client.gender ? `- Gender: ${client.gender}` : ''}${client.startingWeight ? ` | Starting weight: ${client.startingWeight}` : ''}
+
+${considerations.length > 0 ? `ACTIVE INJURIES/CONSIDERATIONS (CRITICAL - you MUST avoid exercises that stress these areas):
+${considerations.map(c => `⚠️ ${c}`).join('\n')}
+
+For example: "Torn Quad" means NO barbell squats, NO leg extensions, NO lunges, NO jump squats - substitute with upper body, posterior chain, or isometric alternatives that don't load the quad. "Bad back" means NO deadlifts, NO heavy rows, NO RDLs. Be creative with substitutions.` : 'No active injuries.'}
+${(client.substitutions||[]).length > 0 ? `
+TRAINER-DEFINED SUBSTITUTION RULES (ALWAYS follow these when the avoided exercise would normally be programmed):
+${client.substitutions.map(s => `• AVOID "${s.avoid}" → USE "${s.use}" instead`).join('\n')}` : ''}
+${todayReadiness && (todayReadiness.sleep||todayReadiness.soreness||todayReadiness.energy) ? `
+TODAY'S PRE-SESSION CHECK-IN:
+- Sleep: ${todayReadiness.sleep||"?"}/5 | Soreness: ${todayReadiness.soreness||"?"}/5 | Energy: ${todayReadiness.energy||"?"}/5${todayReadiness.note ? `\n- Note: ${todayReadiness.note}` : ''}
+${todayReadiness.soreness>=4||todayReadiness.energy<=2||todayReadiness.sleep<=2 ? '⚠️ CLIENT IS NOT AT 100% — reduce intensity: lower weights by 10-15%, favor lighter variations, add more mobility/activation work, reduce total volume.' : 'Client is feeling decent — program normally.'}` : ''}
+
+WORKOUT TYPE REQUESTED: ${type}
+
+LAST 5 ${type.toUpperCase()} SESSIONS:
+${recentSummary || 'No prior sessions of this type.'}
+
+EXERCISE FREQUENCY (top 25):
+${topExSummary}
+
+MUSCLE BALANCE (last 8 sessions, total sets): ${JSON.stringify(mb)}
+
+INSTRUCTIONS:
+1. Program a complete ~45 min session for type "${type}"
+2. ${considerations.length > 0 ? 'CRITICALLY IMPORTANT: Completely avoid any exercise that would aggravate the listed injuries. Replace with safe alternatives. If the injury affects the primary lift for this workout type, substitute an entirely different movement pattern.' : 'Apply progressive overload where appropriate.'}
+3. Use exercises from the client's history but also introduce 1-2 new variations for variety
+4. If recent sessions show high soreness (4-5), high RPE (9-10), or low sleep/energy, auto-deload by reducing weight 10-15% or swapping heavy compounds for lighter variations
+5. Include 4-5 blocks (warmup block optional, core, main work, accessories, conditioning/finisher)
+5. Vary the structure - don't always use the same supersets/circuits. Mix in EMOMs, ladders, drop sets, tempo work, etc.
+6. Choose DIFFERENT exercises from the most recent session - avoid repeating the exact same workout
+${pinnedExercises && pinnedExercises.length > 0 ? `
+PINNED EXERCISES (MUST KEEP - include these exactly as specified, in the same block positions):
+${pinnedExercises.map(e => `- ${e.block}: ${e.name} ${e.sets}x${e.reps}${e.weight ? ` @${e.weight}#` : ''}${e.notes ? ` (${e.notes})` : ''}`).join('\n')}
+Replace ONLY the non-pinned exercises with new variations. Keep the overall workout structure similar.` : ''}
+
+Return this exact JSON structure:
+{
+  "label": "descriptive workout name",
+  "warmup": "warmup description",
+  "reasoning": "2-3 sentence explanation of programming choices${considerations.length > 0 ? ' and how injuries were accommodated' : ''}",
+  "blocks": [
+    {
+      "name": "Block Name – rounds/format",
+      "exercises": [
+        {"name": "Exercise Name", "sets": 4, "reps": 10, "weight": 135, "notes": "optional tempo/cue"}
+      ]
+    }
+  ]
+}
+
+Weight should be a number or null for bodyweight. Use exercise names from the client's history when possible.`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    const data = await resp.json();
+    const text = data.content?.map(i => i.text || "").join("\n") || "";
+    const clean = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
+    return {
+      id: `ai-${type}-${Date.now()}`,
+      date: new Date().toISOString().slice(0, 10),
+      type,
+      status: "proposed",
+      label: parsed.label || `${type} Day`,
+      warmup: parsed.warmup || WU[type] || "General warmup",
+      reasoning: parsed.reasoning || "",
+      blocks: (parsed.blocks || []).map(b => ({
+        name: b.name,
+        exercises: (b.exercises || []).map(e => ({
+          name: e.name, sets: e.sets || 3, reps: e.reps || 10,
+          weight: e.weight || null, notes: e.notes || "", done: false,
+        })),
+      })),
+    };
+  } catch (err) {
+    console.error("AI proposal error:", err);
+    return { id: `err-${Date.now()}`, date: new Date().toISOString().slice(0,10), type, status: "proposed",
+      label: `${type} Day (AI unavailable)`, warmup: WU[type] || "", reasoning: "AI generation failed — " + (err.message || "unknown error"), blocks: [] };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UI COMPONENTS (v5 — improved layout)
+// ═══════════════════════════════════════════════════════════════
+const ss={
+  page:{minHeight:"100vh",background:T.surface,color:T.text,fontFamily:"'Outfit','Helvetica Neue',sans-serif",paddingBottom:"70px"},
+  header:{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"14px 16px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
+  content:{padding:"14px",maxWidth:"700px",margin:"0 auto"},
+  card:{background:T.card,border:`1px solid ${T.border}`,borderRadius:"10px",padding:"14px",marginBottom:"10px",boxShadow:"0 1px 3px rgba(0,0,0,0.06)"},
+  btn:(p)=>({background:p?T.accent:T.card,color:p?T.bg:T.text,border:`1px solid ${p?T.accent:T.border}`,padding:"7px 14px",borderRadius:"7px",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}),
+  pill:(c)=>({display:"inline-block",padding:"2px 6px",borderRadius:"4px",fontSize:"8px",fontWeight:700,letterSpacing:".3px",textTransform:"uppercase",background:(c||T.dim)+"15",color:c||T.dim,border:`1px solid ${(c||T.dim)}25`}),
+  inp:{background:T.card,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"5px",fontSize:"13px",fontFamily:"'JetBrains Mono',monospace",width:"50px",textAlign:"center"},
+  mono:{fontFamily:"'JetBrains Mono',monospace"},
+  navBar:{position:"fixed",bottom:0,left:0,right:0,background:T.surface,borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-around",padding:"6px 0 10px",zIndex:100,boxShadow:"0 -1px 3px rgba(0,0,0,0.04)"},
+  navBtn:(a)=>({background:"none",border:"none",color:a?T.accent:T.dim,fontSize:"10px",fontWeight:600,display:"flex",flexDirection:"column",alignItems:"center",gap:"1px",cursor:"pointer",fontFamily:"inherit",padding:"3px 12px"}),
+};
+function Pill({g}){return <span style={ss.pill(MC[g])}>{g}</span>}
+function Stat({v,l,c}){return <div style={{...ss.card,textAlign:"center",padding:"12px 6px"}}><div style={{...ss.mono,color:c||T.accent,fontSize:"22px",fontWeight:700}}>{v}</div><div style={{color:T.dim,fontSize:"9px",marginTop:"1px"}}>{l}</div></div>}
+function Chart({data,color=T.accent,h=110}){if(!data.length)return <div style={{color:T.dim,fontSize:"11px",textAlign:"center",padding:"16px"}}>No data</div>;const mx=Math.max(...data.map(d=>d.max)),mn=Math.min(...data.map(d=>d.max)),rng=mx-mn+30||50,H=h,W=Math.max(data.length*38,180);return <div style={{overflowX:"auto"}}><svg viewBox={`0 0 ${W+50} ${H+26}`} style={{width:"100%",minWidth:W+50,height:H+26}}>{[0,.5,1].map((p,i)=>{const y=5+(1-p)*H,v=Math.round(mn-15+p*rng);return <g key={i}><line x1={36} y1={y} x2={W+42} y2={y} stroke={T.border} strokeWidth={.5}/><text x={32} y={y+3} textAnchor="end" fill={T.dim} fontSize="8" fontFamily="'JetBrains Mono',monospace">{v}</text></g>})}{data.map((d,i)=>{const x=42+i*((W-4)/Math.max(data.length-1,1)),y=5+(1-(d.max-mn+15)/rng)*H;const dt=new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});return <g key={i}>{i>0&&<line x1={42+(i-1)*((W-4)/Math.max(data.length-1,1))} y1={5+(1-(data[i-1].max-mn+15)/rng)*H} x2={x} y2={y} stroke={color} strokeWidth={2}/>}<circle cx={x} cy={y} r={2.5} fill={color}/><text x={x} y={y-6} textAnchor="middle" fill={color} fontSize="8" fontWeight="700" fontFamily="'JetBrains Mono',monospace">{d.max}</text>{(i%Math.max(1,Math.floor(data.length/7))===0||i===data.length-1)&&<text x={x} y={H+16} textAnchor="middle" fill={T.dim} fontSize="7" fontFamily="'JetBrains Mono',monospace" transform={`rotate(-30,${x},${H+16})`}>{dt}</text>}</g>})}</svg></div>}
+function Bars({ws}){const c=muscBal(ws);const e=Object.entries(c).sort((a,b)=>b[1]-a[1]);const mx=Math.max(...e.map(([,v])=>v),1);return <div style={{display:"flex",flexDirection:"column",gap:"4px"}}>{e.map(([g,v])=><div key={g} style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:MC[g]||T.sub,fontSize:"10px",fontWeight:600,width:"68px",textAlign:"right",flexShrink:0}}>{g}</span><div style={{flex:1,height:"11px",background:T.surface,borderRadius:"3px",overflow:"hidden"}}><div style={{height:"100%",width:`${v/mx*100}%`,background:`linear-gradient(90deg,${MC[g]||T.sub}70,${MC[g]||T.sub}30)`,borderRadius:"3px"}}/></div><span style={{...ss.mono,color:T.sub,fontSize:"9px",width:"22px"}}>{v}</span></div>)}</div>}
+
+// ── Exercise Row (improved layout with persistent notes) ──
+function ExProg({name,ws,onClose}){
+  const overlayRef=useRef(null);
+  useEffect(()=>{if(overlayRef.current)overlayRef.current.scrollTop=0},[name]);
+  const data=[];ws.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name===name&&e.weight)data.push({date:w.date,max:e.weight,sets:e.sets,reps:e.reps,type:w.type})})));
+  const bw=[];ws.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name===name&&!e.weight)bw.push({date:w.date,sets:e.sets,reps:e.reps,type:w.type})})));
+  const all=[...data,...bw.map(d=>({...d,max:0}))].sort((a,b)=>a.date.localeCompare(b.date));
+  const best=data.length?Math.max(...data.map(d=>d.max)):null;
+  const recent=all.slice(-1)[0];
+  const ms=(MM[name]||[]).filter(m=>m!=="Grip");
+  return <div ref={overlayRef} style={{position:"fixed",inset:0,zIndex:999,background:"rgba(0,0,0,0.25)",overflowY:"auto"}} onClick={onClose}>
+    <div onClick={e=>e.stopPropagation()} style={{maxWidth:440,margin:"60px auto 20px",padding:"0 16px"}}>
+      <div style={{background:T.card,borderRadius:"12px",border:`1px solid ${T.border}`,boxShadow:"0 8px 32px rgba(0,0,0,0.12)",padding:"16px",overflow:"hidden"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"12px"}}>
+        <div><h3 style={{margin:0,fontSize:"16px",color:T.text}}>{name}</h3>
+          {ms.length>0&&<div style={{display:"flex",gap:"3px",marginTop:"4px"}}>{ms.map(m=><Pill key={m} g={m}/>)}</div>}
+        </div>
+        <button onClick={onClose} style={{background:"none",border:"none",color:T.sub,fontSize:"20px",cursor:"pointer",padding:"0"}}>×</button>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"6px",marginBottom:"12px"}}>
+        <Stat v={all.length} l="Times Used" c={T.accent}/>
+        <Stat v={best?`${best}#`:"BW"} l="Best Weight" c={T.green}/>
+        <Stat v={recent?`${recent.sets}×${recent.reps}`:"-"} l="Last S×R" c={T.blue}/>
+      </div>
+      {data.length>2&&<div style={{background:T.surface,borderRadius:"8px",padding:"10px",marginBottom:"10px"}}><div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>WEIGHT PROGRESSION</div><Chart data={data} color={T.accent} h={100}/></div>}
+      <div style={{background:T.surface,borderRadius:"8px",padding:"10px"}}>
+        <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>FULL HISTORY ({all.length})</div>
+        <div style={{display:"grid",gridTemplateColumns:"78px 40px 55px 50px 1fr",gap:"4px",padding:"4px 0",borderBottom:`1px solid ${T.border}`,marginBottom:"2px"}}>
+          <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>DATE</span><span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>TYPE</span><span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>S × R</span><span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>WEIGHT</span><span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>DELTA</span>
+        </div>
+        {[...all].reverse().map((d,i,arr)=>{const prev=arr[i+1];const delta=d.max&&prev&&prev.max?(d.max-prev.max):null;
+          return <div key={i} style={{display:"grid",gridTemplateColumns:"78px 40px 55px 50px 1fr",gap:"4px",padding:"3px 0",borderBottom:`1px solid ${T.border}10`,alignItems:"center"}}>
+            <span style={{...ss.mono,color:T.sub,fontSize:"10px"}}>{new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"2-digit"})}</span>
+            <span style={{...ss.pill(TC[d.type]),fontSize:"8px"}}>{d.type}</span>
+            <span style={{...ss.mono,color:T.text,fontSize:"10px"}}>{d.sets}×{d.reps}</span>
+            <span style={{...ss.mono,color:d.max?T.accent:T.dim,fontSize:"10px",fontWeight:600}}>{d.max?`${d.max}#`:"BW"}</span>
+            <span style={{...ss.mono,fontSize:"10px",fontWeight:600,color:delta>0?T.green:delta<0?T.red:T.dim}}>{delta>0?`+${delta}`:delta<0?`${delta}`:delta===0?"—":""}</span>
+          </div>})}
+      </div>
+      </div>
+    </div>
+  </div>;
+}
+
+function ExRow({ex,bi,ei,live,editing,isDone,ms,upEx,delEx,onExClick}){
+  const showCheck=live&&!editing;
+  return <div style={{padding:"8px 14px",borderBottom:`1px solid ${T.border}12`,opacity:showCheck&&isDone?.5:1,background:showCheck&&isDone?T.green+"06":"transparent"}}>
+    <div style={{display:"grid",gridTemplateColumns:showCheck?"26px 1fr auto":"1fr auto",gap:"8px",alignItems:"center"}}>
+      {showCheck&&<button onClick={()=>upEx(bi,ei,"done",!isDone)} style={{width:24,height:24,borderRadius:"6px",border:`2px solid ${isDone?T.green:T.border}`,background:isDone?T.green+"25":"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",color:T.green,flexShrink:0,padding:0}}>{isDone?"✓":""}</button>}
+      <div style={{minWidth:0}}>
+        <div style={{color:T.text,fontSize:"13px",fontWeight:500,textDecoration:showCheck&&isDone?"line-through":"none",cursor:onExClick?"pointer":"default"}} onClick={()=>onExClick&&onExClick(ex.name)}>{ex.name}</div>
+        {ms.length>0&&<div style={{display:"flex",gap:"3px",flexWrap:"wrap",marginTop:"2px"}}>{ms.slice(0,3).map(m=><Pill key={m} g={m}/>)}</div>}
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:"6px",flexShrink:0}}>
+        {live?<>
+          <input style={{...ss.inp,width:"36px"}} value={ex.sets??""} onChange={e=>upEx(bi,ei,"sets",e.target.value)} disabled={isDone}/>
+          <span style={{color:T.dim,fontSize:"12px"}}>×</span>
+          <input style={{...ss.inp,width:"36px"}} value={ex.reps??""} onChange={e=>upEx(bi,ei,"reps",e.target.value)} disabled={isDone}/>
+          <input style={{...ss.inp,width:"52px"}} value={ex.weight??""} onChange={e=>upEx(bi,ei,"weight",e.target.value)} placeholder="BW" disabled={isDone}/>
+          <button onClick={()=>delEx(bi,ei)} style={{background:"none",border:"none",color:T.red+"80",cursor:"pointer",fontSize:"18px",padding:"0 4px",fontWeight:700,lineHeight:1}}>×</button>
+        </>:<div style={{display:"flex",alignItems:"baseline",gap:"8px"}}>
+          <span style={{...ss.mono,color:T.accent,fontSize:"13px",fontWeight:700,whiteSpace:"nowrap"}}>{ex.sets}×{ex.reps}</span>
+          <span style={{...ss.mono,color:ex.weight?T.text:T.dim,fontSize:"13px",fontWeight:600,whiteSpace:"nowrap"}}>{ex.weight?`${ex.weight}#`:"BW"}</span>
+        </div>}
+      </div>
+    </div>
+    {ex.notes&&<div style={{marginTop:"3px",paddingLeft:showCheck?"34px":"0"}}><span style={{color:T.dim,fontSize:"11px",fontStyle:"italic"}}>{ex.notes}</span></div>}
+  </div>;
+}
+
+function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClick,editing,onEdit,onEditSave,onEditCancel,onDelete}){
+  const sets=w.blocks.reduce((a,b)=>a+b.exercises.reduce((s2,e)=>s2+(e.sets||0),0),0);
+  const vol=w.blocks.reduce((a,b)=>a+b.exercises.reduce((s2,e)=>s2+((e.sets||0)*(e.reps||0)*(e.weight||0)),0),0);
+  const dt=new Date(w.date+"T12:00:00");
+  const dl=dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+  const tc=TC[w.type]||T.sub;
+  const isP=w.status==="proposed",isL=w.status==="in-progress",isC=w.status==="completed";
+  const canEdit=editing||live;
+  const upEx=(bi,ei,f,v)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));nw.blocks[bi].exercises[ei][f]=f==="weight"||f==="reps"||f==="sets"?(v===""?null:Number(v)):v;onChange(nw)};
+  const delEx=(bi,ei)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));nw.blocks[bi].exercises.splice(ei,1);if(nw.blocks[bi].exercises.length===0)nw.blocks.splice(bi,1);onChange(nw)};
+  const pinKey=(bi,ei)=>`${bi}-${ei}`;
+  const hasPins=pinned&&Object.values(pinned).some(v=>v);
+  const rpeColors=["","","","","","","#4CAF50","#8BC34A","#FFC107","#FF9800","#F44336"];
+  const[confirmDel,setConfirmDel]=useState(false);
+  const[copied,setCopied]=useState(false);
+  const copyW=()=>{try{navigator.clipboard.writeText(workoutToText(w));setCopied(true);setTimeout(()=>setCopied(false),1500)}catch{}};
+
+  return <div style={{background:isL?`linear-gradient(135deg,${T.card},${T.green}08)`:isP?`linear-gradient(135deg,${T.card},${T.accent}06)`:editing?`linear-gradient(135deg,${T.card},${T.blue}06)`:T.card,border:`1px solid ${isL?T.green+"40":isP?T.accent+"30":editing?T.blue+"40":T.border}`,borderRadius:"10px",overflow:"hidden",marginBottom:"8px"}}>
+    <div onClick={toggle} style={{padding:"12px 14px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{display:"flex",flexDirection:"column",gap:"3px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:"5px",flexWrap:"wrap"}}>
+          {isL&&<span style={{background:T.green,color:T.bg,padding:"2px 6px",borderRadius:"4px",fontSize:"8px",fontWeight:800,letterSpacing:"1px"}}>● LIVE</span>}
+          {isP&&<span style={{background:T.accent,color:T.bg,padding:"2px 6px",borderRadius:"4px",fontSize:"8px",fontWeight:800,letterSpacing:"1px"}}>AI PROPOSED</span>}
+          {editing&&<span style={{background:T.blue,color:T.bg,padding:"2px 6px",borderRadius:"4px",fontSize:"8px",fontWeight:800,letterSpacing:"1px"}}>✏ EDITING</span>}
+          <span style={{background:tc+"18",color:tc,padding:"2px 6px",borderRadius:"4px",fontSize:"9px",fontWeight:700,textTransform:"uppercase"}}>{w.type}</span>
+          <span style={{color:T.text,fontWeight:600,fontSize:"13px"}}>{w.label}</span>
+          {w.rpe&&<span style={{...ss.mono,background:(rpeColors[w.rpe]||T.dim)+"20",color:rpeColors[w.rpe]||T.dim,padding:"1px 5px",borderRadius:"4px",fontSize:"9px",fontWeight:700}}>RPE {w.rpe}</span>}
+        </div>
+        <span style={{...ss.mono,color:T.sub,fontSize:"10px"}}>{dl} · {sets} sets{vol>0?` · ${(vol/1000).toFixed(1)}k vol`:""}{hasPins?" · 📌 pinned":""}</span>
+      </div>
+      <span style={{color:T.sub,fontSize:"16px",transition:"transform .2s",transform:open?"rotate(180deg)":"rotate(0)"}}>▾</span>
+    </div>
+    {open&&<div style={{borderTop:`1px solid ${T.border}`}}>
+      <div style={{padding:"6px 14px",background:T.surface}}><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:"1px"}}>Warmup: </span><span style={{color:T.sub,fontSize:"11px"}}>{w.warmup}</span></div>
+      {w.blocks.map((bl,bi)=><div key={bi} style={{borderTop:bi?`1px solid ${T.border}18`:"none"}}>
+        <div style={{padding:"6px 14px 3px",background:T.surface+"80"}}><span style={{color:T.accent,fontSize:"10px",fontWeight:700,letterSpacing:".4px",textTransform:"uppercase"}}>{bl.name}</span></div>
+        {bl.exercises.map((ex,ei)=>{const ms=(MM[ex.name]||[]).filter(m=>m!=="Grip");const pk=pinKey(bi,ei);const isPinned=pinned&&pinned[pk];
+          return <div key={ei} style={{display:"flex",alignItems:"flex-start",gap:"0"}}>
+            {isP&&onTogglePin&&<button onClick={(e)=>{e.stopPropagation();onTogglePin(pk)}} style={{background:"none",border:"none",cursor:"pointer",padding:"8px 2px 8px 10px",fontSize:"13px",flexShrink:0,color:isPinned?T.accent:T.dim,opacity:isPinned?1:0.4}}>{isPinned?"📌":"○"}</button>}
+            <div style={{flex:1}}><ExRow ex={ex} bi={bi} ei={ei} live={canEdit} editing={editing} isDone={!editing&&ex.done} ms={ms} upEx={upEx} delEx={delEx} onExClick={onExClick}/></div>
+          </div>;
+        })}
+      </div>)}
+      {w.reasoning&&<div style={{padding:"10px 14px",background:T.accent+"06",borderTop:`1px solid ${T.accent}15`}}><div style={{color:T.accent,fontSize:"9px",fontWeight:700,letterSpacing:"1px",marginBottom:"3px"}}>🧠 AI RATIONALE</div><p style={{color:T.sub,fontSize:"11px",margin:0,lineHeight:1.5}}>{w.reasoning}</p></div>}
+      {isC&&w.trainerNotes&&<div style={{padding:"8px 14px",background:T.blue+"08",borderTop:`1px solid ${T.blue}15`}}><span style={{color:T.blue,fontSize:"9px",fontWeight:700,letterSpacing:"1px"}}>📝 TRAINER NOTES: </span><span style={{color:T.sub,fontSize:"11px"}}>{w.trainerNotes}</span></div>}
+      {isC&&w.readiness&&(w.readiness.sleep||w.readiness.soreness||w.readiness.energy)&&<div style={{padding:"6px 14px",background:T.purple+"08",borderTop:`1px solid ${T.purple}15`,display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap"}}>
+        <span style={{color:T.purple,fontSize:"9px",fontWeight:700,letterSpacing:"1px"}}>CHECK-IN:</span>
+        {w.readiness.sleep&&<span style={{color:T.sub,fontSize:"10px"}}>Sleep {w.readiness.sleep}/5</span>}
+        {w.readiness.soreness&&<span style={{color:T.sub,fontSize:"10px"}}>Sore {w.readiness.soreness}/5</span>}
+        {w.readiness.energy&&<span style={{color:T.sub,fontSize:"10px"}}>Energy {w.readiness.energy}/5</span>}
+        {w.readiness.note&&<span style={{color:T.dim,fontSize:"10px",fontStyle:"italic"}}>{w.readiness.note}</span>}
+      </div>}
+      {isP&&onTogglePin&&<div style={{padding:"6px 14px",background:T.surface,borderTop:`1px solid ${T.border}`}}><span style={{color:T.dim,fontSize:"10px"}}>📌 Pin exercises to keep them on regenerate</span></div>}
+      {isC&&editing&&<div style={{padding:"10px 14px",borderTop:`1px solid ${T.blue}20`,background:T.blue+"06"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 80px 60px",gap:"6px",marginBottom:"8px"}}>
+          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Date</label><input type="date" style={{...ss.inp,width:"100%"}} value={w.date} onChange={e=>onChange({...w,date:e.target.value})}/></div>
+          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Type</label><select style={{...ss.inp,width:"100%",appearance:"auto"}} value={w.type} onChange={e=>onChange({...w,type:e.target.value})}>{["quad","lower","glute","upper","push","pull","full"].map(t=><option key={t} value={t}>{t}</option>)}</select></div>
+          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>RPE</label><select style={{...ss.inp,width:"100%",appearance:"auto"}} value={w.rpe||""} onChange={e=>onChange({...w,rpe:e.target.value?Number(e.target.value):null})}><option value="">—</option>{[6,7,8,9,10].map(r=><option key={r} value={r}>{r}</option>)}</select></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"8px"}}>
+          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Label</label><input style={{...ss.inp,width:"100%"}} value={w.label} onChange={e=>onChange({...w,label:e.target.value})}/></div>
+          <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Warmup</label><input style={{...ss.inp,width:"100%"}} value={w.warmup||""} onChange={e=>onChange({...w,warmup:e.target.value})}/></div>
+        </div>
+        <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Trainer Notes</label>
+        <input style={{...ss.inp,width:"100%",boxSizing:"border-box",marginBottom:"8px"}} value={w.trainerNotes||""} onChange={e=>onChange({...w,trainerNotes:e.target.value})} placeholder="Session notes..."/>
+        <div style={{display:"flex",gap:"8px"}}>
+          <button onClick={onEditSave} style={{...ss.btn(true),background:T.blue,borderColor:T.blue}}>💾 Save Changes</button>
+          <button onClick={onEditCancel} style={{...ss.btn(false)}}>Cancel</button>
+        </div>
+      </div>}
+      {isC&&!editing&&open&&<div style={{padding:"8px 14px",borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"flex-end",gap:"8px"}}>
+        <button onClick={copyW} style={{background:"none",border:"none",color:copied?T.green:T.cyan,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>{copied?"✓ Copied":"📋 Copy"}</button>
+        {onEdit&&<button onClick={onEdit} style={{background:"none",border:"none",color:T.blue,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>✏️ Edit</button>}
+        {onDelete&&!confirmDel&&<button onClick={()=>setConfirmDel(true)} style={{background:"none",border:"none",color:T.red,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>🗑 Delete</button>}
+        {confirmDel&&<div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.red,fontSize:"10px",fontWeight:600}}>Delete this workout?</span><button onClick={()=>{onDelete();setConfirmDel(false)}} style={{...ss.btn(false),color:T.red,borderColor:T.red,fontSize:"10px",padding:"3px 10px"}}>Yes, delete</button><button onClick={()=>setConfirmDel(false)} style={{...ss.btn(false),fontSize:"10px",padding:"3px 10px"}}>No</button></div>}
+      </div>}
+      {(isP||isL)&&onAction&&<div style={{padding:"10px 14px",display:"flex",gap:"8px",borderTop:`1px solid ${T.border}`,flexDirection:"column"}}>
+        {isL&&<div>
+          <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"6px"}}>
+            <span style={{color:T.dim,fontSize:"10px",fontWeight:600,flexShrink:0}}>RPE:</span>
+            {[6,7,8,9,10].map(r=><button key={r} onClick={()=>onChange({...w,rpe:w.rpe===r?null:r})} style={{width:28,height:24,borderRadius:"5px",border:`1px solid ${w.rpe===r?(rpeColors[r]||T.dim):T.border}`,background:w.rpe===r?(rpeColors[r]||T.dim)+"20":"transparent",color:w.rpe===r?(rpeColors[r]||T.dim):T.dim,fontSize:"10px",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{r}</button>)}
+          </div>
+          <input value={w.trainerNotes||""} onChange={e=>onChange({...w,trainerNotes:e.target.value})} placeholder="Session notes — energy, modifications, cues for next time..." style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"7px 10px",borderRadius:"6px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box",marginBottom:"8px"}}/>
+        </div>}
+        <div style={{display:"flex",gap:"8px"}}>
+          {isP&&<button style={ss.btn(true)} onClick={()=>onAction("start",w)}>▶ Start Workout</button>}
+          {isP&&<button onClick={copyW} style={{...ss.btn(false),color:copied?T.green:T.cyan}}>{copied?"✓ Copied":"📋 Copy"}</button>}
+          {isL&&<button style={{...ss.btn(true),background:T.green,borderColor:T.green}} onClick={()=>onAction("complete",w)}>✓ Complete & Save</button>}
+          {isL&&<button style={{...ss.btn(false),color:T.red}} onClick={()=>onAction("cancel",w)}>Cancel</button>}
+        </div>
+      </div>}
+    </div>}
+  </div>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  VIEWS
+// ═══════════════════════════════════════════════════════════════
+function useForge(){
+  const[clients,setCl]=useState([]);const[workouts,setWs]=useState({});const[loading,setL]=useState(true);const init=useRef(false);
+  const load=useCallback(async()=>{if(init.current)return;init.current=true;const ver=await S.get("forge:ver");if(!ver||ver<13){await S.set("forge:ver",13);const cls=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];await S.set("forge:clients",cls);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}let cls=await S.get("forge:clients");if(!cls||!cls.length){const d=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];cls=d;await S.set("forge:clients",d);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}setCl(cls);const wm={};for(const c of cls){wm[c.id]=await S.get(`forge:w:${c.id}`)||[]}setWs(wm);setL(false)},[]);
+  useEffect(()=>{load()},[load]);
+  const saveW=async(cid,w)=>{const ws=[...(workouts[cid]||[])];const i=ws.findIndex(x=>x.id===w.id);if(i>=0)ws[i]=w;else ws.push(w);ws.sort((a,b)=>a.date.localeCompare(b.date));setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
+  const deleteW=async(cid,wid)=>{const ws=(workouts[cid]||[]).filter(x=>x.id!==wid);setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
+  const saveCl=async(cl)=>{const i=clients.findIndex(c=>c.id===cl.id);const nc=i>=0?clients.map(c=>c.id===cl.id?cl:c):[...clients,cl];setCl(nc);await S.set("forge:clients",nc);if(i<0){setWs(p=>({...p,[cl.id]:[]}));await S.set(`forge:w:${cl.id}`,[])}};
+  return{clients,workouts,loading,saveW,deleteW,saveCl};
+}
+
+function Dashboard({clients,workouts,onNav}){
+  const dayMap={"Sun":"SU","Mon":"M","Tue":"T","Wed":"W","Thu":"TH","Fri":"F","Sat":"S"};
+  const todayKey=dayMap[new Date().toLocaleDateString("en-US",{weekday:"short"})];
+  const today=new Date().toISOString().slice(0,10);
+  const todayClients=clients.filter(c=>(c.scheduleDays||[]).includes(todayKey));
+  const daysSince=(ws)=>{if(!ws.length)return null;const last=ws[ws.length-1].date;const diff=Math.floor((new Date(today+"T12:00:00")-new Date(last+"T12:00:00"))/86400000);return diff};
+  const totalSessions=Object.values(workouts).reduce((a,ws)=>a+ws.length,0);
+  const thisWeek=Object.values(workouts).reduce((a,ws)=>a+ws.filter(w=>{const d=new Date(w.date+"T12:00:00");const now=new Date();const weekAgo=new Date(now);weekAgo.setDate(now.getDate()-7);return d>=weekAgo}).length,0);
+
+  return <div><div style={ss.header}><h1 style={{margin:0,fontSize:"20px",fontWeight:700,letterSpacing:"-.4px"}}><span style={{color:T.accent}}>FORGE</span> <span style={{fontWeight:400,color:T.sub}}>Training</span><span style={{fontSize:"10px",color:T.cyan,marginLeft:"8px",fontWeight:500}}>AI</span></h1><p style={{margin:"3px 0 0",color:T.dim,fontSize:"11px"}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</p></div>
+  <div style={ss.content}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginBottom:"12px"}}>
+      <div style={{...ss.card,textAlign:"center",padding:"10px 6px",marginBottom:0}}><div style={{...ss.mono,color:T.accent,fontSize:"20px",fontWeight:700}}>{clients.length}</div><div style={{color:T.dim,fontSize:"9px"}}>Clients</div></div>
+      <div style={{...ss.card,textAlign:"center",padding:"10px 6px",marginBottom:0}}><div style={{...ss.mono,color:T.blue,fontSize:"20px",fontWeight:700}}>{totalSessions}</div><div style={{color:T.dim,fontSize:"9px"}}>Total Sessions</div></div>
+      <div style={{...ss.card,textAlign:"center",padding:"10px 6px",marginBottom:0}}><div style={{...ss.mono,color:T.green,fontSize:"20px",fontWeight:700}}>{thisWeek}</div><div style={{color:T.dim,fontSize:"9px"}}>This Week</div></div>
+    </div>
+
+    {todayClients.length>0&&<>
+      <div style={{color:T.accent,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🔥 TODAY'S SESSIONS</div>
+      {todayClients.map(c=>{const ws=workouts[c.id]||[];const last=ws.length?ws[ws.length-1]:null;const lastType=last?last.type:"";const nextTypes=(c.workoutTypes||[]).length>0?c.workoutTypes:["full"];const cs=clientStats(ws,c.scheduleDays);
+        return <div key={c.id+"today"} onClick={()=>onNav("client",c.id,"next")} style={{...ss.card,cursor:"pointer",border:`1px solid ${T.accent}30`,background:`linear-gradient(135deg,${T.card},${T.accent}04)`}}>
+          <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+            <div style={{width:44,height:44,borderRadius:"10px",background:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"17px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</div>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.text,fontWeight:700,fontSize:"15px"}}>{c.fullName||c.name}</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"1px 5px",borderRadius:"4px",fontSize:"9px",fontWeight:700}}>🔥 {cs.streak}w</span>}</div>
+              <div style={{color:T.sub,fontSize:"10px",marginTop:"2px"}}>{ws.length} sessions{last?` · Last: ${lastType}`:""}{cs.adherence!==null?` · ${cs.adherence}% adherence`:""}{(c.considerations||[]).filter(x=>x.active).length>0?` · ⚠ ${(c.considerations||[]).filter(x=>x.active).length}`:""}</div>
+              <div style={{display:"flex",gap:"3px",marginTop:"4px"}}>{nextTypes.map(t=><span key={t} style={{...ss.pill(TC[t]),fontSize:"9px"}}>{t}</span>)}</div>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{background:T.accent,color:"#fff",padding:"5px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:700,letterSpacing:".3px"}}>GO →</div>
+            </div>
+          </div>
+        </div>})}
+    </>}
+
+    {todayClients.length===0&&<div style={{...ss.card,textAlign:"center",padding:"16px",border:`1px solid ${T.border}`,marginBottom:"10px"}}>
+      <div style={{color:T.dim,fontSize:"12px"}}>No sessions scheduled for today</div>
+      <div style={{color:T.dim,fontSize:"10px",marginTop:"2px"}}>Set training days in each client's profile</div>
+    </div>}
+
+    {(()=>{const others=clients.filter(c=>!todayClients.some(tc=>tc.id===c.id));return others.length>0&&<>
+    <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px",marginTop:"4px"}}>{todayClients.length>0?"OTHER CLIENTS":"ALL CLIENTS"}</div>
+    {others.map(c=>{const ws=workouts[c.id]||[];const tc={};ws.forEach(w=>{tc[w.type]=(tc[w.type]||0)+1});const last=ws.length?new Date(ws[ws.length-1].date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}):"—";
+      const ds=daysSince(ws);const isOverdue=ds!==null&&ds>=7;const cs=clientStats(ws,c.scheduleDays);
+      return <div key={c.id} onClick={()=>onNav("client",c.id)} style={{...ss.card,cursor:"pointer",display:"flex",alignItems:"center",gap:"12px"}}>
+        <div style={{width:40,height:40,borderRadius:"9px",background:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"16px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</div>
+        <div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.text,fontWeight:600,fontSize:"14px"}}>{c.name}</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"1px 5px",borderRadius:"4px",fontSize:"8px",fontWeight:700}}>🔥 {cs.streak}w</span>}{isOverdue&&<span style={{background:T.red+"12",color:T.red,fontSize:"8px",fontWeight:700,padding:"1px 5px",borderRadius:"3px"}}>{ds}d ago</span>}</div>
+          <div style={{color:T.sub,fontSize:"10px",marginTop:"2px"}}>{ws.length} sessions · Last: {last}{cs.adherence!==null?` · ${cs.adherence}%`:""}{c.gender?` · ${c.gender}`:""}</div>
+          <div style={{display:"flex",gap:"3px",marginTop:"3px",flexWrap:"wrap"}}>{Object.entries(tc).map(([t,n])=><span key={t} style={ss.pill(TC[t])}>{t} {n}</span>)}</div>
+          {(c.considerations||[]).filter(x=>x.active).length>0&&<div style={{marginTop:"4px",display:"flex",gap:"3px",flexWrap:"wrap"}}>{c.considerations.filter(x=>x.active).map((x,i)=><span key={i} style={{...ss.pill(T.red),fontSize:"8px"}}>⚠ {x.text}</span>)}</div>}
+        </div><span style={{color:T.dim,fontSize:"18px"}}>›</span></div>})}
+    </>})()}
+    <button onClick={()=>onNav("addClient")} style={{...ss.btn(false),width:"100%",marginTop:"6px",padding:"10px",textAlign:"center"}}>+ Add Client</button>
+  </div></div>;
+}
+
+// ── InBody Check-in Panel ──
+function CheckInPanel({client,onSaveCl}){
+  const checkins=client.checkins||[];
+  const[show,setShow]=useState(false);
+  const[form,setForm]=useState({date:new Date().toISOString().slice(0,10),weight:"",bodyFat:"",muscleMass:"",bmi:"",visceralFat:"",notes:""});
+  const inp={background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"7px 10px",borderRadius:"6px",fontSize:"13px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"};
+  const addCheckin=()=>{if(!form.weight&&!form.bodyFat&&!form.muscleMass)return;const ci=[...checkins,{...form,weight:form.weight?Number(form.weight):null,bodyFat:form.bodyFat?Number(form.bodyFat):null,muscleMass:form.muscleMass?Number(form.muscleMass):null,bmi:form.bmi?Number(form.bmi):null,visceralFat:form.visceralFat?Number(form.visceralFat):null}];ci.sort((a,b)=>a.date.localeCompare(b.date));onSaveCl({...client,checkins:ci});setForm({date:new Date().toISOString().slice(0,10),weight:"",bodyFat:"",muscleMass:"",bmi:"",visceralFat:"",notes:""});setShow(false)};
+  const delCheckin=(i)=>{onSaveCl({...client,checkins:checkins.filter((_,j)=>j!==i)})};
+  const latest=checkins.length?checkins[checkins.length-1]:null;
+
+  return <div style={ss.card}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
+      <span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>📊 BODY COMPOSITION CHECK-INS</span>
+      <button onClick={()=>setShow(!show)} style={{...ss.btn(show),fontSize:"10px",padding:"3px 10px"}}>{show?"Cancel":"+ Check-in"}</button>
+    </div>
+    {latest&&!show&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(80px,1fr))",gap:"6px",marginBottom:"8px"}}>
+      {latest.weight&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.blue,fontSize:"16px",fontWeight:700}}>{latest.weight}</div><div style={{color:T.dim,fontSize:"8px"}}>WEIGHT (lbs)</div></div>}
+      {latest.bodyFat&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.pink,fontSize:"16px",fontWeight:700}}>{latest.bodyFat}%</div><div style={{color:T.dim,fontSize:"8px"}}>BODY FAT</div></div>}
+      {latest.muscleMass&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.green,fontSize:"16px",fontWeight:700}}>{latest.muscleMass}</div><div style={{color:T.dim,fontSize:"8px"}}>MUSCLE (lbs)</div></div>}
+      {latest.bmi&&<div style={{background:T.surface,borderRadius:"6px",padding:"8px",textAlign:"center"}}><div style={{...ss.mono,color:T.purple,fontSize:"16px",fontWeight:700}}>{latest.bmi}</div><div style={{color:T.dim,fontSize:"8px"}}>BMI</div></div>}
+    </div>}
+    {show&&<div style={{marginBottom:"8px"}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"6px"}}>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Date</label><input type="date" style={inp} value={form.date} onChange={e=>setForm(p=>({...p,date:e.target.value}))}/></div>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Weight (lbs)</label><input style={inp} value={form.weight} onChange={e=>setForm(p=>({...p,weight:e.target.value}))} placeholder="185"/></div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"6px",marginBottom:"6px"}}>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Body Fat %</label><input style={inp} value={form.bodyFat} onChange={e=>setForm(p=>({...p,bodyFat:e.target.value}))} placeholder="18.5"/></div>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Muscle Mass</label><input style={inp} value={form.muscleMass} onChange={e=>setForm(p=>({...p,muscleMass:e.target.value}))} placeholder="155"/></div>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>BMI</label><input style={inp} value={form.bmi} onChange={e=>setForm(p=>({...p,bmi:e.target.value}))} placeholder="24.5"/></div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"6px"}}>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Visceral Fat</label><input style={inp} value={form.visceralFat} onChange={e=>setForm(p=>({...p,visceralFat:e.target.value}))} placeholder="8"/></div>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Notes</label><input style={inp} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} placeholder="Post-holiday"/></div>
+      </div>
+      <button onClick={addCheckin} style={{...ss.btn(true),width:"100%",padding:"8px"}}>Save Check-in</button>
+    </div>}
+    {checkins.length>0&&<div>
+      <div style={{display:"grid",gridTemplateColumns:"70px 50px 42px 50px 38px 1fr 24px",gap:"4px",padding:"4px 0",borderBottom:`1px solid ${T.border}`,marginBottom:"2px"}}>
+        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>DATE</span>
+        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>WEIGHT</span>
+        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>BF%</span>
+        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>MUSCLE</span>
+        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>BMI</span>
+        <span style={{color:T.dim,fontSize:"8px",fontWeight:700}}>NOTES</span>
+        <span></span>
+      </div>
+      {[...checkins].reverse().map((ci,i)=>{const idx=checkins.length-1-i;return <div key={idx} style={{display:"grid",gridTemplateColumns:"70px 50px 42px 50px 38px 1fr 24px",gap:"4px",padding:"3px 0",borderBottom:`1px solid ${T.border}10`,alignItems:"center"}}>
+        <span style={{...ss.mono,color:T.sub,fontSize:"10px"}}>{new Date(ci.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>
+        <span style={{...ss.mono,color:T.blue,fontSize:"10px",fontWeight:600}}>{ci.weight||"–"}</span>
+        <span style={{...ss.mono,color:T.pink,fontSize:"10px",fontWeight:600}}>{ci.bodyFat?ci.bodyFat+"%":"–"}</span>
+        <span style={{...ss.mono,color:T.green,fontSize:"10px",fontWeight:600}}>{ci.muscleMass||"–"}</span>
+        <span style={{...ss.mono,color:T.purple,fontSize:"10px",fontWeight:600}}>{ci.bmi||"–"}</span>
+        <span style={{color:T.dim,fontSize:"9px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ci.notes||""}</span>
+        <button onClick={()=>delCheckin(idx)} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"12px",padding:"0"}}>×</button>
+      </div>})}
+    </div>}
+    <p style={{color:T.dim,fontSize:"9px",margin:"6px 0 0"}}>Track InBody 270S scan data or manual measurements. <a href="https://inbodyusa.com/products/inbody-270s/" target="_blank" rel="noreferrer" style={{color:T.cyan,textDecoration:"none"}}>InBody info ↗</a></p>
+  </div>;
+}
+
+// ── Workout Builder ──
+function WorkoutBuilder({type,types,onTypeChange,allWs,onSave,onCancel}){
+  const[label,setLabel]=useState(`${type} Day`);
+  const[warmup,setWarmup]=useState(WU[type]||"General warmup");
+  const[blocks,setBlocks]=useState([{name:"Main – 4 rds",exercises:[{name:"",sets:4,reps:10,weight:null,notes:""}]}]);
+  const[search,setSearch]=useState("");
+  const[activeSlot,setActiveSlot]=useState(null);
+
+  const allExNames=useMemo(()=>{
+    const s=new Set(Object.keys(MM));
+    allWs.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name)s.add(e.name)})));
+    return [...s].sort();
+  },[allWs]);
+
+  const lastUsed=useMemo(()=>{
+    const m={};allWs.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name)m[e.name]={weight:e.weight,reps:e.reps,sets:e.sets}})));return m;
+  },[allWs]);
+
+  const filtered=search.length>0?allExNames.filter(n=>n.toLowerCase().includes(search.toLowerCase())).slice(0,12):[];
+  const addBlock=()=>setBlocks(p=>[...p,{name:"Superset – 4 rds",exercises:[{name:"",sets:4,reps:10,weight:null,notes:""}]}]);
+  const delBlock=bi=>setBlocks(p=>p.filter((_,i)=>i!==bi));
+  const updBlock=(bi,name)=>setBlocks(p=>p.map((b,i)=>i===bi?{...b,name}:b));
+  const addEx=bi=>setBlocks(p=>p.map((b,i)=>i===bi?{...b,exercises:[...b.exercises,{name:"",sets:4,reps:10,weight:null,notes:""}]}:b));
+  const delEx=(bi,ei)=>setBlocks(p=>p.map((b,i)=>i===bi?{...b,exercises:b.exercises.filter((_,j)=>j!==ei)}:b));
+  const updEx=(bi,ei,f,v)=>setBlocks(p=>p.map((b,i)=>i===bi?{...b,exercises:b.exercises.map((e,j)=>j===ei?{...e,[f]:f==="weight"||f==="sets"||f==="reps"?(v===""?null:Number(v)):v}:e)}:b));
+  const pickEx=(bi,ei,name)=>{const lu=lastUsed[name];updEx(bi,ei,"name",name);if(lu){if(lu.weight)updEx(bi,ei,"weight",lu.weight);if(lu.reps)updEx(bi,ei,"reps",lu.reps);if(lu.sets)updEx(bi,ei,"sets",lu.sets)}setActiveSlot(null);setSearch("")};
+  const inp={background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"5px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"};
+  const save=()=>{const w={id:`build-${type}-${Date.now()}`,date:new Date().toISOString().slice(0,10),type,label,warmup,status:"proposed",reasoning:"Manually built by trainer",
+    blocks:blocks.filter(b=>b.exercises.some(e=>e.name)).map(b=>({name:b.name,exercises:b.exercises.filter(e=>e.name).map(e=>({...e,done:false}))}))};if(w.blocks.length>0)onSave(w)};
+
+  return <div style={{...ss.card,border:`1px solid ${T.cyan}40`,marginBottom:"12px"}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
+      <span style={{color:T.cyan,fontSize:"11px",fontWeight:700,letterSpacing:"1px"}}>🔨 WORKOUT BUILDER</span>
+      <button onClick={onCancel} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"14px"}}>×</button>
+    </div>
+    <div style={{display:"flex",gap:"5px",marginBottom:"8px",flexWrap:"wrap"}}>
+      {types.map(t=><button key={t} onClick={()=>{onTypeChange(t);setLabel(`${t} Day`);setWarmup(WU[t]||"General warmup")}} style={{background:type===t?(TC[t]||T.accent)+"20":"transparent",border:`1px solid ${type===t?(TC[t]||T.accent)+"50":T.border}`,color:type===t?(TC[t]||T.accent):T.dim,padding:"3px 10px",borderRadius:"5px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{t}</button>)}
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"10px"}}>
+      <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Label</label><input style={inp} value={label} onChange={e=>setLabel(e.target.value)}/></div>
+      <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Warmup</label><input style={inp} value={warmup} onChange={e=>setWarmup(e.target.value)}/></div>
+    </div>
+    {blocks.map((bl,bi)=><div key={bi} style={{border:`1px solid ${T.border}`,borderRadius:"7px",padding:"8px",marginBottom:"8px",background:T.surface}}>
+      <div style={{display:"flex",gap:"6px",alignItems:"center",marginBottom:"6px"}}>
+        <input style={{...inp,flex:1,fontWeight:600,fontSize:"11px",color:T.accent}} value={bl.name} onChange={e=>updBlock(bi,e.target.value)} placeholder="Block name – 4 rds"/>
+        <button onClick={()=>delBlock(bi)} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"14px",padding:"0"}}>×</button>
+      </div>
+      {bl.exercises.map((ex,ei)=>{const isActive=activeSlot&&activeSlot.bi===bi&&activeSlot.ei===ei;
+        return <div key={ei} style={{marginBottom:"6px"}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 42px 42px 50px 24px",gap:"4px",alignItems:"center"}}>
+            <div style={{position:"relative"}}>
+              <input style={{...inp,fontSize:"11px",borderColor:isActive?T.cyan:T.border}} value={isActive?search:ex.name} placeholder="Search exercise..."
+                onFocus={()=>{setActiveSlot({bi,ei});setSearch(ex.name||"")}}
+                onChange={e=>{setSearch(e.target.value);setActiveSlot({bi,ei})}}
+                onBlur={()=>setTimeout(()=>setActiveSlot(null),200)}/>
+              {isActive&&filtered.length>0&&<div style={{position:"absolute",top:"100%",left:0,right:0,background:T.card,border:`1px solid ${T.border}`,borderRadius:"0 0 6px 6px",maxHeight:"180px",overflowY:"auto",zIndex:99}}>
+                {filtered.map(n=><div key={n} onMouseDown={e=>e.preventDefault()} onClick={()=>pickEx(bi,ei,n)} style={{padding:"6px 8px",cursor:"pointer",fontSize:"11px",color:T.text,borderBottom:`1px solid ${T.border}18`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span>{n}</span>
+                  <span style={{color:T.dim,fontSize:"9px"}}>{(MM[n]||[]).join(", ")}{lastUsed[n]&&lastUsed[n].weight?` · ${lastUsed[n].weight}#`:""}</span>
+                </div>)}
+              </div>}
+            </div>
+            <input style={{...inp,fontSize:"11px",textAlign:"center"}} value={ex.sets==null?"":ex.sets} onChange={e=>updEx(bi,ei,"sets",e.target.value)} placeholder="S"/>
+            <input style={{...inp,fontSize:"11px",textAlign:"center"}} value={ex.reps==null?"":ex.reps} onChange={e=>updEx(bi,ei,"reps",e.target.value)} placeholder="R"/>
+            <input style={{...inp,fontSize:"11px",textAlign:"center"}} value={ex.weight==null?"":ex.weight} onChange={e=>updEx(bi,ei,"weight",e.target.value)} placeholder="Wt"/>
+            <button onClick={()=>delEx(bi,ei)} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"12px",padding:"0"}}>×</button>
+          </div>
+          {ex.name&&<input style={{...inp,fontSize:"10px",marginTop:"3px",color:T.dim}} value={ex.notes||""} onChange={e=>updEx(bi,ei,"notes",e.target.value)} placeholder="Notes (tempo, each side, DnB...)"/>}
+        </div>})}
+      <button onClick={()=>addEx(bi)} style={{background:"none",border:`1px dashed ${T.border}`,color:T.dim,padding:"4px",borderRadius:"5px",width:"100%",fontSize:"10px",cursor:"pointer",fontFamily:"inherit"}}>+ Exercise</button>
+    </div>)}
+    <button onClick={addBlock} style={{background:"none",border:`1px dashed ${T.border}`,color:T.dim,padding:"8px",borderRadius:"7px",width:"100%",fontSize:"11px",cursor:"pointer",fontFamily:"inherit",marginBottom:"10px"}}>+ Add Block</button>
+    <button onClick={save} style={{...ss.btn(true),width:"100%",padding:"10px"}}>💾 Save as Proposed Workout</button>
+  </div>;
+}
+
+function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
+  const[tab,setTab]=useState(initTab||"overview");
+  useEffect(()=>{if(initTab)setTab(initTab)},[initTab,client.id]);
+  const[filt,setFilt]=useState("all");
+  const[exp,setExp]=useState({});
+  const[proposals,setProposals]=useState([]);
+  const[genLoading,setGenLoading]=useState({});
+  const[pinned,setPinned]=useState({});  // {[type]: {[bi-ei]: true}}
+  const[buildType,setBuildType]=useState(null);  // workout builder mode
+  const[readiness,setReadiness]=useState({sleep:null,soreness:null,energy:null,note:""});
+  const[liveW,setLiveW]=useState(null);
+  const[liveStart,setLiveStart]=useState(null);
+  const[elapsed,setElapsed]=useState("");
+  const[editBio,setEditBio]=useState(false);
+  const[editingWId,setEditingWId]=useState(null);
+  const[editW,setEditW]=useState(null);
+  const[bio,setBio]=useState({fullName:client.fullName||"",email:client.email||"",phone:client.phone||"",scheduleDays:client.scheduleDays||[],scheduleNotes:client.scheduleNotes||"",focusAreas:client.focusAreas||"",goals:client.goals||"",dob:client.dob||"",gender:client.gender||"",startingWeight:client.startingWeight||"",workoutTypes:client.workoutTypes||[]});
+  const[newCon,setNewCon]=useState("");
+  const[selEx,setSelEx]=useState(null);
+  const[newSub,setNewSub]=useState({avoid:"",use:""});
+  useEffect(()=>{if(!liveStart){setElapsed("");return}const tick=()=>{const s=Math.floor((Date.now()-liveStart)/1000);const m=Math.floor(s/60);const h=Math.floor(m/60);setElapsed(h>0?`${h}h ${m%60}m`:`${m}m ${s%60}s`)};tick();const id=setInterval(tick,1000);return()=>clearInterval(id)},[liveStart]);
+  const subs=client.substitutions||[];
+  const addSub=()=>{if(!newSub.avoid.trim()||!newSub.use.trim())return;onSaveCl({...client,substitutions:[...subs,{avoid:newSub.avoid.trim(),use:newSub.use.trim()}]});setNewSub({avoid:"",use:""})};
+  const delSub=i=>onSaveCl({...client,substitutions:subs.filter((_,j)=>j!==i)});
+
+  const sorted=useMemo(()=>[...ws].sort((a,b)=>a.date.localeCompare(b.date)),[ws]);
+  const types=useMemo(()=>{const detected=getTypes(sorted);const configured=client.workoutTypes||[];const merged=[...new Set([...detected,...configured])];if(!merged.length)merged.push("upper","lower","glute");return merged},[sorted,client.workoutTypes]);
+  const quads=sorted.filter(w=>w.type==="quad");
+  const glutes=sorted.filter(w=>w.type==="glute");
+  const lowers=sorted.filter(w=>w.type==="lower");
+  const tl=useMemo(()=>topLifts(sorted,3),[sorted]);
+  const cs=useMemo(()=>clientStats(sorted,client.scheduleDays),[sorted,client.scheduleDays]);
+  const af=exFreq(sorted);
+  const topEx=Object.entries(af).filter(([n])=>(MM[n]||[]).length>0).sort((a,b)=>b[1].count-a[1].count).slice(0,12);
+  const considerations=client.considerations||[];
+  const filtHist=filt==="all"?sorted:sorted.filter(w=>w.type===filt);
+  const tog=id=>setExp(p=>({...p,[id]:!p[id]}));
+
+  const generateForType = async (type, keepPins) => {
+    setGenLoading(p => ({...p, [type]: true}));
+    let pinnedEx = null;
+    if (keepPins) {
+      const p = proposals.find(x => x.type === type);
+      const tp = pinned[type] || {};
+      if (p && Object.keys(tp).length > 0) {
+        pinnedEx = [];
+        p.blocks.forEach((b, bi) => b.exercises.forEach((ex, ei) => {
+          if (tp[`${bi}-${ei}`]) pinnedEx.push({block:b.name, name:ex.name, sets:ex.sets, reps:ex.reps, weight:ex.weight, notes:ex.notes});
+        }));
+      }
+    } else {
+      setPinned(p => ({...p, [type]: {}}));
+    }
+    const result = await aiGenProposal(sorted, type, client, pinnedEx, readiness);
+    setProposals(p => {
+      const filtered = p.filter(x => x.type !== type);
+      return [...filtered, result];
+    });
+    setGenLoading(p => ({...p, [type]: false}));
+  };
+
+  const generateAll = async () => {
+    setProposals([]);
+    for (const t of types) {
+      await generateForType(t);
+    }
+  };
+
+  const handleAction = (action, w) => {
+    if (action==="start"){const nw={...JSON.parse(JSON.stringify(w)),status:"in-progress",id:`live-${Date.now()}`};nw.blocks.forEach(b=>b.exercises.forEach(e=>{e.done=false}));const rd=readiness;if(rd&&(rd.sleep||rd.soreness||rd.energy||rd.note))nw.readiness=rd;setLiveW(nw);setLiveStart(Date.now());setTab("live")}
+    if (action==="complete"){const saved={...w,status:"completed",date:new Date().toISOString().slice(0,10)};saved.blocks=saved.blocks.filter(b=>b.exercises.length>0);onSaveW(client.id,saved);setLiveW(null);setLiveStart(null);setReadiness({sleep:null,soreness:null,energy:null,note:""});setTab("history")}
+    if (action==="cancel"){setLiveW(null);setLiveStart(null);setTab("next")}
+  };
+
+  const saveBio=()=>{onSaveCl({...client,...bio});setEditBio(false)};
+  const addCon=()=>{if(!newCon.trim())return;onSaveCl({...client,considerations:[...considerations,{text:newCon.trim(),date:new Date().toISOString().slice(0,10),active:true}]});setNewCon("")};
+  const toggleCon=(i)=>{const nc=[...considerations];nc[i]={...nc[i],active:!nc[i].active};onSaveCl({...client,considerations:nc})};
+  const delCon=(i)=>onSaveCl({...client,considerations:considerations.filter((_,j)=>j!==i)});
+  const inp={background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"8px 10px",borderRadius:"6px",fontSize:"13px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"};
+  const age=client.dob?Math.floor((Date.now()-new Date(client.dob+"T12:00:00").getTime())/31557600000):null;
+
+  if(liveW&&tab==="live")return <div>
+    <div style={{...ss.header,background:`linear-gradient(180deg,${T.green}10,${T.surface})`}}>
+      <div style={{display:"flex",alignItems:"center",gap:"8px"}}><span style={{background:T.green,color:T.bg,padding:"2px 7px",borderRadius:"5px",fontSize:"9px",fontWeight:800,letterSpacing:"1px"}}>● LIVE</span><h2 style={{margin:0,fontSize:"16px"}}>{liveW.label}</h2><span style={{color:T.sub,fontSize:"11px",marginLeft:"auto"}}>{client.name}</span>{elapsed&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"2px 8px",borderRadius:"5px",fontSize:"11px",fontWeight:600}}>⏱ {elapsed}</span>}</div>
+    </div>
+    <div style={ss.content}><WCard w={liveW} open={true} toggle={()=>{}} live onChange={setLiveW} onAction={handleAction} onExClick={setSelEx}/></div>
+  </div>;
+
+  return <div>
+    <div style={ss.header}><div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+      <button onClick={()=>onNav("dashboard")} style={{background:"none",border:"none",color:T.sub,fontSize:"18px",cursor:"pointer",padding:"2px"}}>‹</button>
+      <div style={{width:32,height:32,borderRadius:"7px",background:`linear-gradient(135deg,${client.color||T.accent},${client.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:700,color:T.bg}}>{client.name[0]}</div>
+      <div><h2 style={{margin:0,fontSize:"16px",fontWeight:700}}>{client.fullName||client.name}</h2><div style={{display:"flex",alignItems:"center",gap:"6px",marginTop:"3px",flexWrap:"wrap"}}>{(client.scheduleDays||[]).length>0&&<span style={{display:"inline-flex",gap:"2px"}}>{["M","T","W","TH","F","S","SU"].filter(d=>(client.scheduleDays||[]).includes(d)).map(d=><span key={d} style={{padding:"1px 5px",borderRadius:"3px",fontSize:"9px",fontWeight:700,background:T.accent+"18",color:T.accent,border:`1px solid ${T.accent}40`}}>{d}</span>)}</span>}<span style={{color:T.sub,fontSize:"10px"}}>{(client.scheduleDays||[]).length===0&&client.schedule?client.schedule+" · ":""}{sorted.length} sessions{age?` · Age ${age}`:""}{client.gender?` · ${client.gender}`:""}</span></div></div>
+    </div></div>
+
+    <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 10px",overflowX:"auto"}}>
+      {[{id:"overview",l:"Bio"},{id:"next",l:"Next Workouts"},{id:"history",l:"History"},{id:"analytics",l:"Analytics"}].map(t=>
+        <button key={t.id} onClick={()=>setTab(t.id)} style={{background:"none",border:"none",borderBottom:tab===t.id?`2px solid ${T.accent}`:"2px solid transparent",color:tab===t.id?T.accent:T.sub,padding:"9px 12px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>{t.l}</button>
+      )}
+    </div>
+    <div style={ss.content}>
+
+      {tab==="overview"&&<>
+        <div style={{display:"grid",gridTemplateColumns:`repeat(${2+Math.min(tl.length,2)},1fr)`,gap:"6px",marginBottom:"12px"}}>
+          <Stat v={sorted.length} l="Sessions" c={T.accent}/>{tl.slice(0,2).map(l=><Stat key={l.name} v={`${l.max}#`} l={l.short} c={l.color}/>)}<Stat v={sorted.filter(w=>["quad","lower","glute"].includes(w.type)).length} l="Leg+Glute" c={T.glutes}/>
+        </div>
+        {sorted.length===0&&<div style={{background:`linear-gradient(135deg,${T.accent}08,${T.accent}03)`,border:`1px solid ${T.accent}25`,borderRadius:"10px",padding:"16px",marginBottom:"10px",textAlign:"center"}}><div style={{fontSize:"20px",marginBottom:"4px"}}>🚀</div><div style={{color:T.text,fontWeight:600,fontSize:"13px",marginBottom:"4px"}}>Ready to start training!</div><div style={{color:T.dim,fontSize:"11px",marginBottom:"10px"}}>Fill in the profile below, then generate AI workouts.</div><button onClick={()=>setTab("next")} style={{...ss.btn(true),fontSize:"11px"}}>→ Next Workouts</button></div>}
+        {sorted.length>0&&<div style={{...ss.card,padding:"12px 14px",marginBottom:"10px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}><span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>📈 CONSISTENCY</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"2px 8px",borderRadius:"5px",fontSize:"11px",fontWeight:700}}>🔥 {cs.streak} week streak</span>}</div>
+          <div style={{display:"grid",gridTemplateColumns:(client.scheduleDays||[]).length>0?"1fr 1fr 1fr":"1fr 1fr",gap:"8px"}}>
+            <div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:T.accent,fontSize:"20px",fontWeight:700}}>{cs.thisWeekCount}{cs.thisWeekTarget>0?<span style={{color:T.dim,fontSize:"13px",fontWeight:400}}>/{cs.thisWeekTarget}</span>:""}</div><div style={{color:T.dim,fontSize:"9px",marginTop:"2px"}}>This Week</div>{cs.thisWeekTarget>0&&<div style={{height:4,borderRadius:2,background:T.border,marginTop:"6px",overflow:"hidden"}}><div style={{height:"100%",borderRadius:2,background:cs.thisWeekCount>=cs.thisWeekTarget?T.green:T.accent,width:`${Math.min(cs.thisWeekCount/cs.thisWeekTarget*100,100)}%`,transition:"width .3s"}}/></div>}</div>
+            {(client.scheduleDays||[]).length>0&&<div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:cs.adherence>=75?T.green:cs.adherence>=50?T.accent:T.red,fontSize:"20px",fontWeight:700}}>{cs.adherence!==null?`${cs.adherence}%`:"—"}</div><div style={{color:T.dim,fontSize:"9px",marginTop:"2px"}}>4-Wk Adherence</div>{cs.adherence!==null&&<div style={{height:4,borderRadius:2,background:T.border,marginTop:"6px",overflow:"hidden"}}><div style={{height:"100%",borderRadius:2,background:cs.adherence>=75?T.green:cs.adherence>=50?T.accent:T.red,width:`${cs.adherence}%`,transition:"width .3s"}}/></div>}</div>}
+            <div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:cs.streak>=4?T.green:cs.streak>=2?T.accent:T.dim,fontSize:"20px",fontWeight:700}}>{cs.streak}<span style={{fontSize:"11px",fontWeight:400}}>w</span></div><div style={{color:T.dim,fontSize:"9px",marginTop:"2px"}}>Streak</div></div>
+          </div>
+        </div>}
+        <div style={ss.card}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
+            <span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>CLIENT PROFILE</span>
+            <button onClick={()=>{if(editBio)saveBio();else{setBio({fullName:client.fullName||"",email:client.email||"",phone:client.phone||"",scheduleDays:client.scheduleDays||[],scheduleNotes:client.scheduleNotes||"",focusAreas:client.focusAreas||"",goals:client.goals||"",dob:client.dob||"",gender:client.gender||"",startingWeight:client.startingWeight||"",workoutTypes:client.workoutTypes||[...new Set(sorted.map(w=>w.type))]});setEditBio(true)}}} style={{...ss.btn(editBio),fontSize:"10px",padding:"3px 10px"}}>{editBio?"Save":"Edit"}</button>
+          </div>
+          {editBio?<>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"8px"}}>
+              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Full Name</label><input style={{...inp,width:"100%"}} value={bio.fullName} onChange={e=>setBio(p=>({...p,fullName:e.target.value}))} placeholder="First Last"/></div>
+              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Email</label><input type="email" style={{...inp,width:"100%"}} value={bio.email} onChange={e=>setBio(p=>({...p,email:e.target.value}))} placeholder="email@example.com"/></div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"6px",marginBottom:"8px"}}>
+              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Phone</label><input type="tel" style={{...inp,width:"100%"}} value={bio.phone} onChange={e=>setBio(p=>({...p,phone:e.target.value}))} placeholder="(555) 123-4567"/></div>
+              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Date of Birth</label><input type="date" style={inp} value={bio.dob} onChange={e=>setBio(p=>({...p,dob:e.target.value}))}/></div>
+              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Gender</label><select style={{...inp,appearance:"auto"}} value={bio.gender} onChange={e=>setBio(p=>({...p,gender:e.target.value}))}><option value="">—</option><option value="M">Male</option><option value="F">Female</option><option value="Other">Other</option></select></div>
+            </div>
+            <div style={{marginBottom:"8px"}}>
+              <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Start Weight (lbs)</label><input style={{...inp,width:"80px"}} value={bio.startingWeight} onChange={e=>setBio(p=>({...p,startingWeight:e.target.value}))} placeholder="185"/></div>
+            </div>
+            <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"4px"}}>Scheduled Days</label>
+            <div style={{display:"flex",gap:"4px",marginBottom:"4px"}}>{[["M","Mon"],["T","Tue"],["W","Wed"],["TH","Thu"],["F","Fri"],["S","Sat"],["SU","Sun"]].map(([k,l])=><button key={k} onClick={()=>setBio(p=>({...p,scheduleDays:p.scheduleDays.includes(k)?p.scheduleDays.filter(d=>d!==k):[...p.scheduleDays,k]}))} style={{width:36,height:32,borderRadius:"6px",border:`1.5px solid ${bio.scheduleDays.includes(k)?T.accent:T.border}`,background:bio.scheduleDays.includes(k)?T.accent+"15":T.card,color:bio.scheduleDays.includes(k)?T.accent:T.dim,fontSize:"10px",fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>{l}</button>)}</div>
+            <input style={{...inp,marginBottom:"8px",fontSize:"12px"}} value={bio.scheduleNotes} onChange={e=>setBio(p=>({...p,scheduleNotes:e.target.value}))} placeholder="e.g. Mornings, 5:30 PM, alternating weeks..."/>
+            <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Focus Areas / Split</label>
+            <textarea style={{...inp,height:"55px",resize:"vertical",marginBottom:"6px"}} value={bio.focusAreas} onChange={e=>setBio(p=>({...p,focusAreas:e.target.value}))}/>
+            <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Goals</label>
+            <textarea style={{...inp,height:"45px",resize:"vertical",marginBottom:"8px"}} value={bio.goals} onChange={e=>setBio(p=>({...p,goals:e.target.value}))}/>
+            <label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"4px"}}>Workout Types</label>
+            <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>{["quad","lower","glute","upper","push","pull","full"].map(t=><button key={t} onClick={()=>setBio(p=>({...p,workoutTypes:p.workoutTypes.includes(t)?p.workoutTypes.filter(x=>x!==t):[...p.workoutTypes,t]}))} style={{background:bio.workoutTypes.includes(t)?(TC[t]||T.accent)+"20":"transparent",border:`1px solid ${bio.workoutTypes.includes(t)?(TC[t]||T.accent)+"50":T.border}`,color:bio.workoutTypes.includes(t)?(TC[t]||T.accent):T.dim,padding:"4px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{t}</button>)}</div>
+          </>:<>
+            <div style={{marginBottom:"8px"}}>
+              {client.fullName&&<div style={{fontSize:"14px",fontWeight:600,color:T.text,marginBottom:"2px"}}>{client.fullName}</div>}
+              <div style={{display:"flex",gap:"12px",flexWrap:"wrap"}}>
+                {client.email&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>✉ </span><span style={{color:T.sub,fontSize:"12px"}}>{client.email}</span></div>}
+                {client.phone&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>☎ </span><span style={{color:T.sub,fontSize:"12px"}}>{client.phone}</span></div>}
+              </div>
+            </div>
+            <div style={{display:"flex",gap:"12px",marginBottom:"8px",flexWrap:"wrap"}}>
+              {client.dob&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>DOB: </span><span style={{color:T.text,fontSize:"12px"}}>{new Date(client.dob+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}{age?` (${age})`:""}</span></div>}
+              {client.gender&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Gender: </span><span style={{color:T.text,fontSize:"12px"}}>{client.gender}</span></div>}
+              {client.startingWeight&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Start Wt: </span><span style={{color:T.text,fontSize:"12px"}}>{client.startingWeight} lbs</span></div>}
+            </div>
+            {(client.scheduleDays||[]).length>0&&<div style={{marginBottom:"8px"}}><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Training Days: </span><span style={{display:"inline-flex",gap:"3px",marginLeft:"4px"}}>{["M","T","W","TH","F","S","SU"].filter(d=>(client.scheduleDays||[]).includes(d)).map(d=><span key={d} style={{padding:"2px 6px",borderRadius:"4px",fontSize:"9px",fontWeight:700,background:T.accent+"15",color:T.accent,border:`1px solid ${T.accent}40`}}>{d}</span>)}</span>{client.scheduleNotes&&<span style={{color:T.sub,fontSize:"11px",marginLeft:"8px"}}>{client.scheduleNotes}</span>}</div>}
+            {client.focusAreas&&<div style={{marginBottom:"6px"}}><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Focus: </span><span style={{color:T.text,fontSize:"12px"}}>{client.focusAreas}</span></div>}
+            {client.goals&&<div style={{marginBottom:"6px"}}><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Goals: </span><span style={{color:T.text,fontSize:"12px"}}>{client.goals}</span></div>}
+            {types.length>0&&<div><span style={{color:T.dim,fontSize:"9px",textTransform:"uppercase",letterSpacing:".5px"}}>Workout Types: </span><span style={{display:"inline-flex",gap:"4px",flexWrap:"wrap",marginTop:"3px"}}>{types.map(t=><span key={t} style={ss.pill(TC[t])}>{t}</span>)}</span></div>}
+          </>}
+        </div>
+        <div style={ss.card}>
+          <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>⚠ CONSIDERATIONS & INJURIES</div>
+          {considerations.map((c,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"8px",padding:"6px 0",borderBottom:`1px solid ${T.border}18`}}>
+            <button onClick={()=>toggleCon(i)} style={{width:18,height:18,borderRadius:"4px",border:`2px solid ${c.active?T.red:T.dim}`,background:c.active?T.red+"20":"transparent",cursor:"pointer",fontSize:"10px",color:T.red,display:"flex",alignItems:"center",justifyContent:"center",padding:0,flexShrink:0}}>{c.active?"!":""}</button>
+            <div style={{flex:1}}><span style={{color:c.active?T.text:T.dim,fontSize:"12px",textDecoration:c.active?"none":"line-through"}}>{c.text}</span><span style={{color:T.dim,fontSize:"9px",marginLeft:"6px"}}>{c.date}</span></div>
+            <button onClick={()=>delCon(i)} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"12px",padding:"2px"}}>×</button>
+          </div>)}
+          <div style={{display:"flex",gap:"6px",marginTop:"8px"}}>
+            <input style={{...inp,flex:1}} value={newCon} onChange={e=>setNewCon(e.target.value)} placeholder="Strained back, torn quad, twisted ankle..." onKeyDown={e=>{if(e.key==="Enter")addCon()}}/>
+            <button onClick={addCon} style={ss.btn(true)}>Add</button>
+          </div>
+          <p style={{color:T.dim,fontSize:"10px",margin:"6px 0 0"}}>Active considerations are sent to Claude AI to adjust proposed workouts.</p>
+        </div>
+        <div style={ss.card}>
+          <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🔄 MOVEMENT SUBSTITUTIONS</div>
+          {subs.length===0&&<p style={{color:T.dim,fontSize:"11px",margin:"0 0 8px"}}>No substitutions yet. Add rules so the AI knows exactly what to swap.</p>}
+          {subs.map((s,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"6px",padding:"5px 0",borderBottom:`1px solid ${T.border}18`}}>
+            <span style={{color:T.red,fontSize:"11px",fontWeight:600,flex:1}}>{s.avoid}</span>
+            <span style={{color:T.dim,fontSize:"11px"}}>→</span>
+            <span style={{color:T.green,fontSize:"11px",fontWeight:600,flex:1}}>{s.use}</span>
+            <button onClick={()=>delSub(i)} style={{background:"none",border:"none",color:T.dim,cursor:"pointer",fontSize:"12px",padding:"2px",flexShrink:0}}>×</button>
+          </div>)}
+          <div style={{display:"flex",gap:"4px",marginTop:"8px",alignItems:"center"}}>
+            <input style={{...inp,flex:1,fontSize:"12px"}} value={newSub.avoid} onChange={e=>setNewSub(p=>({...p,avoid:e.target.value}))} placeholder="Avoid: Barbell Back Squat" onKeyDown={e=>{if(e.key==="Enter")addSub()}}/>
+            <span style={{color:T.dim,fontSize:"13px",flexShrink:0}}>→</span>
+            <input style={{...inp,flex:1,fontSize:"12px"}} value={newSub.use} onChange={e=>setNewSub(p=>({...p,use:e.target.value}))} placeholder="Use: Belt Squat, Leg Press" onKeyDown={e=>{if(e.key==="Enter")addSub()}}/>
+            <button onClick={addSub} style={{...ss.btn(true),flexShrink:0,padding:"6px 10px"}}>+</button>
+          </div>
+          <p style={{color:T.dim,fontSize:"10px",margin:"6px 0 0"}}>When a consideration is active, AI uses these swaps instead of guessing. One "avoid" can map to multiple alternatives.</p>
+        </div>
+        <CheckInPanel client={client} onSaveCl={onSaveCl}/>
+        {tl.length>0&&<div style={{display:"grid",gridTemplateColumns:tl.length>1?"1fr 1fr":"1fr",gap:"8px"}}>
+          {tl.slice(0,2).map(l=><div key={l.name} style={ss.card}><div style={{color:T.sub,fontSize:"9px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>{l.short.toUpperCase()} TREND</div><Chart data={l.prog} color={l.color} h={90}/></div>)}
+        </div>}
+      </>}
+
+      {tab==="next"&&<>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
+          <span style={{color:T.sub,fontSize:"11px"}}>🧠 Powered by Claude AI</span>
+          <div style={{display:"flex",gap:"6px"}}>
+            <button onClick={()=>setBuildType(buildType?null:types[0])} style={{...ss.btn(!buildType),fontSize:"10px",padding:"5px 10px"}}>{buildType?"Cancel":"🔨 Builder"}</button>
+            <button onClick={generateAll} style={{...ss.btn(true),fontSize:"10px",padding:"5px 12px"}}>✨ Generate All</button>
+          </div>
+        </div>
+        {considerations.filter(c=>c.active).length>0&&<div style={{background:T.red+"10",border:`1px solid ${T.red}25`,borderRadius:"8px",padding:"8px 12px",marginBottom:"10px",fontSize:"11px",color:T.red}}>⚠ Active: {considerations.filter(c=>c.active).map(c=>c.text).join(", ")} — AI will adapt workouts{subs.length>0?` · ${subs.length} substitution rule${subs.length>1?"s":""}`:""}</div>}
+        {(()=>{const hasRd=readiness.sleep||readiness.soreness||readiness.energy;const rc=(f,v)=>setReadiness(p=>({...p,[f]:p[f]===v?null:v}));
+          const labs={sleep:["😫","😴","😐","😊","🔋"],soreness:["None","Low","Mod","High","Severe"],energy:["Empty","Low","OK","Good","💪"]};
+          const cs=[T.green,T.green,T.accent,T.red,T.red];
+          return <div style={{...ss.card,border:`1px solid ${hasRd?T.purple+"40":T.border}`,marginBottom:"10px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:exp.readiness?"10px":"0",cursor:"pointer"}} onClick={()=>tog("readiness")}>
+              <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
+                <span style={{color:T.purple,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>📋 TODAY'S CHECK-IN</span>
+                {hasRd&&!exp.readiness&&<span style={{color:T.sub,fontSize:"10px"}}>— Sleep {readiness.sleep||"?"}/5 · Sore {readiness.soreness||"?"}/5 · Energy {readiness.energy||"?"}/5</span>}
+                {!hasRd&&!exp.readiness&&<span style={{color:T.dim,fontSize:"10px"}}>(optional — helps AI adjust)</span>}
+              </div>
+              <span style={{color:T.sub,fontSize:"12px"}}>{exp.readiness?"▴":"▾"}</span>
+            </div>
+            {exp.readiness&&<div>
+              {[["sleep","Sleep"],["soreness","Soreness"],["energy","Energy"]].map(([key,title])=><div key={key} style={{marginBottom:"8px"}}>
+                <span style={{color:T.text,fontSize:"11px",fontWeight:600,marginRight:"8px"}}>{title}</span>
+                <div style={{display:"inline-flex",gap:"4px"}}>{[1,2,3,4,5].map(v=>{const sel=readiness[key]===v;const isS=key==="soreness";const c=isS?cs[v-1]:cs[v-1];
+                  return <button key={v} onClick={()=>rc(key,v)} style={{width:44,padding:"4px 2px",borderRadius:"6px",border:`1.5px solid ${sel?c:T.border}`,background:sel?c+"18":"transparent",cursor:"pointer",textAlign:"center",fontSize:"11px"}}>
+                    <div style={{fontSize:"12px"}}>{labs[key][v-1]}</div>
+                    <div style={{color:sel?c:T.dim,fontSize:"8px",fontWeight:600}}>{v}/5</div>
+                  </button>})}</div>
+              </div>)}
+              <input value={readiness.note} onChange={e=>setReadiness(p=>({...p,note:e.target.value}))} placeholder="Quick note — knee tight, rough week, feeling great..." style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 10px",borderRadius:"6px",fontSize:"11px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}}/>
+              {hasRd&&<div style={{color:T.dim,fontSize:"9px",marginTop:"6px"}}>✓ AI will factor this into generated workouts{readiness.soreness>=4?" — high soreness will trigger auto-deload":""}</div>}
+            </div>}
+          </div>})()}
+        {buildType&&<WorkoutBuilder type={buildType} types={types} onTypeChange={setBuildType} allWs={sorted} onSave={(w)=>{setProposals(p=>[...p.filter(x=>x.type!==w.type),w]);setBuildType(null)}} onCancel={()=>setBuildType(null)}/>}
+        {!buildType&&types.map(type => {
+          const p = proposals.find(x => x.type === type);
+          const loading = genLoading[type];
+          const tp = pinned[type] || {};
+          const hasPins = Object.values(tp).some(v=>v);
+          return <div key={type} style={{marginBottom:"8px"}}>
+            {!p && !loading && <div style={{...ss.card,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div><span style={{...ss.pill(TC[type]),fontSize:"10px",marginRight:"8px"}}>{type}</span><span style={{color:T.sub,fontSize:"12px"}}>No proposal yet</span></div>
+              <button onClick={()=>generateForType(type)} style={{...ss.btn(true),fontSize:"10px",padding:"4px 10px"}}>✨ Generate</button>
+            </div>}
+            {loading && <div style={{...ss.card,textAlign:"center",padding:"20px"}}>
+              <div style={{color:T.accent,fontSize:"13px",fontWeight:600,marginBottom:"4px"}}>🧠 Claude is programming {type} day...</div>
+              <div style={{color:T.dim,fontSize:"11px"}}>Analyzing {sorted.filter(w=>w.type===type).length} sessions, checking injuries, selecting exercises...</div>
+              <div style={{marginTop:"8px",height:"3px",background:T.border,borderRadius:"2px",overflow:"hidden"}}><div style={{height:"100%",width:"70%",background:`linear-gradient(90deg,${T.accent},${T.cyan})`,borderRadius:"2px",animation:"pulse 1.5s ease infinite"}} /></div>
+            </div>}
+            {p && !loading && <div>
+              <WCard w={p} open={exp[p.id]!==false} toggle={()=>tog(p.id)} onAction={handleAction} pinned={tp} onTogglePin={(pk)=>setPinned(prev=>({...prev,[type]:{...(prev[type]||{}), [pk]:!(prev[type]||{})[pk]}}))} onExClick={setSelEx}/>
+              <div style={{textAlign:"right",marginTop:"-4px",marginBottom:"8px",display:"flex",justifyContent:"flex-end",gap:"10px"}}>
+                {hasPins&&<button onClick={()=>generateForType(type,true)} style={{background:"none",border:"none",color:T.accent,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>✨ Regen unpinned</button>}
+                <button onClick={()=>generateForType(type)} style={{background:"none",border:"none",color:T.cyan,fontSize:"10px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>↻ Regenerate all</button>
+              </div>
+            </div>}
+          </div>;
+        })}
+        <style>{`@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}`}</style>
+      </>}
+
+      {tab==="history"&&<>
+        {sorted.length===0?<div style={{...ss.card,textAlign:"center",padding:"32px 16px"}}><div style={{fontSize:"28px",marginBottom:"8px"}}>📋</div><div style={{color:T.text,fontWeight:600,fontSize:"14px",marginBottom:"4px"}}>No workouts yet</div><div style={{color:T.dim,fontSize:"12px"}}>Generate a workout in the Next Workouts tab to get started.</div><button onClick={()=>setTab("next")} style={{...ss.btn(true),marginTop:"12px"}}>→ Next Workouts</button></div>:<>
+        <div style={{display:"flex",gap:"4px",marginBottom:"8px",flexWrap:"wrap"}}>
+          {["all",...getTypes(sorted)].map(f=><button key={f} onClick={()=>setFilt(f)} style={{background:filt===f?T.accent+"15":"transparent",border:`1px solid ${filt===f?T.accent+"30":T.border}`,color:filt===f?T.accent:T.sub,padding:"3px 8px",borderRadius:"5px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{f} ({f==="all"?sorted.length:sorted.filter(w=>w.type===f).length})</button>)}
+        </div>
+        {[...filtHist].reverse().map(w=>{const isEditing=editingWId===w.id;const displayW=isEditing?editW:w;
+          return <WCard key={w.id} w={displayW} open={!!exp[w.id]} toggle={()=>tog(w.id)} onExClick={setSelEx}
+            editing={isEditing}
+            onChange={isEditing?(nw)=>setEditW(nw):undefined}
+            onEdit={()=>{setEditingWId(w.id);setEditW(JSON.parse(JSON.stringify(w)));setExp(p=>({...p,[w.id]:true}))}}
+            onEditSave={()=>{onSaveW(client.id,editW);setEditingWId(null);setEditW(null)}}
+            onEditCancel={()=>{setEditingWId(null);setEditW(null)}}
+            onDelete={()=>onDeleteW(client.id,w.id)}
+          />})}
+        </>}
+      </>}
+
+      {tab==="analytics"&&<>
+        {sorted.length===0?<div style={{...ss.card,textAlign:"center",padding:"32px 16px"}}><div style={{fontSize:"28px",marginBottom:"8px"}}>📊</div><div style={{color:T.text,fontWeight:600,fontSize:"14px",marginBottom:"4px"}}>No data yet</div><div style={{color:T.dim,fontSize:"12px"}}>Complete a few workouts to see trends, lift progressions, and muscle balance.</div><button onClick={()=>setTab("next")} style={{...ss.btn(true),marginTop:"12px"}}>→ Generate Workouts</button></div>:<>
+        <div style={{display:"grid",gridTemplateColumns:`repeat(${2+Math.min(tl.length,3)},1fr)`,gap:"6px",marginBottom:"12px"}}>{tl.slice(0,3).map(l=><Stat key={l.name} v={`${l.max}#`} l={`${l.short} Max`} c={l.color}/>)}<Stat v={quads.length+lowers.length} l="Leg Days" c={T.quads}/><Stat v={glutes.length} l="Glute Days" c={T.glutes}/></div>
+        {(()=>{const rpeData=sorted.filter(w=>w.rpe).map(w=>({date:w.date,max:w.rpe}));const volData=sorted.map(w=>({date:w.date,max:w.blocks.reduce((a,b)=>a+b.exercises.reduce((s,e)=>s+((e.sets||0)*(e.reps||0)*(e.weight||0)),0),0)})).filter(d=>d.max>0);const avgRpe=rpeData.length?((rpeData.reduce((a,d)=>a+d.max,0)/rpeData.length).toFixed(1)):null;const avgVol=volData.length?Math.round(volData.slice(-8).reduce((a,d)=>a+d.max,0)/Math.min(volData.length,8)):null;
+          return (rpeData.length>0||volData.length>0)&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"8px"}}>
+            {rpeData.length>0&&<div style={ss.card}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}><span style={{color:T.sub,fontSize:"9px",fontWeight:700,letterSpacing:"1px"}}>RPE TREND</span>{avgRpe&&<span style={{...ss.mono,color:T.accent,fontSize:"11px"}}>avg {avgRpe}</span>}</div><Chart data={rpeData} color={T.pink} h={70}/></div>}
+            {volData.length>0&&<div style={ss.card}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}><span style={{color:T.sub,fontSize:"9px",fontWeight:700,letterSpacing:"1px"}}>VOLUME LOAD</span>{avgVol&&<span style={{...ss.mono,color:T.cyan,fontSize:"11px"}}>{(avgVol/1000).toFixed(1)}k avg</span>}</div><Chart data={volData} color={T.cyan} h={70}/></div>}
+          </div>})()}
+        {(client.checkins||[]).length>0&&<div style={ss.card}>
+          <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>📊 BODY COMPOSITION TREND</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
+            {client.checkins.some(c=>c.weight)&&<div><div style={{color:T.dim,fontSize:"9px",marginBottom:"4px"}}>Weight</div><Chart data={client.checkins.filter(c=>c.weight).map(c=>({date:c.date,max:c.weight}))} color={T.blue} h={70}/></div>}
+            {client.checkins.some(c=>c.bodyFat)&&<div><div style={{color:T.dim,fontSize:"9px",marginBottom:"4px"}}>Body Fat %</div><Chart data={client.checkins.filter(c=>c.bodyFat).map(c=>({date:c.date,max:c.bodyFat}))} color={T.pink} h={70}/></div>}
+          </div>
+        </div>}
+        {tl.map(l=><div key={l.name} style={ss.card}><div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>{l.name.toUpperCase()}</div><Chart data={l.prog} color={l.color}/></div>)}
+        <div style={ss.card}><div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>MUSCLE BALANCE (LAST 8)</div><Bars ws={sorted}/></div>
+        <div style={ss.card}><div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>TOP EXERCISES</div>
+          {topEx.map(([n,d])=><div key={n} onClick={()=>setSelEx(n)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:`1px solid ${T.border}15`,cursor:"pointer"}}><div><span style={{color:T.text,fontSize:"11px",fontWeight:500}}>{n}</span><div style={{display:"flex",gap:"2px",marginTop:"1px"}}>{(MM[n]||[]).filter(m=>m!=="Grip").slice(0,3).map(m=><Pill key={m} g={m}/>)}</div></div><div style={{textAlign:"right"}}><span style={{...ss.mono,color:T.accent,fontSize:"12px",fontWeight:600}}>{d.count}×</span>{d.lastW&&<div style={{color:T.dim,fontSize:"8px"}}>last: {d.lastW}#</div>}</div></div>)}
+        </div>
+        </>}
+      </>}
+    </div>
+    {selEx&&<ExProg name={selEx} ws={sorted} onClose={()=>setSelEx(null)}/>}
+  </div>;
+}
+
+function AddClient({onSave,onCancel}){
+  const[name,setName]=useState("");const[full,setFull]=useState("");const[email,setEmail]=useState("");const[phone,setPhone]=useState("");const[goals,setGoals]=useState("");const[schedNotes,setSchedNotes]=useState("");const[focus,setFocus]=useState("");
+  const[dob,setDob]=useState("");const[gender,setGender]=useState("");const[startWt,setStartWt]=useState("");const[schedDays,setSchedDays]=useState([]);
+  const[wTypes,setWTypes]=useState(["upper","lower","glute"]);
+  const allTypes=["quad","lower","glute","upper","push","pull","full"];
+  const toggleType=t=>setWTypes(p=>p.includes(t)?p.filter(x=>x!==t):[...p,t]);
+  const toggleDay=d=>setSchedDays(p=>p.includes(d)?p.filter(x=>x!==d):[...p,d]);
+  const colors=[T.accent,T.blue,T.green,T.purple,T.pink,T.cyan,T.red];const[color,setColor]=useState(T.blue);
+  const inp={background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"8px 10px",borderRadius:"6px",fontSize:"13px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"};
+  return <div><div style={ss.header}><div style={{display:"flex",alignItems:"center",gap:"8px"}}><button onClick={onCancel} style={{background:"none",border:"none",color:T.sub,fontSize:"18px",cursor:"pointer"}}>‹</button><h2 style={{margin:0,fontSize:"16px"}}>New Client</h2></div></div>
+    <div style={ss.content}><div style={ss.card}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"8px"}}>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Name *</label><input style={inp} value={name} onChange={e=>setName(e.target.value)} placeholder="Pat"/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Full Name</label><input style={inp} value={full} onChange={e=>setFull(e.target.value)} placeholder="Patrick Smith"/></div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"8px"}}>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Email</label><input type="email" style={inp} value={email} onChange={e=>setEmail(e.target.value)} placeholder="email@example.com"/></div>
+        <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Phone</label><input type="tel" style={inp} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="(555) 123-4567"/></div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"6px",marginBottom:"8px"}}>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Date of Birth</label><input type="date" style={inp} value={dob} onChange={e=>setDob(e.target.value)}/></div>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Gender</label><select style={{...inp,appearance:"auto"}} value={gender} onChange={e=>setGender(e.target.value)}><option value="">—</option><option value="M">Male</option><option value="F">Female</option><option value="Other">Other</option></select></div>
+        <div><label style={{color:T.dim,fontSize:"9px",display:"block",marginBottom:"2px"}}>Start Weight</label><input style={inp} value={startWt} onChange={e=>setStartWt(e.target.value)} placeholder="lbs"/></div>
+      </div>
+      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"4px"}}>Training Days</label>
+      <div style={{display:"flex",gap:"4px",marginBottom:"4px"}}>{[["M","Mon"],["T","Tue"],["W","Wed"],["TH","Thu"],["F","Fri"],["S","Sat"],["SU","Sun"]].map(([k,l])=><button key={k} onClick={()=>toggleDay(k)} style={{width:36,height:32,borderRadius:"6px",border:`1.5px solid ${schedDays.includes(k)?T.accent:T.border}`,background:schedDays.includes(k)?T.accent+"15":T.card,color:schedDays.includes(k)?T.accent:T.dim,fontSize:"10px",fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>{l}</button>)}</div>
+      <input style={{...inp,marginBottom:"10px",fontSize:"12px"}} value={schedNotes} onChange={e=>setSchedNotes(e.target.value)} placeholder="e.g. Mornings, 5:30 PM, alternating weeks..."/>
+      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"4px"}}>Workout Types *</label>
+      <div style={{display:"flex",gap:"5px",marginBottom:"10px",flexWrap:"wrap"}}>{allTypes.map(t=><button key={t} onClick={()=>toggleType(t)} style={{background:wTypes.includes(t)?(TC[t]||T.accent)+"20":"transparent",border:`1px solid ${wTypes.includes(t)?(TC[t]||T.accent)+"50":T.border}`,color:wTypes.includes(t)?(TC[t]||T.accent):T.dim,padding:"4px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{t}</button>)}</div>
+      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Focus Areas</label><textarea style={{...inp,height:"60px",resize:"vertical",marginBottom:"8px"}} value={focus} onChange={e=>setFocus(e.target.value)}/>
+      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"3px"}}>Goals</label><textarea style={{...inp,height:"50px",resize:"vertical",marginBottom:"8px"}} value={goals} onChange={e=>setGoals(e.target.value)}/>
+      <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"4px"}}>Color</label>
+      <div style={{display:"flex",gap:"6px",marginBottom:"12px"}}>{colors.map(c=><div key={c} onClick={()=>setColor(c)} style={{width:26,height:26,borderRadius:"5px",background:c,cursor:"pointer",border:color===c?`2px solid ${T.text}`:"2px solid transparent"}}/>)}</div>
+      <button onClick={()=>{if(name&&wTypes.length)onSave({id:name.toLowerCase().replace(/\s+/g,"-"),name,fullName:full||name,email,phone,scheduleDays:schedDays,scheduleNotes:schedNotes,goals,focusAreas:focus,workoutTypes:wTypes,startDate:new Date().toISOString().slice(0,10),color,dob,gender,startingWeight:startWt,considerations:[],checkins:[]})}} style={{...ss.btn(true),width:"100%",padding:"10px"}} disabled={!name||!wTypes.length}>Create Client</button>
+    </div></div></div>;
+}
+
+export default function Forge(){
+  const{clients,workouts,loading,saveW,deleteW,saveCl}=useForge();
+  const[view,setView]=useState("dashboard");const[cid,setCid]=useState(null);const[initTab,setInitTab]=useState(null);const[showPicker,setShowPicker]=useState(false);
+  const nav=(v,id,tab)=>{if(v==="client"){setView("client");setCid(id);setInitTab(tab||null)}else if(v==="addClient")setView("addClient");else{setView("dashboard");setInitTab(null)}};
+  const client=clients.find(c=>c.id===cid);
+  if(loading)return <div style={{...ss.page,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{textAlign:"center"}}><div style={{color:T.accent,fontSize:"24px",fontWeight:700}}>FORGE <span style={{color:T.cyan,fontSize:"14px"}}>AI</span></div><div style={{color:T.sub,fontSize:"12px"}}>Loading...</div></div></div>;
+  return <div style={ss.page}>
+    {view==="addClient"?<AddClient onSave={async c=>{await saveCl(c);nav("client",c.id)}} onCancel={()=>nav("dashboard")}/>
+    :view==="client"&&client?<ClientView client={client} ws={workouts[cid]||[]} onNav={nav} onSaveW={saveW} onDeleteW={deleteW} onSaveCl={saveCl} initTab={initTab}/>
+    :<Dashboard clients={clients} workouts={workouts} onNav={nav}/>}
+    {showPicker&&<div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.25)"}} onClick={()=>setShowPicker(false)}>
+        <div onClick={e=>e.stopPropagation()} style={{position:"fixed",bottom:56,left:8,right:8,background:T.card,border:`1px solid ${T.border}`,borderRadius:"12px",boxShadow:"0 -4px 20px rgba(0,0,0,0.12)",padding:"10px",maxHeight:"50vh",overflowY:"auto"}}>
+          <div style={{color:T.dim,fontSize:"9px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px",padding:"2px 4px"}}>ALL CLIENTS</div>
+          {clients.map(c=><button key={c.id} onClick={()=>{nav("client",c.id);setShowPicker(false)}} style={{display:"flex",alignItems:"center",gap:"10px",width:"100%",padding:"8px",borderRadius:"8px",border:"none",background:cid===c.id?T.accent+"10":"transparent",cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
+            <span style={{width:28,height:28,borderRadius:"6px",background:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</span>
+            <div><div style={{color:cid===c.id?T.accent:T.text,fontSize:"13px",fontWeight:600}}>{c.fullName||c.name}</div><div style={{color:T.dim,fontSize:"10px"}}>{(workouts[c.id]||[]).length} sessions</div></div>
+          </button>)}
+        </div>
+      </div>}
+    {(()=>{const maxNav=4;const active=clients.findIndex(c=>c.id===cid);
+      let visible=clients.slice(0,maxNav);
+      if(active>=maxNav){visible=clients.slice(0,maxNav-1);visible.push(clients[active])}
+      const hasMore=clients.length>maxNav;
+      return <div style={ss.navBar}>
+        <button onClick={()=>nav("dashboard")} style={ss.navBtn(view==="dashboard")}><span style={{fontSize:"18px"}}>⌂</span>Home</button>
+        {visible.map(c=><button key={c.id} onClick={()=>nav("client",c.id)} style={{...ss.navBtn(view==="client"&&cid===c.id),padding:"3px 8px",minWidth:0}}><span style={{width:22,height:22,borderRadius:"5px",background:view==="client"&&cid===c.id?T.accent:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:T.bg}}>{c.name[0]}</span><span style={{fontSize:"9px",maxWidth:"48px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</span></button>)}
+        {hasMore&&<button onClick={()=>setShowPicker(!showPicker)} style={{...ss.navBtn(showPicker),padding:"3px 8px"}}><span style={{fontSize:"16px"}}>•••</span><span style={{fontSize:"9px"}}>{clients.length}</span></button>}
+      </div>})()}
+  </div>;
+}
