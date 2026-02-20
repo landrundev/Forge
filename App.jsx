@@ -340,31 +340,31 @@ mk("2026-02-12","full","Full Body Band + Cable","abike",[["Scap Work",["Band Sho
 mk("2026-02-19","lower","Lower Body HT + Sumo","abike",[["Main",["Hip Thruster",4,8,95]],["Circuit 1",["Leg Extension",4,8,null,"45/25"],["Calf Raise",4,10,null,"plate, each"]],["Core",["Knee Tuck on Box",4,10,null],["Hip Flexor",4,8,null,"each"],["Banded Abductor",4,10,null,"each"]],["Circuit 2",["Hamstring Curl",4,8,null,"45/25/10"],["Sumo Squat Pulse",4,20,null,"purple"]]]),
 ];
 
-const SEED_CLIENT_PAT={id:"pat",name:"Pat",fullName:"Patrick",startDate:"2024-01-06",schedule:"Tues/Thurs AM",color:T.accent,
+const SEED_CLIENT_PAT={id:"pat",name:"Pat",fullName:"Patrick",startDate:"2024-01-06",color:T.accent,
+  scheduleDays:["T","TH"],scheduleNotes:"AM sessions, 2-3x/week. Typical split: Quad / Glute / Upper (Back focused)",
   focusAreas:"Lower body primary: Quad day (BB Back Squat) + Glute day (Trap Bar DL). Back/Upper 1x/week when scheduling allows.",
-  schedulePattern:"2-3 sessions/week. Typical split: Quad / Glute / Upper (Back focused)",
   goals:"General fitness & functional strength. Progressive overload on squat and deadlift.",
   dob:"",gender:"M",startingWeight:"",considerations:[],checkins:[]};
-const SEED_CLIENT_RACHEL={id:"rachel",name:"Rachel",fullName:"Rachel",startDate:"2025-01-13",schedule:"Sun 5:00 PM",color:"#84CC16",
+const SEED_CLIENT_RACHEL={id:"rachel",name:"Rachel",fullName:"Rachel",startDate:"2025-01-13",color:"#84CC16",
+  scheduleDays:["SU"],scheduleNotes:"5:00 PM, 1 session/week. Evolved from Quad → Lower Body → Glutes phase",
   focusAreas:"Lower body focused: Quad days (BB Back Squat), Lower Body (Sumo DL/Squat, Trap Bar DL), Glute days (Hip Thruster). Heavy emphasis on glute development.",
-  schedulePattern:"1 session/week. Evolved from Quad → Lower Body → Glutes phase",
   goals:"Glute & lower body strength. Progressive overload on Hip Thruster (up to 365#), Sumo DL (up to 205#), Back Squat (up to 160#).",
   dob:"",gender:"F",startingWeight:"",considerations:[],checkins:[]};
-const SEED_CLIENT_ANGELA={id:"angela",name:"Angela",fullName:"Angela",startDate:"2025-01-13",schedule:"Weekly",color:"#9C27B0",
+const SEED_CLIENT_ANGELA={id:"angela",name:"Angela",fullName:"Angela",startDate:"2025-01-13",color:"#9C27B0",
+  scheduleDays:["W"],scheduleNotes:"1 session/week. Alternates Squat-focused and Hip Thruster-focused blocks. Includes treadmill intervals as finishers.",
   focusAreas:"Lower body dominant: Quad days (BB Back Squat up to 150#), Glute days (Hip Thruster up to 275#). Sumo DL phase (Apr-May 2025, peaked 145#). Occasional upper body.",
-  schedulePattern:"1 session/week. Alternates Squat-focused and Hip Thruster-focused blocks. Includes treadmill intervals as finishers.",
   goals:"Lower body strength & glute development. Progressive overload on Back Squat and Hip Thruster. Strong core work emphasis. Building toward heavier compound lifts.",
   workoutTypes:["quad","glute","lower","upper","full"],
   dob:"",gender:"F",startingWeight:"",considerations:[],checkins:[]};
-const SEED_CLIENT_ADAM={id:"adam",name:"Adam",fullName:"Adam",startDate:"2024-12-23",schedule:"Weekly",color:"#14B8A6",
+const SEED_CLIENT_ADAM={id:"adam",name:"Adam",fullName:"Adam",startDate:"2024-12-23",color:"#14B8A6",
+  scheduleDays:["S"],scheduleNotes:"1-2 sessions/week. Primary: bench press percentage/ramp work + full body accessories.",
   focusAreas:"Bench press focused: Push days with accessory upper body (curls, triceps, shoulders) and supplementary lower (leg ext, leg curl, sled, lunges). Occasional landmine and sled conditioning.",
-  schedulePattern:"1-2 sessions/week. Primary: bench press percentage/ramp work + full body accessories. Occasionally a second push-only session.",
   goals:"Bench press strength. Progressive overload — PR progression: 175→185→200→210→220→225→230→240→245#. Upper body hypertrophy and functional strength.",
   workoutTypes:["push"],
   dob:"",gender:"M",startingWeight:"",considerations:[],checkins:[]};
-const SEED_CLIENT_DEANNA={id:"deanna",name:"Deanna",fullName:"Deanna",startDate:"2025-08-19",schedule:"Tues/Thurs",color:"#60A5FA",
+const SEED_CLIENT_DEANNA={id:"deanna",name:"Deanna",fullName:"Deanna",startDate:"2025-08-19",color:"#60A5FA",
+  scheduleDays:["T","TH"],scheduleNotes:"2 sessions/week. Alternates: full body / lower body / upper (shoulder rehab). Heavy emphasis on scap strengthening.",
   focusAreas:"Full body with shoulder rehab focus. Upper days: scap work, banded pressing, light curls (ISO hold on bad arm). Lower days: sled drags, leg ext/curl machines, light trap bar DL, hip thrusters (95#). Modified push exercises (incline push ups, banded chest press).",
-  schedulePattern:"2 sessions/week. Alternates: full body / lower body / upper (shoulder rehab). Heavy emphasis on scap strengthening and controlled movements.",
   goals:"Rebuild shoulder & bicep strength (R side). Build lower body foundation around knee/foot limitations. Progress to heavier compound lifts. Core stability.",
   workoutTypes:["full","lower","upper"],
   considerations:[{text:"Right shoulder & bicep injury — no heavy overhead pressing, no barbell curls R arm, use banded/ISO holds, scap rehab every upper day",date:"2025-08-19",active:true},{text:"Knee & foot — controlled step downs only, assisted calf raises, no heavy impact/jumping, sled drag over running",date:"2025-08-19",active:true}],
@@ -746,7 +746,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
 // ═══════════════════════════════════════════════════════════════
 function useForge(){
   const[clients,setCl]=useState([]);const[workouts,setWs]=useState({});const[loading,setL]=useState(true);const init=useRef(false);
-  const load=useCallback(async()=>{if(init.current)return;init.current=true;const ver=await S.get("forge:ver");if(!ver||ver<13){await S.set("forge:ver",13);const cls=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];await S.set("forge:clients",cls);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}let cls=await S.get("forge:clients");if(!cls||!cls.length){const d=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];cls=d;await S.set("forge:clients",d);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}setCl(cls);const wm={};for(const c of cls){wm[c.id]=await S.get(`forge:w:${c.id}`)||[]}setWs(wm);setL(false)},[]);
+  const load=useCallback(async()=>{if(init.current)return;init.current=true;const ver=await S.get("forge:ver");if(!ver||ver<14){await S.set("forge:ver",14);const cls=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];await S.set("forge:clients",cls);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}let cls=await S.get("forge:clients");if(!cls||!cls.length){const d=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA];cls=d;await S.set("forge:clients",d);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA)}setCl(cls);const wm={};for(const c of cls){wm[c.id]=await S.get(`forge:w:${c.id}`)||[]}setWs(wm);setL(false)},[]);
   useEffect(()=>{load()},[load]);
   const saveW=async(cid,w)=>{const ws=[...(workouts[cid]||[])];const i=ws.findIndex(x=>x.id===w.id);if(i>=0)ws[i]=w;else ws.push(w);ws.sort((a,b)=>a.date.localeCompare(b.date));setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
   const deleteW=async(cid,wid)=>{const ws=(workouts[cid]||[]).filter(x=>x.id!==wid);setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
