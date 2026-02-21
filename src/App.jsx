@@ -782,7 +782,7 @@ function ExRow({ex,bi,ei,live,editing,isDone,isProposed,ms,upEx,delEx,splitEx,on
   </div>;
 }
 
-function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClick,editing,onEdit,onEditSave,onEditCancel,onDelete,allExNames}){
+function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClick,editing,onEdit,onEditSave,onEditCancel,onDelete,allExNames,onFav,isFav}){
   const sets=w.blocks.reduce((a,b)=>a+b.exercises.reduce((s2,e)=>s2+(e.sets||0),0),0);
   const vol=w.blocks.reduce((a,b)=>a+b.exercises.reduce((s2,e)=>s2+((e.sets||0)*(e.reps||0)*(e.weight||0)),0),0);
   const dt=new Date(w.date+"T12:00:00");
@@ -798,6 +798,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
   const rpeColors=["","","","","","","#22C55E","#22C55E","#F97316","#EF4444","#DC2626"];
   const[confirmDel,setConfirmDel]=useState(false);
   const[copied,setCopied]=useState(false);
+  const[favSaved,setFavSaved]=useState(false);
   const copyW=()=>{try{navigator.clipboard.writeText(workoutToText(w));setCopied(true);setTimeout(()=>setCopied(false),1500)}catch{}};
   // Reorder mode
   const[reorder,setReorder]=useState(false);
@@ -832,6 +833,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
         {w.phase&&<div style={{display:"flex",gap:"4px",marginTop:"3px"}}><span style={{background:(({low:T.green,moderate:T.accent,high:T.red,max:"#DC2626"})[w.phase.intensity]||T.accent)+"15",color:(({low:T.green,moderate:T.accent,high:T.red,max:"#DC2626"})[w.phase.intensity]||T.accent),fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"3px"}}>{w.phase.name} Wk{w.phase.week}/{w.phase.totalWeeks}{w.phase.repRange?` · ${w.phase.repRange} reps`:""}</span></div>}
       </div>
       <span style={{color:T.sub,fontSize:"16px",transition:"transform .2s",transform:open?"rotate(180deg)":"rotate(0)"}}>▾</span>
+      {onFav&&<button onClick={(e)=>{e.stopPropagation();if(!isFav){onFav(w);setFavSaved(true);setTimeout(()=>setFavSaved(false),1500)}}} style={{background:"none",border:"none",cursor:"pointer",padding:"2px 4px",fontSize:"16px",color:isFav||favSaved?T.accent:T.dim,opacity:isFav||favSaved?1:0.4,flexShrink:0,transition:"all .2s"}}>{isFav||favSaved?"★":"☆"}</button>}
     </div>
     {open&&<div style={{borderTop:`1px solid ${T.border}`}}>
       <div style={{padding:"6px 14px",background:T.surface}}><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:"1px"}}>Warmup: </span><span style={{color:T.sub,fontSize:"11px"}}>{w.warmup}</span></div>
@@ -888,6 +890,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
         </div>
       </div>}
       {isC&&!editing&&open&&<div style={{padding:"8px 14px",borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"flex-end",gap:"8px"}}>
+        {onFav&&!isFav&&<button onClick={()=>{onFav(w);setFavSaved(true);setTimeout(()=>setFavSaved(false),1500)}} style={{background:"none",border:"none",color:favSaved?T.green:T.accent,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>{favSaved?"★ Saved":"☆ Favorite"}</button>}
         <button onClick={copyW} style={{background:"none",border:"none",color:copied?T.green:T.cyan,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>{copied?"✓ Copied":"Copy"}</button>
         {onEdit&&<button onClick={onEdit} style={{background:"none",border:"none",color:T.blue,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Edit</button>}
         {onDelete&&!confirmDel&&<button onClick={()=>setConfirmDel(true)} style={{background:"none",border:"none",color:T.red,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>🗑 Delete</button>}
@@ -934,7 +937,7 @@ function getCurrentPhase(program,type){
 }
 
 function useForge(){
-  const[clients,setCl]=useState([]);const[workouts,setWs]=useState({});const[proposals,setProps]=useState({});const[loading,setL]=useState(true);const init=useRef(false);
+  const[clients,setCl]=useState([]);const[workouts,setWs]=useState({});const[proposals,setProps]=useState({});const[favorites,setFavs]=useState([]);const[loading,setL]=useState(true);const init=useRef(false);
   const load=useCallback(async()=>{if(init.current)return;init.current=true;const ver=await S.get("forge:ver");if(!ver){await S.set("forge:ver",17);const cls=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA,SEED_CLIENT_KERIE,SEED_CLIENT_BILLY];await S.set("forge:clients",cls);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA);await S.set("forge:w:kerie",SEED_KERIE);await S.set("forge:w:billy",SEED_BILLY)}
     // Migrate: patch scheduleDays + add missing Pat Feb workouts + add Kerie
     if(ver&&ver<17){await S.set("forge:ver",17);const seedMap={pat:SEED_CLIENT_PAT,rachel:SEED_CLIENT_RACHEL,angela:SEED_CLIENT_ANGELA,adam:SEED_CLIENT_ADAM,deanna:SEED_CLIENT_DEANNA};let cls=await S.get("forge:clients");if(cls){cls=cls.map(c=>{const seed=seedMap[c.id];if(seed&&!c.scheduleDays){return{...c,scheduleDays:seed.scheduleDays||[],scheduleNotes:seed.scheduleNotes||c.schedulePattern||""}}return c});
@@ -946,14 +949,17 @@ function useForge(){
       // Add missing Pat Feb workouts if not already present
       let patWs=await S.get("forge:w:pat");if(patWs){const existing=new Set(patWs.map(w=>w.date));const febWs=SEED_PAT.filter(w=>w.date>="2026-02-01"&&!existing.has(w.date));if(febWs.length>0){patWs=[...patWs,...febWs].sort((a,b)=>a.date.localeCompare(b.date));await S.set("forge:w:pat",patWs)}}
     }
-    let cls=await S.get("forge:clients");if(!cls||!cls.length){const d=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA,SEED_CLIENT_KERIE,SEED_CLIENT_BILLY];cls=d;await S.set("forge:clients",d);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA);await S.set("forge:w:kerie",SEED_KERIE);await S.set("forge:w:billy",SEED_BILLY)}setCl(cls);const wm={};const pm={};for(const c of cls){wm[c.id]=await S.get(`forge:w:${c.id}`)||[];pm[c.id]=await S.get(`forge:p:${c.id}`)||[]}setWs(wm);setProps(pm);setL(false)},[]);
+    let cls=await S.get("forge:clients");if(!cls||!cls.length){const d=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA,SEED_CLIENT_KERIE,SEED_CLIENT_BILLY];cls=d;await S.set("forge:clients",d);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA);await S.set("forge:w:kerie",SEED_KERIE);await S.set("forge:w:billy",SEED_BILLY)}setCl(cls);const wm={};const pm={};for(const c of cls){wm[c.id]=await S.get(`forge:w:${c.id}`)||[];pm[c.id]=await S.get(`forge:p:${c.id}`)||[]}setWs(wm);setProps(pm);setFavs(await S.get("forge:favorites")||[]);setL(false)},[]);
   useEffect(()=>{load()},[load]);
   const saveW=async(cid,w)=>{const ws=[...(workouts[cid]||[])];const i=ws.findIndex(x=>x.id===w.id);if(i>=0)ws[i]=w;else ws.push(w);ws.sort((a,b)=>a.date.localeCompare(b.date));setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
   const deleteW=async(cid,wid)=>{const ws=(workouts[cid]||[]).filter(x=>x.id!==wid);setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
   const saveCl=async(cl)=>{const i=clients.findIndex(c=>c.id===cl.id);const nc=i>=0?clients.map(c=>c.id===cl.id?cl:c):[...clients,cl];setCl(nc);await S.set("forge:clients",nc);if(i<0){setWs(p=>({...p,[cl.id]:[]}));await S.set(`forge:w:${cl.id}`,[]);setProps(p=>({...p,[cl.id]:[]}));await S.set(`forge:p:${cl.id}`,[])}};
   const saveProposals=async(cid,pArr)=>{setProps(p=>({...p,[cid]:pArr}));await S.set(`forge:p:${cid}`,pArr)};
   const clearProposals=async(cid)=>{setProps(p=>({...p,[cid]:[]}));await S.set(`forge:p:${cid}`,[])};
-  return{clients,workouts,proposals,loading,saveW,deleteW,saveCl,saveProposals,clearProposals};
+  const saveFav=async(w)=>{const tpl={id:`fav-${Date.now()}`,type:w.type,label:w.label,warmup:w.warmup||"",blocks:w.blocks.map(b=>({name:b.name,exercises:b.exercises.map(e=>({name:e.name,sets:e.sets,reps:e.reps,weight:null,notes:e.notes||""}))})),savedAt:new Date().toISOString()};const nf=[...favorites,tpl];setFavs(nf);await S.set("forge:favorites",nf);return tpl};
+  const delFav=async(fid)=>{const nf=favorites.filter(f=>f.id!==fid);setFavs(nf);await S.set("forge:favorites",nf)};
+  const renameFav=async(fid,newLabel)=>{const nf=favorites.map(f=>f.id===fid?{...f,label:newLabel}:f);setFavs(nf);await S.set("forge:favorites",nf)};
+  return{clients,workouts,proposals,favorites,loading,saveW,deleteW,saveCl,saveProposals,clearProposals,saveFav,delFav,renameFav};
 }
 
 function Dashboard({clients,workouts,proposals,onNav}){
@@ -1433,11 +1439,13 @@ function WorkoutBuilder({type,types,onTypeChange,allWs,onSave,onCancel}){
   </div>;
 }
 
-function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
+function ClientView({client,ws,proposals,favorites,onSaveFav,onDelFav,onRenameFav,onSaveProposals,onClearProposals,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
   const[tab,setTab]=useState(initTab||"overview");
   useEffect(()=>{if(initTab)setTab(initTab)},[initTab,client.id]);
   const[filt,setFilt]=useState("all");
   const[exp,setExp]=useState({});
+  const[favFilt,setFavFilt]=useState("all");
+  const[confirmDelFav,setConfirmDelFav]=useState(null);
   const setProposals=(updater)=>{const next=typeof updater==="function"?updater(proposals):updater;onSaveProposals(next)};
   const[genLoading,setGenLoading]=useState({});
   const[pinned,setPinned]=useState({});  // {[type]: {[bi-ei]: true}}
@@ -1686,6 +1694,43 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
             </div>}
           </div>})()}
         {buildType&&<WorkoutBuilder type={buildType} types={types} onTypeChange={setBuildType} allWs={sorted} onSave={(w)=>{setProposals(p=>[...p.filter(x=>x.type!==w.type),w]);setBuildType(null)}} onCancel={()=>setBuildType(null)}/>}
+        {!buildType&&favorites.length>0&&(()=>{
+          const favTypes=[...new Set(favorites.map(f=>f.type))].sort();
+          const filtFavs=favFilt==="all"?favorites:favorites.filter(f=>f.type===favFilt);
+          const loadFav=(fav)=>{const w={id:`${new Date().toISOString().slice(0,10)}-${fav.type}`,date:new Date().toISOString().slice(0,10),type:fav.type,label:fav.label,warmup:fav.warmup||"",status:"proposed",blocks:JSON.parse(JSON.stringify(fav.blocks))};setProposals(p=>[...p.filter(x=>x.type!==fav.type),w])};
+          return <div style={{...ss.card,marginBottom:"10px",border:`1px solid ${T.accent}20`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer",marginBottom:exp.favs?"10px":"0"}} onClick={()=>tog("favs")}>
+              <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
+                <span style={{color:T.accent,fontSize:"14px"}}>★</span>
+                <span style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px"}}>FAVORITES</span>
+                <span style={{color:T.dim,fontSize:"11px"}}>({favorites.length})</span>
+              </div>
+              <span style={{color:T.sub,fontSize:"12px"}}>{exp.favs?"▴":"▾"}</span>
+            </div>
+            {exp.favs&&<>
+              {favTypes.length>1&&<div style={{display:"flex",gap:"4px",marginBottom:"8px",flexWrap:"wrap"}}>
+                {["all",...favTypes].map(f=><button key={f} onClick={()=>setFavFilt(f)} style={{background:favFilt===f?T.accent+"15":"transparent",border:`1px solid ${favFilt===f?T.accent+"30":T.border}`,color:favFilt===f?T.accent:T.sub,padding:"2px 8px",borderRadius:"4px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{f}{f!=="all"?` (${favorites.filter(x=>x.type===f).length})`:""}</button>)}
+              </div>}
+              <div style={{display:"flex",flexDirection:"column",gap:"4px"}}>
+                {filtFavs.map(fav=>{const tc=TC[fav.type]||T.sub;const exCount=fav.blocks.reduce((a,b)=>a+b.exercises.length,0);const setCount=fav.blocks.reduce((a,b)=>a+b.exercises.reduce((s,e)=>s+(e.sets||0),0),0);
+                  return <div key={fav.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"8px 10px",background:T.surface,borderRadius:"6px",border:`1px solid ${T.border}`}}>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"2px"}}>
+                        <span style={{background:tc+"18",color:tc,padding:"1px 5px",borderRadius:"3px",fontSize:"9px",fontWeight:700,textTransform:"uppercase",flexShrink:0}}>{fav.type}</span>
+                        <span style={{color:T.text,fontSize:"12px",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fav.label}</span>
+                      </div>
+                      <span style={{color:T.dim,fontSize:"10px"}}>{exCount} exercises · {setCount} sets · {fav.blocks.length} block{fav.blocks.length>1?"s":""}</span>
+                    </div>
+                    <button onClick={()=>loadFav(fav)} style={{...ss.btn(true),fontSize:"10px",padding:"4px 10px",flexShrink:0,whiteSpace:"nowrap"}}>Use</button>
+                    {confirmDelFav===fav.id?<div style={{display:"flex",gap:"4px",flexShrink:0}}>
+                      <button onClick={()=>{onDelFav(fav.id);setConfirmDelFav(null)}} style={{background:"none",border:`1px solid ${T.red}`,color:T.red,fontSize:"10px",padding:"3px 8px",borderRadius:"4px",cursor:"pointer",fontFamily:"inherit"}}>Yes</button>
+                      <button onClick={()=>setConfirmDelFav(null)} style={{background:"none",border:`1px solid ${T.border}`,color:T.sub,fontSize:"10px",padding:"3px 8px",borderRadius:"4px",cursor:"pointer",fontFamily:"inherit"}}>No</button>
+                    </div>
+                    :<button onClick={()=>setConfirmDelFav(fav.id)} style={{background:"none",border:"none",color:T.dim,fontSize:"14px",cursor:"pointer",padding:"0 4px",opacity:0.5}}>×</button>}
+                  </div>})}
+              </div>
+            </>}
+          </div>})()}
         {!buildType&&types.map(type => {
           const p = proposals.find(x => x.type === type);
           const loading = genLoading[type];
@@ -1711,7 +1756,7 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
               <div style={{marginTop:"8px",height:"3px",background:T.border,borderRadius:"2px",overflow:"hidden"}}><div style={{height:"100%",width:"70%",background:`linear-gradient(90deg,${T.accent},${T.cyan})`,borderRadius:"2px",animation:"pulse 1.5s ease infinite"}} /></div>
             </div>}
             {p && !loading && <div>
-              <WCard w={p} open={exp[p.id]!==false} toggle={()=>tog(p.id)} onChange={(nw)=>setProposals(prev=>prev.map(x=>x.type===type?nw:x))} onAction={handleAction} pinned={tp} onTogglePin={(pk)=>setPinned(prev=>({...prev,[type]:{...(prev[type]||{}), [pk]:!(prev[type]||{})[pk]}}))} onExClick={setSelEx} allExNames={allExNames}/>
+              <WCard w={p} open={exp[p.id]!==false} toggle={()=>tog(p.id)} onChange={(nw)=>setProposals(prev=>prev.map(x=>x.type===type?nw:x))} onAction={handleAction} pinned={tp} onTogglePin={(pk)=>setPinned(prev=>({...prev,[type]:{...(prev[type]||{}), [pk]:!(prev[type]||{})[pk]}}))} onExClick={setSelEx} allExNames={allExNames} onFav={onSaveFav} isFav={favorites.some(f=>f.label===p.label&&f.type===p.type)}/>
               <div style={{textAlign:"right",marginTop:"-4px",marginBottom:"8px",display:"flex",justifyContent:"flex-end",gap:"10px"}}>
                 {hasPins&&<button onClick={()=>generateForType(type,true)} style={{background:"none",border:"none",color:T.accent,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Regen unpinned</button>}
                 <button onClick={()=>generateForType(type)} style={{background:"none",border:"none",color:T.cyan,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>↻ Regenerate all</button>
@@ -1736,6 +1781,7 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
             onEditCancel={()=>{setEditingWId(null);setEditW(null)}}
             onDelete={()=>onDeleteW(client.id,w.id)}
             allExNames={allExNames}
+            onFav={onSaveFav} isFav={favorites.some(f=>f.label===w.label&&f.type===w.type)}
           />})}
         </>}
       </>}
@@ -2041,7 +2087,7 @@ function AddClient({onSave,onCancel}){
 }
 
 export default function Forge(){
-  const{clients,workouts,proposals,loading,saveW,deleteW,saveCl,saveProposals,clearProposals}=useForge();
+  const{clients,workouts,proposals,favorites,loading,saveW,deleteW,saveCl,saveProposals,clearProposals,saveFav,delFav,renameFav}=useForge();
   const[view,setView]=useState("dashboard");const[cid,setCid]=useState(null);const[initTab,setInitTab]=useState(null);const[showPicker,setShowPicker]=useState(false);
   const[navHidden,setNavHidden]=useState(false);
   const scrollRef=useRef({y:0,dir:"up"});
@@ -2053,7 +2099,7 @@ export default function Forge(){
     
     {view==="addClient"?<AddClient onSave={async c=>{await saveCl(c);nav("client",c.id)}} onCancel={()=>nav("dashboard")}/>
     :view==="trainerStats"?<TrainerStats clients={clients} workouts={workouts} onBack={()=>nav("dashboard")}/>
-    :view==="client"&&client?<ClientView client={client} ws={workouts[cid]||[]} proposals={proposals[cid]||[]} onSaveProposals={(p)=>saveProposals(cid,p)} onClearProposals={()=>clearProposals(cid)} onNav={nav} onSaveW={saveW} onDeleteW={deleteW} onSaveCl={saveCl} initTab={initTab}/>
+    :view==="client"&&client?<ClientView client={client} ws={workouts[cid]||[]} proposals={proposals[cid]||[]} favorites={favorites} onSaveFav={saveFav} onDelFav={delFav} onRenameFav={renameFav} onSaveProposals={(p)=>saveProposals(cid,p)} onClearProposals={()=>clearProposals(cid)} onNav={nav} onSaveW={saveW} onDeleteW={deleteW} onSaveCl={saveCl} initTab={initTab}/>
     :<Dashboard clients={clients} workouts={workouts} proposals={proposals} onNav={nav}/>}
     {showPicker&&<div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.25)"}} onClick={()=>setShowPicker(false)}>
         <div onClick={e=>e.stopPropagation()} style={{position:"fixed",bottom:48,left:8,right:8,background:T.card,border:`1px solid ${T.border}`,borderRadius:"8px",boxShadow:"0 -4px 20px rgba(0,0,0,0.12)",padding:"10px",maxHeight:"50vh",overflowY:"auto"}}>
