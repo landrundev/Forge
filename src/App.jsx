@@ -1763,16 +1763,44 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
           const totalWks=prog.blocks?.reduce((a,b)=>a+(b.weeks||0),0)||0;
           const intColors={low:T.green,moderate:T.accent,high:T.red,max:"#DC2626"};
 
-          if(!prog.enabled)return <div style={{textAlign:"center",padding:"32px 16px"}}>
-            <div style={{color:T.accent,fontSize:"13px",fontWeight:700,letterSpacing:".5px",marginBottom:"8px"}}>PROGRAM</div>
-            <div style={{color:T.text,fontWeight:700,fontSize:"15px",marginBottom:"6px"}}>Periodized Programming</div>
-            <div style={{color:T.sub,fontSize:"12px",marginBottom:"4px",lineHeight:1.6}}>Set up mesocycles with structured phases — hypertrophy, strength, deload — so the AI generates workouts that follow a progressive plan.</div>
-            <div style={{color:T.dim,fontSize:"11px",marginBottom:"16px"}}>Optional — {client.name} can continue training without a program.</div>
-            <button onClick={()=>onSaveCl({...client,program:{enabled:true,startDate:new Date().toISOString().slice(0,10),blocks:[
-              {name:"Hypertrophy",weeks:4,repRange:"8-12",intensity:"moderate",volumeNote:"Ascending volume — add 1-2 sets/week",notes:""},
-              {name:"Strength",weeks:3,repRange:"4-6",intensity:"high",volumeNote:"Peak intensity week 2, slight taper week 3",notes:""},
-              {name:"Deload",weeks:1,repRange:"10-15",intensity:"low",volumeNote:"50-60% working weights, focus on form",notes:"Recovery week"}
-            ]}})} style={{...ss.btn(true),fontSize:"13px",padding:"10px 24px"}}>Enable Program</button>
+          if(!prog.enabled)return <div style={{padding:"12px 0"}}>
+            <div style={{...ss.card,padding:"18px"}}>
+              <div style={{color:T.text,fontWeight:700,fontSize:"15px",marginBottom:"8px"}}>Periodized Programming</div>
+              <div style={{color:T.sub,fontSize:"12px",lineHeight:1.7,marginBottom:"12px"}}>Structure training into intentional phases — each with specific rep ranges, intensity levels, and volume targets. When enabled, the AI generates every workout to match the current phase automatically.</div>
+              <div style={{color:T.sub,fontSize:"12px",lineHeight:1.7,marginBottom:"14px"}}>Without a program, the AI still creates great workouts based on history and balance — but with a program, it follows a deliberate progression arc that drives better long-term results.</div>
+              <button onClick={()=>onSaveCl({...client,program:{enabled:true,startDate:new Date().toISOString().slice(0,10),blocks:[
+                {name:"Hypertrophy",weeks:4,repRange:"8-12",intensity:"moderate",volumeNote:"Ascending volume — add 1-2 sets/week",notes:""},
+                {name:"Strength",weeks:3,repRange:"4-6",intensity:"high",volumeNote:"Peak intensity week 2, slight taper week 3",notes:""},
+                {name:"Deload",weeks:1,repRange:"10-15",intensity:"low",volumeNote:"50-60% working weights, focus on form",notes:"Recovery week"}
+              ]}})} style={{...ss.btn(true),fontSize:"13px",padding:"10px 24px",width:"100%"}}>Enable Program</button>
+            </div>
+
+            <div style={{...ss.card,padding:"16px"}}>
+              <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"10px"}}>WHY PERIODIZE?</div>
+              <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+                {[
+                  {t:"Avoid plateaus",d:"Rotating rep ranges and intensity prevents adaptation stalls. The body responds to novel stimulus — periodization provides that systematically."},
+                  {t:"Manage fatigue",d:"Planned deload weeks prevent overtraining and reduce injury risk. High-intensity phases are balanced by recovery phases."},
+                  {t:"Measurable progress",d:"Each phase has clear targets. You can track whether the client hit their rep ranges, progressed weights, and completed the cycle."},
+                  {t:"Smarter AI generation",d:"Instead of generic workouts, the AI programs specifically for where the client is in their cycle — adjusting exercise selection, rep schemes, volume, and rest periods."}
+                ].map((item,i)=><div key={i}>
+                  <div style={{color:T.text,fontWeight:600,fontSize:"12px",marginBottom:"2px"}}>{item.t}</div>
+                  <div style={{color:T.dim,fontSize:"11px",lineHeight:1.5}}>{item.d}</div>
+                </div>)}
+              </div>
+            </div>
+
+            <div style={{...ss.card,padding:"16px"}}>
+              <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"10px"}}>HOW IT WORKS</div>
+              <div style={{color:T.sub,fontSize:"11px",lineHeight:1.7}}>
+                <div style={{marginBottom:"8px"}}><span style={{color:T.text,fontWeight:600}}>1. Set up phases</span> — Define training blocks like Hypertrophy (8-12 reps), Strength (4-6 reps), and Deload (light recovery). Choose how many weeks each phase runs.</div>
+                <div style={{marginBottom:"8px"}}><span style={{color:T.text,fontWeight:600}}>2. Customize per workout type</span> — If {client.name} does both upper and lower days, you can run upper body in hypertrophy while lower body is in strength — or keep them synced.</div>
+                <div style={{marginBottom:"8px"}}><span style={{color:T.text,fontWeight:600}}>3. Generate workouts</span> — The AI reads the active phase, week number, rep range, and intensity, then builds workouts that honor those parameters exactly.</div>
+                <div><span style={{color:T.text,fontWeight:600}}>4. Auto-advance</span> — The program tracks which week you're in based on the start date. When one phase ends, the next begins. After the last phase, the cycle is complete.</div>
+              </div>
+            </div>
+
+            <div style={{color:T.dim,fontSize:"11px",textAlign:"center",padding:"8px"}}>Optional — {client.name} can continue training without a program.</div>
           </div>;
 
           const upProg=(updates)=>onSaveCl({...client,program:{...prog,...updates}});
@@ -1788,7 +1816,14 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
                 <span style={{...ss.mono,fontSize:"12px",color:T.text,fontWeight:600}}>Week {phase.weekInBlock} of {phase.block.weeks}</span>
               </div>
               <div style={{color:T.sub,fontSize:"11px",marginBottom:"6px"}}>Overall progress: week {phase.weekTotal} of {phase.totalWeeks}{phase.block.repRange?` · Target reps: ${phase.block.repRange}`:""}{phase.block.intensity?` · Intensity: ${phase.block.intensity}`:""}</div>
-              <div style={{height:6,borderRadius:3,background:T.border,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,background:`linear-gradient(90deg,${intColors[phase.block.intensity]||T.accent},${intColors[phase.block.intensity]||T.accent}80)`,width:`${Math.round((phase.weekTotal/phase.totalWeeks)*100)}%`,transition:"width .3s"}}/></div>
+              <div style={{height:6,borderRadius:3,background:T.border,overflow:"hidden",marginBottom:"8px"}}><div style={{height:"100%",borderRadius:3,background:`linear-gradient(90deg,${intColors[phase.block.intensity]||T.accent},${intColors[phase.block.intensity]||T.accent}80)`,width:`${Math.round((phase.weekTotal/phase.totalWeeks)*100)}%`,transition:"width .3s"}}/></div>
+              <div style={{color:T.dim,fontSize:"10px",lineHeight:1.6,fontStyle:"italic"}}>{
+                phase.weekInBlock===1&&phase.block.weeks>1?"Week 1 — AI will focus on establishing working weights at the new rep range. Expect moderate loads while the client adapts.":
+                phase.weekInBlock===phase.block.weeks&&phase.block.weeks>2?"Final week of phase — AI will peak volume or begin tapering depending on phase type. Good time to test maxes in strength phases.":
+                phase.block.intensity==="low"||phase.block.name.toLowerCase().includes("deload")?"Deload phase — AI will reduce weights 40-50%, keep reps moderate, and emphasize form and mobility.":
+                phase.weekInBlock>1&&phase.weekInBlock<phase.block.weeks?"Mid-phase — AI is building progressively. Watch for RPE creep and adjust if needed.":
+                "AI is generating within phase parameters."
+              }</div>
             </div>}
             {phase?.completed&&<div style={{...ss.card,border:`1px solid ${T.green}30`,textAlign:"center",padding:"16px"}}>
               <div style={{color:T.green,fontWeight:700,fontSize:"13px"}}>Program Complete</div>
@@ -1796,17 +1831,19 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
             </div>}
 
             <div style={ss.card}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}>
                 <span style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px"}}>PROGRAM SETTINGS</span>
                 <button onClick={()=>upProg({enabled:false})} style={{background:"none",border:"none",color:T.dim,fontSize:"10px",cursor:"pointer",fontFamily:"inherit"}}>Disable Program</button>
               </div>
+              <div style={{color:T.dim,fontSize:"10px",lineHeight:1.5,marginBottom:"10px"}}>The start date determines which phase and week the AI generates for. Workouts are automatically assigned to the correct phase based on elapsed weeks.</div>
               <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Start Date</label>
               <input type="date" style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"8px 10px",borderRadius:"6px",fontSize:"13px",fontFamily:"inherit",marginBottom:"10px"}} value={prog.startDate||""} onChange={e=>upProg({startDate:e.target.value})}/>
               <div style={{color:T.dim,fontSize:"10px",marginBottom:"4px"}}>Total: {totalWks} weeks ({Math.round(totalWks/4.3)} months) · End: {prog.startDate?new Date(new Date(prog.startDate+"T12:00:00").getTime()+totalWks*7*86400000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"—"}</div>
             </div>
 
             <div style={{...ss.card,padding:"14px"}}>
-              <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"10px"}}>PHASE TIMELINE</div>
+              <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>PHASE TIMELINE</div>
+              <div style={{color:T.dim,fontSize:"10px",lineHeight:1.5,marginBottom:"8px"}}>Phases run left-to-right. The colored bar shows relative duration — wider blocks run longer. Drag, add, or remove phases below.</div>
               <div style={{display:"flex",gap:"2px",height:"8px",borderRadius:"4px",overflow:"hidden",marginBottom:"8px"}}>
                 {prog.blocks.map((b,i)=><div key={i} style={{flex:b.weeks||1,background:intColors[b.intensity]||T.accent,opacity:phase&&!phase.completed&&!phase.upcoming&&phase.blockIndex===i?1:0.4,transition:"opacity .3s"}}/>)}
               </div>
@@ -1835,18 +1872,19 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
                   <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Weeks</label><input type="number" min="1" max="12" style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"4px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.weeks||""} onChange={e=>upBlock(i,{weeks:parseInt(e.target.value)||0})}/></div>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"6px"}}>
-                  <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Rep Range</label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"4px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.repRange||""} onChange={e=>upBlock(i,{repRange:e.target.value})} placeholder="e.g. 8-12"/></div>
-                  <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Intensity</label>
+                  <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Rep Range <span style={{color:T.dim,fontWeight:400}}>— AI keeps all working sets here</span></label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"4px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.repRange||""} onChange={e=>upBlock(i,{repRange:e.target.value})} placeholder="e.g. 8-12"/>{b.repRange&&<div style={{color:T.dim,fontSize:"9px",marginTop:"2px",lineHeight:1.4}}>{(()=>{const r=b.repRange;if(/[1-5]/.test(r)&&!r.includes("1"))return"Strength zone: heavy compound lifts, longer rest (2-3 min)";if(/[8-9]|1[0-2]/.test(r))return"Hypertrophy zone: moderate load, controlled tempo, growth focus";if(/1[2-9]|[2-9]0/.test(r))return"Endurance/deload zone: lighter loads, shorter rest, metabolic stress";return""})()}</div>}</div>
+                  <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Intensity <span style={{color:T.dim,fontWeight:400}}>— controls weight selection & effort</span></label>
                     <div style={{display:"flex",gap:"3px"}}>{["low","moderate","high","max"].map(lv=><button key={lv} onClick={()=>upBlock(i,{intensity:lv})} style={{flex:1,padding:"5px 0",borderRadius:"4px",border:`1px solid ${b.intensity===lv?(intColors[lv]||T.accent):T.border}`,background:b.intensity===lv?(intColors[lv]||T.accent)+"15":"transparent",color:b.intensity===lv?(intColors[lv]||T.accent):T.dim,fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{lv}</button>)}</div>
+                    {b.intensity&&<div style={{color:T.dim,fontSize:"9px",marginTop:"2px",lineHeight:1.4}}>{({low:"RPE 5-6 · Recovery/deload — AI cuts volume ~40-50%, prioritizes form and mobility",moderate:"RPE 7-8 · Standard training — challenging but sustainable, room to grow each week",high:"RPE 8-9 · Demanding — AI pushes heavier loads, may add drop sets or tempo work",max:"RPE 9-10 · Peaking — near-max effort, use for 1-2 weeks only to avoid burnout"})[b.intensity]||""}</div>}
                   </div>
                 </div>
-                <div style={{marginBottom:"4px"}}><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Volume / Progression</label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"4px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.volumeNote||""} onChange={e=>upBlock(i,{volumeNote:e.target.value})} placeholder="e.g. Ascending volume, add 1-2 sets/wk"/></div>
-                <div style={{marginBottom:"6px"}}><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Notes</label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"4px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.notes||""} onChange={e=>upBlock(i,{notes:e.target.value})} placeholder="Focus areas, specific exercises..."/></div>
+                <div style={{marginBottom:"4px"}}><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Volume / Progression <span style={{color:T.dim,fontWeight:400}}>— tells AI how to scale sets & load across weeks</span></label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"4px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.volumeNote||""} onChange={e=>upBlock(i,{volumeNote:e.target.value})} placeholder="e.g. Add 1-2 sets/wk, ascending load"/></div>
+                <div style={{marginBottom:"6px"}}><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Trainer Notes <span style={{color:T.dim,fontWeight:400}}>— extra AI instructions: focus areas, exercise preferences, etc.</span></label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"4px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.notes||""} onChange={e=>upBlock(i,{notes:e.target.value})} placeholder="e.g. Emphasize posterior chain, include tempo work"/></div>
                 {types.length>1&&<div style={{marginTop:"6px",borderTop:`1px solid ${T.border}18`,paddingTop:"8px"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
                     <span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:".5px"}}>PER-TYPE OVERRIDES</span>
-                    <span style={{color:T.dim,fontSize:"9px"}}>Leave blank to use defaults above</span>
                   </div>
+                  <div style={{color:T.dim,fontSize:"9px",lineHeight:1.5,marginBottom:"6px"}}>Different workout types can run different parameters within the same phase. For example, keep upper body in hypertrophy (8-12 reps) while lower body runs strength (4-6 reps). Leave blank to use the phase defaults above.</div>
                   <div style={{display:"grid",gridTemplateColumns:`repeat(${Math.min(types.length,3)},1fr)`,gap:"4px"}}>
                     {types.map(t=>{const ov=(b.typeOverrides||{})[t]||{};const tc2=TC[t]||T.accent;const hasOv=ov.repRange||ov.intensity;
                       return <div key={t} style={{background:hasOv?tc2+"06":T.surface,border:`1px solid ${hasOv?tc2+"30":T.border}`,borderRadius:"6px",padding:"6px 8px"}}>
@@ -1860,23 +1898,95 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
             <button onClick={addBlock} style={{background:"none",border:`1px dashed ${T.border}`,color:T.dim,padding:"10px",borderRadius:"8px",width:"100%",fontSize:"12px",cursor:"pointer",fontFamily:"inherit",marginBottom:"8px"}}>+ Add Phase</button>
 
             {/* Generate from Program CTA */}
-            {phase&&!phase.completed&&<div style={{...ss.card,border:`1px solid ${T.accent}30`,background:T.accent+"06",padding:"14px",textAlign:"center",marginBottom:"8px"}}>
-              <div style={{color:T.text,fontWeight:600,fontSize:"13px",marginBottom:"6px"}}>Program is active — ready to generate workouts</div>
-              <div style={{color:T.sub,fontSize:"11px",marginBottom:"10px"}}>AI will follow {phase.block?.name||"current"} phase parameters for each workout type</div>
+            {phase&&!phase.completed&&<div style={{...ss.card,border:`1px solid ${T.accent}30`,background:T.accent+"06",padding:"14px",marginBottom:"8px"}}>
+              <div style={{color:T.text,fontWeight:600,fontSize:"13px",marginBottom:"4px"}}>Ready to generate</div>
+              <div style={{color:T.sub,fontSize:"11px",lineHeight:1.5,marginBottom:"10px"}}>AI will build {phase.block?.name||"current"} phase workouts — week {phase?.weekInBlock||"?"} parameters ({phase.block?.repRange||"standard"} reps, {phase.block?.intensity||"moderate"} intensity). Any per-type overrides will apply automatically.</div>
               <div style={{display:"flex",gap:"8px",justifyContent:"center"}}>
-                <button onClick={()=>setTab("next")} style={{...ss.btn(false),fontSize:"11px",padding:"6px 14px"}}>→ Next Workouts</button>
+                <button onClick={()=>setTab("next")} style={{...ss.btn(false),fontSize:"11px",padding:"6px 14px"}}>View Next Workouts</button>
                 <button onClick={()=>{setTab("next");setTimeout(()=>generateAll(),100)}} style={{...ss.btn(true),fontSize:"11px",padding:"6px 14px"}}>Generate All from Program</button>
               </div>
             </div>}
 
             <div style={ss.card}>
-              <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>QUICK TEMPLATES</div>
-              <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
+              <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px"}}>QUICK TEMPLATES</div>
+              <div style={{color:T.dim,fontSize:"10px",lineHeight:1.5,marginBottom:"10px"}}>Pre-built mesocycles for common training goals. Tap to load — you can customize every field after.</div>
+              <div style={{display:"flex",flexDirection:"column",gap:"6px"}}>
                 {[
-                  {label:"Hypertrophy → Strength",blocks:[{name:"Hypertrophy",weeks:4,repRange:"8-12",intensity:"moderate",volumeNote:"Ascending volume",notes:""},{name:"Strength",weeks:3,repRange:"4-6",intensity:"high",volumeNote:"Peak week 2",notes:""},{name:"Deload",weeks:1,repRange:"10-15",intensity:"low",volumeNote:"50-60% weights",notes:"Recovery"}]},
-                  {label:"Linear Progression",blocks:[{name:"Foundation",weeks:3,repRange:"10-12",intensity:"moderate",volumeNote:"Establish working weights",notes:""},{name:"Build",weeks:3,repRange:"6-8",intensity:"high",volumeNote:"Add weight weekly",notes:""},{name:"Peak",weeks:2,repRange:"3-5",intensity:"max",volumeNote:"Test new maxes week 2",notes:""},{name:"Deload",weeks:1,repRange:"12-15",intensity:"low",volumeNote:"Active recovery",notes:""}]},
-                  {label:"Body Recomp",blocks:[{name:"Volume",weeks:4,repRange:"10-15",intensity:"moderate",volumeNote:"High volume, moderate weight",notes:"Metabolic stress focus"},{name:"Strength",weeks:3,repRange:"5-8",intensity:"high",volumeNote:"Heavy compounds",notes:""},{name:"Active Recovery",weeks:1,repRange:"12-20",intensity:"low",volumeNote:"Light circuits, mobility",notes:""}]}
-                ].map(t=><button key={t.label} onClick={()=>upProg({blocks:t.blocks,startDate:prog.startDate||new Date().toISOString().slice(0,10)})} style={{background:T.surface,border:`1px solid ${T.border}`,color:T.sub,padding:"6px 10px",borderRadius:"6px",fontSize:"11px",fontWeight:500,cursor:"pointer",fontFamily:"inherit"}}>{t.label}</button>)}
+                  {label:"Hypertrophy → Strength → Deload",who:"Most clients — classic muscle-building into strength testing",desc:"4 weeks building volume at moderate intensity, 3 weeks of heavier low-rep work, then 1 week of active recovery. The go-to structure for intermediate lifters.",blocks:[{name:"Hypertrophy",weeks:4,repRange:"8-12",intensity:"moderate",volumeNote:"Ascending volume — add 1-2 sets/week",notes:""},{name:"Strength",weeks:3,repRange:"4-6",intensity:"high",volumeNote:"Peak intensity week 2, slight taper week 3",notes:""},{name:"Deload",weeks:1,repRange:"10-15",intensity:"low",volumeNote:"50-60% working weights, focus on form",notes:"Recovery week"}]},
+                  {label:"Linear Progression",who:"Newer clients or coming back from a break",desc:"Gradual ramp from moderate to peak intensity over 9 weeks. Foundation phase establishes working weights, Build phase adds load weekly, Peak phase tests limits, then Deload.",blocks:[{name:"Foundation",weeks:3,repRange:"10-12",intensity:"moderate",volumeNote:"Establish working weights, focus on form",notes:""},{name:"Build",weeks:3,repRange:"6-8",intensity:"high",volumeNote:"Add 5-10% weight each week",notes:""},{name:"Peak",weeks:2,repRange:"3-5",intensity:"max",volumeNote:"Test new maxes week 2",notes:"Heavy singles/doubles OK"},{name:"Deload",weeks:1,repRange:"12-15",intensity:"low",volumeNote:"Active recovery, mobility focus",notes:""}]},
+                  {label:"Body Recomp",who:"Fat loss + muscle gain — higher volume, metabolic stress",desc:"4 weeks of high-volume moderate work (burns calories, builds muscle), 3 weeks of heavier strength work (preserves muscle during deficit), then recovery.",blocks:[{name:"Volume",weeks:4,repRange:"10-15",intensity:"moderate",volumeNote:"High volume, moderate weight, short rest periods",notes:"Metabolic stress focus, supersets encouraged"},{name:"Strength",weeks:3,repRange:"5-8",intensity:"high",volumeNote:"Heavy compounds, longer rest",notes:""},{name:"Active Recovery",weeks:1,repRange:"12-20",intensity:"low",volumeNote:"Light circuits, mobility, flexibility",notes:""}]},
+                  {label:"Peaking (Competition Prep)",who:"Preparing for a 1RM test, powerlifting meet, or sport season",desc:"Accumulation phase builds work capacity, then intensity ramps up while volume drops, finishing with a taper into test day.",blocks:[{name:"Accumulation",weeks:3,repRange:"8-10",intensity:"moderate",volumeNote:"Build work capacity, high total volume",notes:""},{name:"Intensification",weeks:3,repRange:"3-5",intensity:"high",volumeNote:"Drop volume 20-30%, increase weight weekly",notes:"Competition lifts priority"},{name:"Taper",weeks:1,repRange:"1-3",intensity:"max",volumeNote:"Minimal volume, openers only",notes:"Rest before test day"},{name:"Deload",weeks:1,repRange:"10-15",intensity:"low",volumeNote:"Post-meet recovery",notes:""}]},
+                  {label:"Beginner (12 Week)",who:"Brand new to lifting — learning movements, building base",desc:"Extended foundation phase for movement proficiency, a gentle build phase to introduce progressive overload, then structured recovery. Longer phases build consistency habits.",blocks:[{name:"Foundation",weeks:5,repRange:"12-15",intensity:"low",volumeNote:"Learn movement patterns, light weights",notes:"Prioritize form over load"},{name:"Build",weeks:4,repRange:"8-12",intensity:"moderate",volumeNote:"Slowly add weight when form is solid",notes:""},{name:"Strength Intro",weeks:2,repRange:"6-8",intensity:"high",volumeNote:"First exposure to heavier loads",notes:"Compounds only"},{name:"Deload",weeks:1,repRange:"12-15",intensity:"low",volumeNote:"Reinforce form, active recovery",notes:""}]},
+                  {label:"Injury Return / Rehab",who:"Returning from injury or extended break",desc:"Conservative ramp with long low-intensity phase, slow progression, and frequent recovery. Prioritizes rebuilding movement quality and confidence.",blocks:[{name:"Rebuild",weeks:4,repRange:"15-20",intensity:"low",volumeNote:"Very light, high rep, rebuild movement patterns",notes:"Avoid aggravating exercises, focus on stability"},{name:"Strengthen",weeks:4,repRange:"10-12",intensity:"moderate",volumeNote:"Gradually reintroduce load",notes:"Monitor pain/discomfort closely"},{name:"Return",weeks:3,repRange:"6-10",intensity:"moderate",volumeNote:"Normal training volume, cautious loading",notes:""},{name:"Deload",weeks:1,repRange:"12-15",intensity:"low",volumeNote:"Recovery and assessment",notes:"Evaluate readiness for full programs"}]}
+                ].map(t=><div key={t.label}>
+                  <button onClick={()=>upProg({blocks:t.blocks,startDate:prog.startDate||new Date().toISOString().slice(0,10)})} style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"10px 12px",borderRadius:"6px",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"left"}}>
+                    <div style={{marginBottom:"2px"}}>{t.label}</div>
+                    <div style={{color:T.accent,fontSize:"10px",fontWeight:500,marginBottom:"2px"}}>{t.who}</div>
+                    <div style={{color:T.dim,fontSize:"10px",fontWeight:400,lineHeight:1.4}}>{t.desc}</div>
+                  </button>
+                </div>)}
+              </div>
+              </div>
+            </div>
+
+            <div style={{...ss.card,padding:"16px"}}>
+              <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"10px"}}>PROGRAMMING REFERENCE GUIDE</div>
+
+              <div style={{marginBottom:"12px"}}>
+                <div style={{color:T.text,fontWeight:600,fontSize:"11px",marginBottom:"4px"}}>Intensity Levels — What the AI Does</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4px"}}>
+                  {[
+                    {lv:"Low",c:T.green,d:"40-60% of max. High reps, light weights. Used for deloads, recovery, and rehab phases. AI selects lighter variations and adds mobility work."},
+                    {lv:"Moderate",c:T.accent,d:"60-75% of max. Primary hypertrophy zone. AI balances compound and isolation movements with moderate rest periods."},
+                    {lv:"High",c:T.red,d:"75-90% of max. Strength-focused. AI prioritizes heavy compound lifts, longer rest periods, and fewer total exercises per session."},
+                    {lv:"Max",c:"#DC2626",d:"90%+ of max. Peaking only. AI programs heavy singles/doubles/triples with extended rest. Use sparingly — 1-2 weeks max."}
+                  ].map(x=><div key={x.lv} style={{background:x.c+"06",border:`1px solid ${x.c}20`,borderRadius:"6px",padding:"8px"}}>
+                    <div style={{color:x.c,fontSize:"10px",fontWeight:700,marginBottom:"2px"}}>{x.lv.toUpperCase()}</div>
+                    <div style={{color:T.dim,fontSize:"9px",lineHeight:1.5}}>{x.d}</div>
+                  </div>)}
+                </div>
+              </div>
+
+              <div style={{marginBottom:"12px"}}>
+                <div style={{color:T.text,fontWeight:600,fontSize:"11px",marginBottom:"4px"}}>Rep Ranges — Quick Reference</div>
+                <div style={{color:T.dim,fontSize:"10px",lineHeight:1.7}}>
+                  <span style={{color:T.text,fontWeight:600}}>1-5 reps:</span> Pure strength / neural. Heavy weight, long rest (3-5 min). Best for compound movements.{" "}
+                  <span style={{color:T.text,fontWeight:600}}>6-8 reps:</span> Strength-hypertrophy blend. Heavy but with enough volume for growth.{" "}
+                  <span style={{color:T.text,fontWeight:600}}>8-12 reps:</span> Classic hypertrophy. Best for muscle growth with most clients.{" "}
+                  <span style={{color:T.text,fontWeight:600}}>12-15 reps:</span> Endurance-hypertrophy. Good for beginners, metabolic work, and deloads.{" "}
+                  <span style={{color:T.text,fontWeight:600}}>15-20+:</span> Muscular endurance / rehab. Very light, focus on blood flow and movement quality.
+                </div>
+              </div>
+
+              <div style={{marginBottom:"12px"}}>
+                <div style={{color:T.text,fontWeight:600,fontSize:"11px",marginBottom:"4px"}}>Volume / Progression Notes — How to Write Them</div>
+                <div style={{color:T.dim,fontSize:"10px",lineHeight:1.7}}>
+                  This field is passed directly to the AI as instructions for how to scale the workout across weeks. Be specific.
+                  Good examples: "Add 1 set per exercise each week", "Increase weight 5% weekly, keep reps constant", "Week 1: 3 sets, Week 2: 4 sets, Week 3: 3 sets (taper)", "Short rest periods (45-60s), superset everything", "RPE 7 week 1, RPE 8 week 2, RPE 9 week 3".
+                </div>
+              </div>
+
+              <div style={{marginBottom:"12px"}}>
+                <div style={{color:T.text,fontWeight:600,fontSize:"11px",marginBottom:"4px"}}>Trainer Notes — Advanced AI Instructions</div>
+                <div style={{color:T.dim,fontSize:"10px",lineHeight:1.7}}>
+                  Anything you type in the Trainer Notes field is injected into the AI prompt. Use it for specific instructions:
+                  exercise preferences ("Include barbell RDL and hip thrusters every session"),
+                  tempo work ("Add 3-second eccentrics on all isolation exercises"),
+                  technique focus ("Emphasize bracing cues, include paused reps"),
+                  structure ("Use A/B split format", "Pair push/pull in supersets"),
+                  or anything else you'd tell an assistant coach.
+                </div>
+              </div>
+
+              <div>
+                <div style={{color:T.text,fontWeight:600,fontSize:"11px",marginBottom:"4px"}}>When to Use Per-Type Overrides</div>
+                <div style={{color:T.dim,fontSize:"10px",lineHeight:1.7}}>
+                  Per-type overrides let you run different parameters for different workout types within the same phase. Common scenarios:
+                  run upper body in hypertrophy (8-12 reps, moderate) while lower body is in strength (4-6 reps, high) to stagger recovery;
+                  keep glute days at higher reps (12-15) while quad days go heavier (6-8);
+                  or reduce intensity on push days if the client has a shoulder issue while keeping pull days at full intensity.
+                  If all workout types should follow the same parameters, leave overrides blank.
+                </div>
               </div>
             </div>
           </>;
