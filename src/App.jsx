@@ -713,22 +713,24 @@ function ExProg({name,ws,onClose}){
   </div>;
 }
 
-function ExRow({ex,bi,ei,live,editing,isDone,ms,upEx,delEx,splitEx,onExClick}){
-  const showCheck=live&&!editing;
-  const canSplit=live&&(ex.sets||1)>1;
+function ExRow({ex,bi,ei,live,editing,isDone,isProposed,ms,upEx,delEx,splitEx,onExClick}){
+  const showCheck=live&&!editing&&!isProposed;
+  const showInputs=live||isProposed;
+  const canSplit=live&&!isProposed&&(ex.sets||1)>1;
   return <div style={{padding:"8px 14px",borderBottom:`1px solid ${T.border}12`,opacity:showCheck&&isDone?.5:1,background:showCheck&&isDone?T.green+"06":"transparent"}}>
     <div style={{display:"grid",gridTemplateColumns:showCheck?"26px 1fr auto":"1fr auto",gap:"8px",alignItems:"center"}}>
       {showCheck&&<button onClick={()=>upEx(bi,ei,"done",!isDone)} style={{width:24,height:24,borderRadius:"6px",border:`2px solid ${isDone?T.green:T.border}`,background:isDone?T.green+"25":"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",color:T.green,flexShrink:0,padding:0}}>{isDone?"✓":""}</button>}
       <div style={{minWidth:0}}>
-        <div style={{color:T.text,fontSize:"13px",fontWeight:500,textDecoration:showCheck&&isDone?"line-through":"none",cursor:onExClick?"pointer":"default"}} onClick={()=>onExClick&&onExClick(ex.name)}>{ex.name}</div>
+        {isProposed?<input style={{...ss.inp,width:"100%",fontSize:"13px",fontWeight:500,padding:"4px 6px",boxSizing:"border-box"}} value={ex.name} onChange={e=>upEx(bi,ei,"name",e.target.value)}/>
+        :<div style={{color:T.text,fontSize:"13px",fontWeight:500,textDecoration:showCheck&&isDone?"line-through":"none",cursor:onExClick?"pointer":"default"}} onClick={()=>onExClick&&onExClick(ex.name)}>{ex.name}</div>}
         {ms.length>0&&<div style={{display:"flex",gap:"3px",flexWrap:"wrap",marginTop:"2px"}}>{ms.slice(0,3).map(m=><Pill key={m} g={m}/>)}</div>}
       </div>
       <div style={{display:"flex",alignItems:"center",gap:"6px",flexShrink:0}}>
-        {live?<>
-          <input style={{...ss.inp,width:"42px"}} value={ex.sets??""} onChange={e=>upEx(bi,ei,"sets",e.target.value)} disabled={isDone}/>
+        {showInputs?<>
+          <input style={{...ss.inp,width:"42px"}} value={ex.sets??""} onChange={e=>upEx(bi,ei,"sets",e.target.value)} disabled={showCheck&&isDone}/>
           <span style={{color:T.dim,fontSize:"12px"}}>×</span>
-          <input style={{...ss.inp,width:"42px"}} value={ex.reps??""} onChange={e=>upEx(bi,ei,"reps",e.target.value)} disabled={isDone}/>
-          <input style={{...ss.inp,width:"52px"}} value={ex.weight??""} onChange={e=>upEx(bi,ei,"weight",e.target.value)} placeholder="BW" disabled={isDone}/>
+          <input style={{...ss.inp,width:"42px"}} value={ex.reps??""} onChange={e=>upEx(bi,ei,"reps",e.target.value)} disabled={showCheck&&isDone}/>
+          <input style={{...ss.inp,width:"52px"}} value={ex.weight??""} onChange={e=>upEx(bi,ei,"weight",e.target.value)} placeholder="BW" disabled={showCheck&&isDone}/>
           <button onClick={()=>delEx(bi,ei)} style={{background:"none",border:"none",color:T.red+"80",cursor:"pointer",fontSize:"18px",padding:"0 4px",fontWeight:700,lineHeight:1}}>×</button>
         </>:<div style={{display:"flex",alignItems:"baseline",gap:"8px"}}>
           <span style={{...ss.mono,color:T.accent,fontSize:"13px",fontWeight:700,whiteSpace:"nowrap"}}>{ex.sets}×{ex.reps}</span>
@@ -736,8 +738,9 @@ function ExRow({ex,bi,ei,live,editing,isDone,ms,upEx,delEx,splitEx,onExClick}){
         </div>}
       </div>
     </div>
-    <div style={{display:"flex",alignItems:"center",gap:"8px",marginTop:ex.notes||canSplit?"3px":"0",paddingLeft:showCheck?"34px":"0"}}>
-      {ex.notes&&<span style={{color:T.dim,fontSize:"11px",fontStyle:"italic",flex:1}}>{ex.notes}</span>}
+    <div style={{display:"flex",alignItems:"center",gap:"8px",marginTop:ex.notes||canSplit||isProposed?"3px":"0",paddingLeft:showCheck?"34px":"0"}}>
+      {isProposed?<input style={{...ss.inp,width:"100%",fontSize:"11px",padding:"3px 6px",fontStyle:"italic",boxSizing:"border-box"}} value={ex.notes||""} onChange={e=>upEx(bi,ei,"notes",e.target.value)} placeholder="Notes..."/>
+      :ex.notes?<span style={{color:T.dim,fontSize:"11px",fontStyle:"italic",flex:1}}>{ex.notes}</span>:null}
       {canSplit&&!isDone&&<button onClick={()=>splitEx(bi,ei)} style={{background:T.accent+"12",border:`1px solid ${T.accent}30`,color:T.accent,fontSize:"10px",fontWeight:600,padding:"2px 7px",borderRadius:"4px",cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>⇅ Split Sets</button>}
     </div>
   </div>;
@@ -750,7 +753,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
   const dl=dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});
   const tc=TC[w.type]||T.sub;
   const isP=w.status==="proposed",isL=w.status==="in-progress",isC=w.status==="completed";
-  const canEdit=editing||live;
+  const canEdit=editing||live||isP;
   const upEx=(bi,ei,f,v)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));nw.blocks[bi].exercises[ei][f]=f==="weight"||f==="reps"||f==="sets"?(v===""?null:Number(v)):v;onChange(nw)};
   const delEx=(bi,ei)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));nw.blocks[bi].exercises.splice(ei,1);if(nw.blocks[bi].exercises.length===0)nw.blocks.splice(bi,1);onChange(nw)};
   const splitEx=(bi,ei)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));const ex=nw.blocks[bi].exercises[ei];const n=ex.sets||1;if(n<=1)return;const rows=[];for(let i=0;i<n;i++){rows.push({...ex,sets:1,notes:i===0?(ex.notes||"")+"":ex.notes||"",done:false})}nw.blocks[bi].exercises.splice(ei,1,...rows);onChange(nw)};
@@ -812,9 +815,10 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
               <button onClick={()=>moveEx(bi,ei,1)} disabled={ei===bl.exercises.length-1} style={{background:"none",border:"none",color:ei===bl.exercises.length-1?T.border:T.sub,fontSize:"12px",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>▼</button>
             </div>}
             {isP&&!reorder&&onTogglePin&&<button onClick={(e)=>{e.stopPropagation();onTogglePin(pk)}} style={{background:"none",border:"none",cursor:"pointer",padding:"8px 2px 8px 10px",fontSize:"13px",flexShrink:0,color:isPinned?T.accent:T.dim,opacity:isPinned?1:0.4}}>{isPinned?"📌":"○"}</button>}
-            <div style={{flex:1}}><ExRow ex={ex} bi={bi} ei={ei} live={canEdit} editing={editing} isDone={!editing&&ex.done} ms={ms} upEx={upEx} delEx={delEx} splitEx={splitEx} onExClick={onExClick}/></div>
+            <div style={{flex:1}}><ExRow ex={ex} bi={bi} ei={ei} live={canEdit} editing={editing} isDone={!editing&&ex.done} isProposed={isP} ms={ms} upEx={upEx} delEx={delEx} splitEx={splitEx} onExClick={onExClick}/></div>
           </div>;
         })}
+        {(isP||isL)&&onChange&&<button onClick={()=>{const nw=JSON.parse(JSON.stringify(w));nw.blocks[bi].exercises.push({name:"New Exercise",sets:3,reps:10,weight:null,notes:"",done:false});onChange(nw)}} style={{background:"none",border:"none",color:isL?T.green:T.accent,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",padding:"4px 14px 6px",fontWeight:600,opacity:0.7}}>+ Add exercise</button>}
       </div>)}
       {w.reasoning&&<div style={{padding:"10px 14px",background:T.accent+"06",borderTop:`1px solid ${T.accent}15`}}><div style={{color:T.accent,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"3px"}}>🧠 AI RATIONALE</div><p style={{color:T.sub,fontSize:"11px",margin:0,lineHeight:1.5}}>{w.reasoning}</p></div>}
       {isC&&w.trainerNotes&&<div style={{padding:"8px 14px",background:T.blue+"08",borderTop:`1px solid ${T.blue}15`}}><span style={{color:T.blue,fontSize:"10px",fontWeight:700,letterSpacing:"1px"}}>📝 TRAINER NOTES: </span><span style={{color:T.sub,fontSize:"11px"}}>{w.trainerNotes}</span></div>}
