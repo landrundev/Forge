@@ -1926,7 +1926,6 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
                   </button>
                 </div>)}
               </div>
-              </div>
             </div>
 
             <div style={{...ss.card,padding:"16px"}}>
