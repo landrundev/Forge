@@ -875,7 +875,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
 //  VIEWS
 // ═══════════════════════════════════════════════════════════════
 function useForge(){
-  const[clients,setCl]=useState([]);const[workouts,setWs]=useState({});const[loading,setL]=useState(true);const init=useRef(false);
+  const[clients,setCl]=useState([]);const[workouts,setWs]=useState({});const[proposals,setProps]=useState({});const[loading,setL]=useState(true);const init=useRef(false);
   const load=useCallback(async()=>{if(init.current)return;init.current=true;const ver=await S.get("forge:ver");if(!ver){await S.set("forge:ver",17);const cls=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA,SEED_CLIENT_KERIE,SEED_CLIENT_BILLY];await S.set("forge:clients",cls);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA);await S.set("forge:w:kerie",SEED_KERIE);await S.set("forge:w:billy",SEED_BILLY)}
     // Migrate: patch scheduleDays + add missing Pat Feb workouts + add Kerie
     if(ver&&ver<17){await S.set("forge:ver",17);const seedMap={pat:SEED_CLIENT_PAT,rachel:SEED_CLIENT_RACHEL,angela:SEED_CLIENT_ANGELA,adam:SEED_CLIENT_ADAM,deanna:SEED_CLIENT_DEANNA};let cls=await S.get("forge:clients");if(cls){cls=cls.map(c=>{const seed=seedMap[c.id];if(seed&&!c.scheduleDays){return{...c,scheduleDays:seed.scheduleDays||[],scheduleNotes:seed.scheduleNotes||c.schedulePattern||""}}return c});
@@ -887,16 +887,20 @@ function useForge(){
       // Add missing Pat Feb workouts if not already present
       let patWs=await S.get("forge:w:pat");if(patWs){const existing=new Set(patWs.map(w=>w.date));const febWs=SEED_PAT.filter(w=>w.date>="2026-02-01"&&!existing.has(w.date));if(febWs.length>0){patWs=[...patWs,...febWs].sort((a,b)=>a.date.localeCompare(b.date));await S.set("forge:w:pat",patWs)}}
     }
-    let cls=await S.get("forge:clients");if(!cls||!cls.length){const d=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA,SEED_CLIENT_KERIE,SEED_CLIENT_BILLY];cls=d;await S.set("forge:clients",d);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA);await S.set("forge:w:kerie",SEED_KERIE);await S.set("forge:w:billy",SEED_BILLY)}setCl(cls);const wm={};for(const c of cls){wm[c.id]=await S.get(`forge:w:${c.id}`)||[]}setWs(wm);setL(false)},[]);
+    let cls=await S.get("forge:clients");if(!cls||!cls.length){const d=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA,SEED_CLIENT_KERIE,SEED_CLIENT_BILLY];cls=d;await S.set("forge:clients",d);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA);await S.set("forge:w:kerie",SEED_KERIE);await S.set("forge:w:billy",SEED_BILLY)}setCl(cls);const wm={};const pm={};for(const c of cls){wm[c.id]=await S.get(`forge:w:${c.id}`)||[];pm[c.id]=await S.get(`forge:p:${c.id}`)||[]}setWs(wm);setProps(pm);setL(false)},[]);
   useEffect(()=>{load()},[load]);
   const saveW=async(cid,w)=>{const ws=[...(workouts[cid]||[])];const i=ws.findIndex(x=>x.id===w.id);if(i>=0)ws[i]=w;else ws.push(w);ws.sort((a,b)=>a.date.localeCompare(b.date));setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
   const deleteW=async(cid,wid)=>{const ws=(workouts[cid]||[]).filter(x=>x.id!==wid);setWs(p=>({...p,[cid]:ws}));await S.set(`forge:w:${cid}`,ws)};
-  const saveCl=async(cl)=>{const i=clients.findIndex(c=>c.id===cl.id);const nc=i>=0?clients.map(c=>c.id===cl.id?cl:c):[...clients,cl];setCl(nc);await S.set("forge:clients",nc);if(i<0){setWs(p=>({...p,[cl.id]:[]}));await S.set(`forge:w:${cl.id}`,[])}};
-  return{clients,workouts,loading,saveW,deleteW,saveCl};
+  const saveCl=async(cl)=>{const i=clients.findIndex(c=>c.id===cl.id);const nc=i>=0?clients.map(c=>c.id===cl.id?cl:c):[...clients,cl];setCl(nc);await S.set("forge:clients",nc);if(i<0){setWs(p=>({...p,[cl.id]:[]}));await S.set(`forge:w:${cl.id}`,[]);setProps(p=>({...p,[cl.id]:[]}));await S.set(`forge:p:${cl.id}`,[])}};
+  const saveProposals=async(cid,pArr)=>{setProps(p=>({...p,[cid]:pArr}));await S.set(`forge:p:${cid}`,pArr)};
+  const clearProposals=async(cid)=>{setProps(p=>({...p,[cid]:[]}));await S.set(`forge:p:${cid}`,[])};
+  return{clients,workouts,proposals,loading,saveW,deleteW,saveCl,saveProposals,clearProposals};
 }
 
-function Dashboard({clients,workouts,onNav}){
+function Dashboard({clients,workouts,proposals,onNav}){
   const dayMap={"Sun":"SU","Mon":"M","Tue":"T","Wed":"W","Thu":"TH","Fri":"F","Sat":"S"};
+  const dayNames={SU:"Sunday",M:"Monday",T:"Tuesday",W:"Wednesday",TH:"Thursday",F:"Friday",S:"Saturday"};
+  const dayOrder=["SU","M","T","W","TH","F","S"];
   const todayKey=dayMap[new Date().toLocaleDateString("en-US",{weekday:"short"})];
   const today=new Date().toISOString().slice(0,10);
   const todayClients=clients.filter(c=>(c.scheduleDays||[]).includes(todayKey));
@@ -914,12 +918,12 @@ function Dashboard({clients,workouts,onNav}){
 
     {todayClients.length>0&&<>
       <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🔥 TODAY'S SESSIONS</div>
-      {todayClients.map(c=>{const ws=workouts[c.id]||[];const last=ws.length?ws[ws.length-1]:null;const lastType=last?last.type:"";const nextTypes=(c.workoutTypes||[]).length>0?c.workoutTypes:["full"];const cs=clientStats(ws,c.scheduleDays);
+      {todayClients.map(c=>{const ws=workouts[c.id]||[];const last=ws.length?ws[ws.length-1]:null;const lastType=last?last.type:"";const nextTypes=(c.workoutTypes||[]).length>0?c.workoutTypes:["full"];const cs=clientStats(ws,c.scheduleDays);const cProps=proposals[c.id]||[];const planned=cProps.length;
         return <div key={c.id+"today"} onClick={()=>onNav("client",c.id,"next")} style={{...ss.card,cursor:"pointer",border:`1px solid ${T.accent}30`,background:`linear-gradient(135deg,${T.card},${T.accent}04)`}}>
           <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
             <div style={{width:44,height:44,borderRadius:"10px",background:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"17px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</div>
             <div style={{flex:1}}>
-              <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.text,fontWeight:700,fontSize:"15px"}}>{c.fullName||c.name}</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"1px 5px",borderRadius:"4px",fontSize:"10px",fontWeight:700}}>🔥 {cs.streak}w</span>}</div>
+              <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{color:T.text,fontWeight:700,fontSize:"15px"}}>{c.fullName||c.name}</span>{cs.streak>=2&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"1px 5px",borderRadius:"4px",fontSize:"10px",fontWeight:700}}>🔥 {cs.streak}w</span>}{planned>0&&<span style={{background:T.green+"15",color:T.green,fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"4px"}}>✓ planned</span>}</div>
               <div style={{color:T.sub,fontSize:"11px",marginTop:"2px"}}>{ws.length} sessions{last?` · Last: ${lastType}`:""}{cs.adherence!==null?` · ${cs.adherence}% adherence`:""}{(c.considerations||[]).filter(x=>x.active).length>0?` · ⚠ ${(c.considerations||[]).filter(x=>x.active).length}`:""}</div>
               <div style={{display:"flex",gap:"3px",marginTop:"4px"}}>{nextTypes.map(t=><span key={t} style={{...ss.pill(TC[t]),fontSize:"10px"}}>{t}</span>)}</div>
             </div>
@@ -934,6 +938,44 @@ function Dashboard({clients,workouts,onNav}){
       <div style={{color:T.dim,fontSize:"12px"}}>No sessions scheduled for today</div>
       <div style={{color:T.dim,fontSize:"11px",marginTop:"2px"}}>Set training days in each client's profile</div>
     </div>}
+
+    {/* Upcoming Sessions - next 7 days */}
+    {(()=>{
+      const upcoming=[];
+      for(let d=1;d<=7;d++){
+        const dt=new Date();dt.setDate(dt.getDate()+d);
+        const key=dayOrder[dt.getDay()];
+        const dateStr=dt.toISOString().slice(0,10);
+        const dayLabel=dt.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
+        const scheduled=clients.filter(c=>(c.scheduleDays||[]).includes(key));
+        if(scheduled.length>0)upcoming.push({dateStr,dayLabel,key,clients:scheduled});
+      }
+      if(!upcoming.length)return null;
+      return <>
+        <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px",marginTop:"4px"}}>📅 UPCOMING SESSIONS</div>
+        {upcoming.map(day=><div key={day.dateStr} style={{marginBottom:"8px"}}>
+          <div style={{color:T.dim,fontSize:"10px",fontWeight:700,letterSpacing:".5px",marginBottom:"5px",paddingLeft:"2px"}}>{day.dayLabel.toUpperCase()}</div>
+          {day.clients.map(c=>{
+            const ws=workouts[c.id]||[];const last=ws.length?ws[ws.length-1]:null;
+            const cProps=proposals[c.id]||[];const planned=cProps.length;
+            const cs=clientStats(ws,c.scheduleDays);
+            return <div key={c.id+day.dateStr} onClick={()=>onNav("client",c.id,"next")} style={{...ss.card,cursor:"pointer",marginBottom:"4px",padding:"10px 12px",border:`1px solid ${planned?T.green+"30":T.border}`}}>
+              <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+                <div style={{width:36,height:36,borderRadius:"8px",background:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"15px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
+                    <span style={{color:T.text,fontWeight:600,fontSize:"13px"}}>{c.fullName||c.name}</span>
+                    {planned>0&&<span style={{background:T.green+"15",color:T.green,fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"3px"}}>✓ {planned} planned</span>}
+                    {!planned&&<span style={{background:T.accent+"12",color:T.accent,fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"3px"}}>needs plan</span>}
+                  </div>
+                  <div style={{color:T.sub,fontSize:"11px",marginTop:"1px"}}>{ws.length} sessions{last?` · Last: ${last.type}`:""}{cs.adherence!==null?` · ${cs.adherence}%`:""}</div>
+                </div>
+                <div style={{color:planned?T.green:T.accent,fontSize:"11px",fontWeight:700,flexShrink:0}}>{planned?"VIEW →":"PLAN →"}</div>
+              </div>
+            </div>})}
+        </div>)}
+      </>;
+    })()}
 
     {(()=>{const others=clients.filter(c=>!todayClients.some(tc=>tc.id===c.id));return others.length>0&&<>
     <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px",marginTop:"4px"}}>{todayClients.length>0?"OTHER CLIENTS":"ALL CLIENTS"}</div>
@@ -1332,12 +1374,12 @@ function WorkoutBuilder({type,types,onTypeChange,allWs,onSave,onCancel}){
   </div>;
 }
 
-function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
+function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
   const[tab,setTab]=useState(initTab||"overview");
   useEffect(()=>{if(initTab)setTab(initTab)},[initTab,client.id]);
   const[filt,setFilt]=useState("all");
   const[exp,setExp]=useState({});
-  const[proposals,setProposals]=useState([]);
+  const setProposals=(updater)=>{const next=typeof updater==="function"?updater(proposals):updater;onSaveProposals(next)};
   const[genLoading,setGenLoading]=useState({});
   const[pinned,setPinned]=useState({});  // {[type]: {[bi-ei]: true}}
   const[buildType,setBuildType]=useState(null);  // workout builder mode
@@ -1401,7 +1443,7 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
   };
 
   const handleAction = (action, w) => {
-    if (action==="start"){const nw={...JSON.parse(JSON.stringify(w)),status:"in-progress",id:`live-${Date.now()}`};nw.blocks.forEach(b=>b.exercises.forEach(e=>{e.done=false}));const rd=readiness;if(rd&&(rd.sleep||rd.soreness||rd.energy||rd.note))nw.readiness=rd;setLiveW(nw);setLiveStart(Date.now());setTab("live")}
+    if (action==="start"){const nw={...JSON.parse(JSON.stringify(w)),status:"in-progress",id:`live-${Date.now()}`};nw.blocks.forEach(b=>b.exercises.forEach(e=>{e.done=false}));const rd=readiness;if(rd&&(rd.sleep||rd.soreness||rd.energy||rd.note))nw.readiness=rd;setLiveW(nw);setLiveStart(Date.now());setTab("live");setProposals(prev=>prev.filter(x=>x.type!==w.type))}
     if (action==="complete"){const saved={...w,status:"completed",date:new Date().toISOString().slice(0,10)};saved.blocks=saved.blocks.filter(b=>b.exercises.length>0);onSaveW(client.id,saved);setLiveW(null);setLiveStart(null);setReadiness({sleep:null,soreness:null,energy:null,note:""});setTab("history")}
     if (action==="cancel"){setLiveW(null);setLiveStart(null);setTab("next")}
   };
@@ -1673,7 +1715,7 @@ function AddClient({onSave,onCancel}){
 }
 
 export default function Forge(){
-  const{clients,workouts,loading,saveW,deleteW,saveCl}=useForge();
+  const{clients,workouts,proposals,loading,saveW,deleteW,saveCl,saveProposals,clearProposals}=useForge();
   const[view,setView]=useState("dashboard");const[cid,setCid]=useState(null);const[initTab,setInitTab]=useState(null);const[showPicker,setShowPicker]=useState(false);
   const[navHidden,setNavHidden]=useState(false);
   const scrollRef=useRef({y:0,dir:"up"});
@@ -1685,8 +1727,8 @@ export default function Forge(){
     
     {view==="addClient"?<AddClient onSave={async c=>{await saveCl(c);nav("client",c.id)}} onCancel={()=>nav("dashboard")}/>
     :view==="trainerStats"?<TrainerStats clients={clients} workouts={workouts} onBack={()=>nav("dashboard")}/>
-    :view==="client"&&client?<ClientView client={client} ws={workouts[cid]||[]} onNav={nav} onSaveW={saveW} onDeleteW={deleteW} onSaveCl={saveCl} initTab={initTab}/>
-    :<Dashboard clients={clients} workouts={workouts} onNav={nav}/>}
+    :view==="client"&&client?<ClientView client={client} ws={workouts[cid]||[]} proposals={proposals[cid]||[]} onSaveProposals={(p)=>saveProposals(cid,p)} onClearProposals={()=>clearProposals(cid)} onNav={nav} onSaveW={saveW} onDeleteW={deleteW} onSaveCl={saveCl} initTab={initTab}/>
+    :<Dashboard clients={clients} workouts={workouts} proposals={proposals} onNav={nav}/>}
     {showPicker&&<div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.25)"}} onClick={()=>setShowPicker(false)}>
         <div onClick={e=>e.stopPropagation()} style={{position:"fixed",bottom:48,left:8,right:8,background:T.card,border:`1px solid ${T.border}`,borderRadius:"12px",boxShadow:"0 -4px 20px rgba(0,0,0,0.12)",padding:"10px",maxHeight:"50vh",overflowY:"auto"}}>
           <div style={{color:T.dim,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px",padding:"2px 4px"}}>ALL CLIENTS</div>
