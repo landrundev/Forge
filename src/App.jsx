@@ -944,6 +944,250 @@ function Dashboard({clients,workouts,onNav}){
   </div></div>;
 }
 
+// ── TRAINER ANALYTICS ──────────────────────────────────
+function TrainerStats({clients,workouts,onBack}){
+  const allWs=useMemo(()=>{
+    const ws=[];Object.entries(workouts).forEach(([cid,cws])=>{const cl=clients.find(c=>c.id===cid);cws.forEach(w=>ws.push({...w,clientId:cid,clientName:cl?.name||cid}))});
+    return ws.sort((a,b)=>a.date.localeCompare(b.date));
+  },[workouts,clients]);
+
+  const stats=useMemo(()=>{
+    let totalSets=0,totalReps=0,totalVol=0,totalExInstances=0;
+    const exNames=new Set(),exByClient={},muscleHits={},typeCount={},monthMap={},dayCount={SU:0,M:0,T:0,W:0,TH:0,F:0,S:0};
+    const dayKeyMap={0:"SU",1:"M",2:"T",3:"W",4:"TH",5:"F",6:"S"};
+    let heaviestLift={name:"",weight:0,client:"",date:""},mostVolSession={vol:0,client:"",date:"",label:""},longestBlock=0,curBlock=0,lastWeek="";
+    const clientSessions={};
+
+    allWs.forEach(w=>{
+      // Per-client counts
+      clientSessions[w.clientName]=(clientSessions[w.clientName]||0)+1;
+      // Type
+      typeCount[w.type]=(typeCount[w.type]||0)+1;
+      // Day of week
+      const dow=new Date(w.date+"T12:00:00").getDay();
+      dayCount[dayKeyMap[dow]]++;
+      // Month
+      const mo=w.date.slice(0,7);
+      monthMap[mo]=(monthMap[mo]||0)+1;
+      // Week streak
+      const wk=getISOWeek(w.date);
+      if(lastWeek&&wk!==lastWeek){const gap=wk-lastWeek;if(gap===1)curBlock++;else curBlock=1}else if(!lastWeek)curBlock=1;
+      lastWeek=wk;
+      if(curBlock>longestBlock)longestBlock=curBlock;
+
+      let sessionVol=0;
+      w.blocks.forEach(b=>b.exercises.forEach(e=>{
+        totalExInstances++;
+        if(e.name)exNames.add(e.name);
+        const s=e.sets||1,r=e.reps||0,wt=e.weight||0;
+        totalSets+=s;totalReps+=s*r;
+        const v=s*r*wt;totalVol+=v;sessionVol+=v;
+        // Heaviest
+        if(wt>heaviestLift.weight)heaviestLift={name:e.name,weight:wt,client:w.clientName,date:w.date};
+        // Muscles
+        (MM[e.name]||[]).forEach(g=>{if(g!=="Grip")muscleHits[g]=(muscleHits[g]||0)+s});
+        // Per-client exercises
+        if(!exByClient[w.clientName])exByClient[w.clientName]=new Set();
+        if(e.name)exByClient[w.clientName].add(e.name);
+      }));
+      if(sessionVol>mostVolSession.vol)mostVolSession={vol:sessionVol,client:w.clientName,date:w.date,label:w.label||w.type};
+    });
+
+    // Most popular exercise
+    const exCount={};allWs.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name)exCount[e.name]=(exCount[e.name]||0)+1})));
+    const topExArr=Object.entries(exCount).sort((a,b)=>b[1]-a[1]);
+    const topEx=topExArr[0]||["—",0];
+
+    // Busiest week
+    const weekCounts={};allWs.forEach(w=>{const wk=w.date.slice(0,4)+"-W"+String(getISOWeek(w.date)).padStart(2,"0");weekCounts[wk]=(weekCounts[wk]||0)+1});
+    const busiestWeek=Object.entries(weekCounts).sort((a,b)=>b[1]-a[1])[0]||["—",0];
+
+    // Busiest month
+    const busiestMonth=Object.entries(monthMap).sort((a,b)=>b[1]-a[1])[0]||["—",0];
+
+    // Most popular day
+    const popDay=Object.entries(dayCount).sort((a,b)=>b[1]-a[1])[0]||["—",0];
+
+    // First & last session
+    const firstDate=allWs.length?allWs[0].date:null;
+    const lastDate=allWs.length?allWs[allWs.length-1].date:null;
+    const tenure=firstDate?Math.floor((new Date(lastDate+"T12:00:00")-new Date(firstDate+"T12:00:00"))/86400000):0;
+
+    // Client with most sessions
+    const topClient=Object.entries(clientSessions).sort((a,b)=>b[1]-a[1])[0]||["—",0];
+
+    // Most diverse client
+    const diverseClient=Object.entries(exByClient).sort((a,b)=>b[1].size-a[1].size).map(([n,s])=>[n,s.size])[0]||["—",0];
+
+    // Avg sessions per week
+    const weeks=tenure?Math.max(tenure/7,1):1;
+    const avgPerWeek=(allWs.length/weeks).toFixed(1);
+
+    // Muscle balance
+    const muscleArr=Object.entries(muscleHits).sort((a,b)=>b[1]-a[1]);
+
+    // Fun equivalents
+    const schoolBuses=Math.floor(totalVol/24000); // avg school bus ~24,000 lbs
+    const elephants=(totalVol/13000).toFixed(1); // avg elephant ~13,000 lbs
+    const eiffelStairs=Math.floor(totalReps/1665); // 1,665 steps to top of Eiffel Tower
+    const barsLoaded=Math.floor(totalVol/45); // 45lb plates conceptually
+
+    return{
+      totalSessions:allWs.length,totalSets,totalReps,totalVol,totalExInstances,
+      uniqueEx:exNames.size,heaviestLift,mostVolSession,
+      topEx,topClient,diverseClient,
+      popDay,busiestWeek,busiestMonth,
+      longestBlock,tenure,firstDate,lastDate,avgPerWeek,
+      muscleArr,typeCount,clientSessions,
+      topExArr:topExArr.slice(0,10),
+      schoolBuses,elephants,eiffelStairs,barsLoaded
+    };
+  },[allWs,clients]);
+
+  const S=stats;
+  const fmt=n=>n>=1000000?(n/1000000).toFixed(1)+"M":n>=1000?(n/1000).toFixed(1)+"K":String(n);
+  const fmtVol=n=>n>=1000000?(n/1000000).toFixed(2)+"M":n>=1000?(n/1000).toFixed(1)+"K":String(n);
+  const dayNames={SU:"Sun",M:"Mon",T:"Tue",W:"Wed",TH:"Thu",F:"Fri",S:"Sat"};
+  const moName=mo=>{const[y,m]=mo.split("-");return new Date(Number(y),Number(m)-1).toLocaleDateString("en-US",{month:"short",year:"2-digit"})};
+
+  const Hero=({v,l,sub,c=T.accent,big})=><div style={{background:T.surface,borderRadius:"10px",padding:big?"16px 10px":"10px 8px",textAlign:"center"}}>
+    <div style={{...ss.mono,color:c,fontSize:big?"28px":"20px",fontWeight:700,lineHeight:1.1}}>{v}</div>
+    <div style={{color:T.sub,fontSize:"10px",fontWeight:600,marginTop:"3px",letterSpacing:".3px"}}>{l}</div>
+    {sub&&<div style={{color:T.dim,fontSize:"9px",marginTop:"2px"}}>{sub}</div>}
+  </div>;
+
+  const mxMuscle=S.muscleArr.length?S.muscleArr[0][1]:1;
+
+  return <div>
+    <div style={ss.header}>
+      <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+        <button onClick={onBack} style={{background:"none",border:"none",color:T.sub,fontSize:"18px",cursor:"pointer",padding:"2px"}}>‹</button>
+        <div>
+          <h1 style={{margin:0,fontSize:"18px",fontWeight:700,letterSpacing:"-.3px"}}><span style={{color:T.accent}}>FORGE</span> <span style={{fontWeight:400,color:T.sub}}>Trainer Analytics</span></h1>
+          <p style={{margin:"2px 0 0",color:T.dim,fontSize:"10px"}}>{S.tenure} days of coaching · {clients.length} clients · {S.firstDate} → {S.lastDate}</p>
+        </div>
+      </div>
+    </div>
+    <div style={ss.content}>
+
+      {/* Hero Numbers */}
+      <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🏋️ THE BIG NUMBERS</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"8px"}}>
+        <Hero v={fmt(S.totalSessions)} l="Sessions Coached" c={T.accent} big/>
+        <Hero v={fmtVol(S.totalVol)+"#"} l="Total Volume" sub={`${S.elephants} elephants 🐘`} c={T.green} big/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginBottom:"12px"}}>
+        <Hero v={fmt(S.totalReps)} l="Total Reps" sub={S.eiffelStairs>0?`${S.eiffelStairs}× Eiffel Tower 🗼`:""} c={T.blue}/>
+        <Hero v={fmt(S.totalSets)} l="Total Sets" c={T.cyan}/>
+        <Hero v={S.uniqueEx} l="Unique Exercises" c={T.purple}/>
+      </div>
+
+      {/* Records */}
+      <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🏆 RECORDS</div>
+      <div style={ss.card}>
+        <div style={{display:"grid",gap:"10px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div><div style={{color:T.sub,fontSize:"10px",fontWeight:700}}>HEAVIEST SINGLE LIFT</div><div style={{color:T.text,fontSize:"13px",fontWeight:600}}>{S.heaviestLift.name}</div><div style={{color:T.dim,fontSize:"11px"}}>{S.heaviestLift.client} · {S.heaviestLift.date}</div></div>
+            <div style={{...ss.mono,color:T.accent,fontSize:"22px",fontWeight:700}}>{S.heaviestLift.weight}#</div>
+          </div>
+          <div style={{borderTop:`1px solid ${T.border}`,paddingTop:"10px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div><div style={{color:T.sub,fontSize:"10px",fontWeight:700}}>HIGHEST VOLUME SESSION</div><div style={{color:T.text,fontSize:"13px",fontWeight:600}}>{S.mostVolSession.label}</div><div style={{color:T.dim,fontSize:"11px"}}>{S.mostVolSession.client} · {S.mostVolSession.date}</div></div>
+            <div style={{...ss.mono,color:T.green,fontSize:"18px",fontWeight:700}}>{fmtVol(S.mostVolSession.vol)}#</div>
+          </div>
+          <div style={{borderTop:`1px solid ${T.border}`,paddingTop:"10px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div><div style={{color:T.sub,fontSize:"10px",fontWeight:700}}>LONGEST STREAK</div><div style={{color:T.dim,fontSize:"11px"}}>Consecutive weeks with sessions</div></div>
+            <div style={{...ss.mono,color:T.blue,fontSize:"18px",fontWeight:700}}>{S.longestBlock} wks</div>
+          </div>
+          <div style={{borderTop:`1px solid ${T.border}`,paddingTop:"10px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div><div style={{color:T.sub,fontSize:"10px",fontWeight:700}}>BUSIEST WEEK</div><div style={{color:T.dim,fontSize:"11px"}}>{S.busiestWeek[0]}</div></div>
+            <div style={{...ss.mono,color:T.purple,fontSize:"18px",fontWeight:700}}>{S.busiestWeek[1]} sessions</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Client Leaderboard */}
+      <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>👥 CLIENT LEADERBOARD</div>
+      <div style={ss.card}>
+        {Object.entries(S.clientSessions).sort((a,b)=>b[1]-a[1]).map(([name,cnt],i)=>{const cl=clients.find(c=>c.name===name);const pct=cnt/S.totalSessions*100;
+          return <div key={name} style={{display:"flex",alignItems:"center",gap:"10px",padding:"6px 0",borderBottom:i<Object.keys(S.clientSessions).length-1?`1px solid ${T.border}12`:"none"}}>
+            <span style={{...ss.mono,color:i===0?T.accent:T.dim,fontSize:"12px",fontWeight:700,width:"18px"}}>{i+1}</span>
+            <span style={{width:26,height:26,borderRadius:"6px",background:`linear-gradient(135deg,${cl?.color||T.accent},${cl?.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:T.bg,flexShrink:0}}>{name[0]}</span>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",justifyContent:"space-between"}}><span style={{color:T.text,fontSize:"12px",fontWeight:600}}>{name}</span><span style={{...ss.mono,color:T.sub,fontSize:"11px"}}>{cnt} sessions</span></div>
+              <div style={{height:3,borderRadius:2,background:T.border,marginTop:"3px",overflow:"hidden"}}><div style={{height:"100%",borderRadius:2,background:cl?.color||T.accent,width:`${pct}%`}}/></div>
+            </div>
+          </div>})}
+      </div>
+
+      {/* Schedule Intelligence */}
+      <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>📅 SCHEDULE INTELLIGENCE</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginBottom:"8px"}}>
+        <Hero v={S.avgPerWeek} l="Avg Sessions/Wk" c={T.blue}/>
+        <Hero v={dayNames[S.popDay[0]]||"—"} l="Busiest Day" sub={`${S.popDay[1]} sessions`} c={T.accent}/>
+        <Hero v={S.busiestMonth[0]?moName(S.busiestMonth[0]):"—"} l="Busiest Month" sub={`${S.busiestMonth[1]} sessions`} c={T.green}/>
+      </div>
+      <div style={ss.card}>
+        <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>SESSIONS BY DAY</div>
+        <div style={{display:"flex",gap:"4px",alignItems:"flex-end",height:"60px"}}>
+          {["M","T","W","TH","F","S","SU"].map(d=>{const cnt=S.typeCount?1:1;const v=Object.entries(workouts).reduce((a,[,ws])=>a+ws.filter(w=>{const dow=new Date(w.date+"T12:00:00").getDay();return{0:"SU",1:"M",2:"T",3:"W",4:"TH",5:"F",6:"S"}[dow]===d}).length,0);const mx=Math.max(...["M","T","W","TH","F","S","SU"].map(dd=>Object.entries(workouts).reduce((a2,[,ws2])=>a2+ws2.filter(w2=>{const dw=new Date(w2.date+"T12:00:00").getDay();return{0:"SU",1:"M",2:"T",3:"W",4:"TH",5:"F",6:"S"}[dw]===dd}).length,0)),1);
+            return <div key={d} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:"3px"}}>
+              <div style={{width:"100%",background:`linear-gradient(180deg,${T.accent},${T.accent}60)`,borderRadius:"3px 3px 0 0",height:`${Math.max(v/mx*50,2)}px`,transition:"height .3s"}}/>
+              <span style={{color:T.dim,fontSize:"9px",fontWeight:600}}>{d}</span>
+              <span style={{...ss.mono,color:T.sub,fontSize:"9px"}}>{v}</span>
+            </div>})}
+        </div>
+      </div>
+
+      {/* Workout Type Mix */}
+      <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🎯 WORKOUT TYPE MIX</div>
+      <div style={ss.card}>
+        {Object.entries(S.typeCount).sort((a,b)=>b[1]-a[1]).map(([type,cnt])=><div key={type} style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px"}}>
+          <span style={{...ss.pill(TC[type]),fontSize:"10px",width:"50px",textAlign:"center"}}>{type}</span>
+          <div style={{flex:1,height:8,background:T.surface,borderRadius:4,overflow:"hidden"}}><div style={{height:"100%",background:TC[type]||T.accent,borderRadius:4,width:`${cnt/S.totalSessions*100}%`}}/></div>
+          <span style={{...ss.mono,color:T.sub,fontSize:"11px",width:"36px",textAlign:"right"}}>{cnt}</span>
+        </div>)}
+      </div>
+
+      {/* Top Exercises */}
+      <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>💪 MOST PROGRAMMED EXERCISES</div>
+      <div style={ss.card}>
+        {S.topExArr.map(([name,cnt],i)=>{const ms=(MM[name]||[]).filter(m=>m!=="Grip");
+          return <div key={name} style={{display:"flex",alignItems:"center",gap:"8px",padding:"5px 0",borderBottom:i<S.topExArr.length-1?`1px solid ${T.border}12`:"none"}}>
+            <span style={{...ss.mono,color:i<3?T.accent:T.dim,fontSize:"11px",fontWeight:700,width:"20px"}}>{i+1}</span>
+            <div style={{flex:1}}>
+              <div style={{color:T.text,fontSize:"12px",fontWeight:500}}>{name}</div>
+              {ms.length>0&&<div style={{display:"flex",gap:"2px",marginTop:"1px"}}>{ms.slice(0,2).map(m=><Pill key={m} g={m}/>)}</div>}
+            </div>
+            <span style={{...ss.mono,color:T.sub,fontSize:"11px"}}>{cnt}×</span>
+          </div>})}
+      </div>
+
+      {/* Muscle Coverage */}
+      <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🎯 ALL-TIME MUSCLE COVERAGE</div>
+      <div style={ss.card}>
+        {S.muscleArr.map(([g,v])=><div key={g} style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"4px"}}>
+          <span style={{color:MC[g]||T.sub,fontSize:"11px",fontWeight:600,width:"68px",textAlign:"right",flexShrink:0}}>{g}</span>
+          <div style={{flex:1,height:11,background:T.surface,borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",width:`${v/mxMuscle*100}%`,background:`linear-gradient(90deg,${MC[g]||T.sub}70,${MC[g]||T.sub}30)`,borderRadius:3}}/></div>
+          <span style={{...ss.mono,color:T.sub,fontSize:"10px",width:"32px"}}>{fmt(v)}</span>
+        </div>)}
+      </div>
+
+      {/* Fun Equivalents */}
+      <div style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>🎉 FUN FACTS</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"20px"}}>
+        <div style={{...ss.card,textAlign:"center",marginBottom:0,padding:"12px 8px"}}><div style={{fontSize:"22px",marginBottom:"4px"}}>🐘</div><div style={{...ss.mono,color:T.accent,fontSize:"16px",fontWeight:700}}>{S.elephants}</div><div style={{color:T.dim,fontSize:"10px"}}>Elephants lifted</div></div>
+        <div style={{...ss.card,textAlign:"center",marginBottom:0,padding:"12px 8px"}}><div style={{fontSize:"22px",marginBottom:"4px"}}>🚌</div><div style={{...ss.mono,color:T.green,fontSize:"16px",fontWeight:700}}>{S.schoolBuses}</div><div style={{color:T.dim,fontSize:"10px"}}>School buses moved</div></div>
+        <div style={{...ss.card,textAlign:"center",marginBottom:0,padding:"12px 8px"}}><div style={{fontSize:"22px",marginBottom:"4px"}}>🗼</div><div style={{...ss.mono,color:T.blue,fontSize:"16px",fontWeight:700}}>{S.eiffelStairs}×</div><div style={{color:T.dim,fontSize:"10px"}}>Eiffel Tower climbed</div></div>
+        <div style={{...ss.card,textAlign:"center",marginBottom:0,padding:"12px 8px"}}><div style={{fontSize:"22px",marginBottom:"4px"}}>🏋️</div><div style={{...ss.mono,color:T.purple,fontSize:"16px",fontWeight:700}}>{fmt(S.totalExInstances)}</div><div style={{color:T.dim,fontSize:"10px"}}>Exercise entries</div></div>
+      </div>
+
+    </div>
+  </div>;
+}
+
+// helper: ISO week number
+function getISOWeek(dateStr){const d=new Date(dateStr+"T12:00:00");d.setDate(d.getDate()+3-(d.getDay()+6)%7);const w1=new Date(d.getFullYear(),0,4);return 1+Math.round(((d-w1)/86400000-3+(w1.getDay()+6)%7)/7)}
+
 // ── InBody Check-in Panel ──
 function CheckInPanel({client,onSaveCl}){
   const checkins=client.checkins||[];
@@ -1424,31 +1668,37 @@ function AddClient({onSave,onCancel}){
 export default function Forge(){
   const{clients,workouts,loading,saveW,deleteW,saveCl}=useForge();
   const[view,setView]=useState("dashboard");const[cid,setCid]=useState(null);const[initTab,setInitTab]=useState(null);const[showPicker,setShowPicker]=useState(false);
-  const nav=(v,id,tab)=>{if(v==="client"){setView("client");setCid(id);setInitTab(tab||null)}else if(v==="addClient")setView("addClient");else{setView("dashboard");setInitTab(null)}};
+  const nav=(v,id,tab)=>{if(v==="client"){setView("client");setCid(id);setInitTab(tab||null)}else if(v==="addClient")setView("addClient");else if(v==="trainerStats")setView("trainerStats");else{setView("dashboard");setInitTab(null)}};
   const client=clients.find(c=>c.id===cid);
   if(loading)return <div style={{...ss.page,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{textAlign:"center"}}><div style={{color:T.accent,fontSize:"24px",fontWeight:700}}>FORGE <span style={{color:T.cyan,fontSize:"14px"}}>AI</span></div><div style={{color:T.sub,fontSize:"12px"}}>Loading...</div></div></div>;
   return <div style={ss.page}>
     
     {view==="addClient"?<AddClient onSave={async c=>{await saveCl(c);nav("client",c.id)}} onCancel={()=>nav("dashboard")}/>
+    :view==="trainerStats"?<TrainerStats clients={clients} workouts={workouts} onBack={()=>nav("dashboard")}/>
     :view==="client"&&client?<ClientView client={client} ws={workouts[cid]||[]} onNav={nav} onSaveW={saveW} onDeleteW={deleteW} onSaveCl={saveCl} initTab={initTab}/>
     :<Dashboard clients={clients} workouts={workouts} onNav={nav}/>}
     {showPicker&&<div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.25)"}} onClick={()=>setShowPicker(false)}>
         <div onClick={e=>e.stopPropagation()} style={{position:"fixed",bottom:56,left:8,right:8,background:T.card,border:`1px solid ${T.border}`,borderRadius:"12px",boxShadow:"0 -4px 20px rgba(0,0,0,0.12)",padding:"10px",maxHeight:"50vh",overflowY:"auto"}}>
           <div style={{color:T.dim,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px",padding:"2px 4px"}}>ALL CLIENTS</div>
-          {clients.map(c=><button key={c.id} onClick={()=>{nav("client",c.id);setShowPicker(false)}} style={{display:"flex",alignItems:"center",gap:"10px",width:"100%",padding:"8px",borderRadius:"8px",border:"none",background:cid===c.id?T.accent+"10":"transparent",cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
-            <span style={{width:28,height:28,borderRadius:"6px",background:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</span>
-            <div><div style={{color:cid===c.id?T.accent:T.text,fontSize:"13px",fontWeight:600}}>{c.fullName||c.name}</div><div style={{color:T.dim,fontSize:"11px"}}>{(workouts[c.id]||[]).length} sessions</div></div>
-          </button>)}
+          {clients.map(c=>{const ws=workouts[c.id]||[];const lastW=ws.length?ws[ws.length-1]:null;const lastDate=lastW?new Date(lastW.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}):"";
+            return <button key={c.id} onClick={()=>{nav("client",c.id);setShowPicker(false)}} style={{display:"flex",alignItems:"center",gap:"10px",width:"100%",padding:"8px",borderRadius:"8px",border:"none",background:cid===c.id?T.accent+"10":"transparent",cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
+            <span style={{width:32,height:32,borderRadius:"7px",background:cid===c.id?T.accent:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:700,color:T.bg,flexShrink:0}}>{c.name[0]}</span>
+            <div style={{flex:1}}><div style={{color:cid===c.id?T.accent:T.text,fontSize:"13px",fontWeight:600}}>{c.fullName||c.name}</div><div style={{color:T.dim,fontSize:"11px"}}>{ws.length} sessions{lastDate?` · Last: ${lastDate}`:""}</div></div>
+            {cid===c.id&&<span style={{color:T.accent,fontSize:"10px",fontWeight:700}}>●</span>}
+          </button>})}
+          <button onClick={()=>{nav("addClient");setShowPicker(false)}} style={{display:"flex",alignItems:"center",gap:"10px",width:"100%",padding:"8px",borderRadius:"8px",border:`1px dashed ${T.border}`,background:"transparent",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginTop:"4px"}}>
+            <span style={{width:32,height:32,borderRadius:"7px",background:T.surface,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"16px",color:T.dim,flexShrink:0}}>+</span>
+            <span style={{color:T.sub,fontSize:"13px",fontWeight:500}}>Add New Client</span>
+          </button>
         </div>
       </div>}
-    {(()=>{const maxNav=4;const active=clients.findIndex(c=>c.id===cid);
-      let visible=clients.slice(0,maxNav);
-      if(active>=maxNav){visible=clients.slice(0,maxNav-1);visible.push(clients[active])}
-      const hasMore=clients.length>maxNav;
-      return <div style={ss.navBar}>
-        <button onClick={()=>nav("dashboard")} style={ss.navBtn(view==="dashboard")}><span style={{fontSize:"18px"}}>⌂</span>Home</button>
-        {visible.map(c=><button key={c.id} onClick={()=>nav("client",c.id)} style={{...ss.navBtn(view==="client"&&cid===c.id),padding:"3px 8px",minWidth:0}}><span style={{width:22,height:22,borderRadius:"5px",background:view==="client"&&cid===c.id?T.accent:`linear-gradient(135deg,${c.color||T.accent},${c.color||T.accent}80)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:T.bg}}>{c.name[0]}</span><span style={{fontSize:"10px",maxWidth:"48px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</span></button>)}
-        {hasMore&&<button onClick={()=>setShowPicker(!showPicker)} style={{...ss.navBtn(showPicker),padding:"3px 8px"}}><span style={{fontSize:"16px"}}>•••</span><span style={{fontSize:"10px"}}>{clients.length}</span></button>}
-      </div>})()}
+    <div style={ss.navBar}>
+      <button onClick={()=>nav("dashboard")} style={ss.navBtn(view==="dashboard")}><span style={{fontSize:"18px"}}>⌂</span>Home</button>
+      <button onClick={()=>setShowPicker(!showPicker)} style={{...ss.navBtn(view==="client"||showPicker),padding:"3px 10px",flex:1.2}}>
+        {view==="client"&&client?<><span style={{width:22,height:22,borderRadius:"5px",background:T.accent,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:T.bg}}>{client.name[0]}</span><span style={{fontSize:"10px",maxWidth:"60px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{client.name}</span></>
+        :<><span style={{fontSize:"18px"}}>👥</span><span style={{fontSize:"10px"}}>Clients</span></>}
+      </button>
+      <button onClick={()=>nav("trainerStats")} style={ss.navBtn(view==="trainerStats")}><span style={{fontSize:"18px"}}>📊</span>Stats</button>
+    </div>
   </div>;
 }
