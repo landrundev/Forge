@@ -474,7 +474,7 @@ function topLifts(ws,n=3){
     return{name,short:LIFT_SHORT[name]||name.replace(/^(Barbell|DB|KB)\s/,"").slice(0,10),max:d.max,count:d.count,prog,color:T[LIFT_COLORS[name]||"accent"]};
   });
 }
-function exFreq(ws){const f={};ws.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(!f[e.name])f[e.name]={count:0,last:null,lastW:null,lastR:null,lastS:null};f[e.name].count++;f[e.name].last=w.date;if(e.weight)f[e.name].lastW=e.weight;f[e.name].lastR=e.reps;f[e.name].lastS=e.sets})));return f}
+function exFreq(ws){const f={};ws.forEach(w=>{const seen={};w.blocks.forEach(b=>b.exercises.forEach(e=>{if(!e.name)return;if(!f[e.name])f[e.name]={count:0,last:null,lastW:null,lastR:null,lastS:null};if(!seen[e.name]){seen[e.name]={totalS:0,maxW:0,reps:0};f[e.name].count++}seen[e.name].totalS+=(e.sets||1);if(e.weight&&e.weight>seen[e.name].maxW)seen[e.name].maxW=e.weight;seen[e.name].reps=e.reps;f[e.name].last=w.date}));Object.entries(seen).forEach(([name,s])=>{f[name].lastW=s.maxW||null;f[name].lastR=s.reps;f[name].lastS=s.totalS})});return f}
 function muscBal(ws,n=8){const c={};ws.slice(-n).forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{(MM[e.name]||[]).forEach(g=>{if(g!=="Grip")c[g]=(c[g]||0)+(e.sets||1)})})));return c}
 function getTypes(ws){const s=new Set();ws.forEach(w=>s.add(w.type));return[...s]}
 function workoutToText(w){
@@ -669,8 +669,12 @@ function Bars({ws}){const c=muscBal(ws);const e=Object.entries(c).sort((a,b)=>b[
 function ExProg({name,ws,onClose}){
   const overlayRef=useRef(null);
   useEffect(()=>{if(overlayRef.current)overlayRef.current.scrollTop=0},[name]);
-  const data=[];ws.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name===name&&e.weight)data.push({date:w.date,max:e.weight,sets:e.sets,reps:e.reps,type:w.type})})));
-  const bw=[];ws.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name===name&&!e.weight)bw.push({date:w.date,sets:e.sets,reps:e.reps,type:w.type})})));
+  const data=[];const bw=[];
+  // Aggregate split sets: group by workout date, sum sets, take max weight
+  ws.forEach(w=>{const hits=[];w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name===name)hits.push(e)}));if(!hits.length)return;
+    const totalS=hits.reduce((a,e)=>a+(e.sets||1),0);const maxW=Math.max(...hits.map(e=>e.weight||0));const minW=Math.min(...hits.filter(e=>e.weight).map(e=>e.weight)||[0]);const reps=hits[0].reps;
+    if(maxW>0)data.push({date:w.date,max:maxW,min:minW>0&&minW!==maxW?minW:null,sets:totalS,reps,type:w.type});
+    else bw.push({date:w.date,sets:totalS,reps,type:w.type})});
   const all=[...data,...bw.map(d=>({...d,max:0}))].sort((a,b)=>a.date.localeCompare(b.date));
   const best=data.length?Math.max(...data.map(d=>d.max)):null;
   const recent=all.slice(-1)[0];
@@ -700,7 +704,7 @@ function ExProg({name,ws,onClose}){
             <span style={{...ss.mono,color:T.sub,fontSize:"11px"}}>{new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"2-digit"})}</span>
             <span style={{...ss.pill(TC[d.type]),fontSize:"9px"}}>{d.type}</span>
             <span style={{...ss.mono,color:T.text,fontSize:"11px"}}>{d.sets}×{d.reps}</span>
-            <span style={{...ss.mono,color:d.max?T.accent:T.dim,fontSize:"11px",fontWeight:600}}>{d.max?`${d.max}#`:"BW"}</span>
+            <span style={{...ss.mono,color:d.max?T.accent:T.dim,fontSize:"11px",fontWeight:600}}>{d.max?(d.min?`${d.min}-${d.max}#`:`${d.max}#`):"BW"}</span>
             <span style={{...ss.mono,fontSize:"11px",fontWeight:600,color:delta>0?T.green:delta<0?T.red:T.dim}}>{delta>0?`+${delta}`:delta<0?`${delta}`:delta===0?"—":""}</span>
           </div>})}
       </div>
@@ -709,8 +713,9 @@ function ExProg({name,ws,onClose}){
   </div>;
 }
 
-function ExRow({ex,bi,ei,live,editing,isDone,ms,upEx,delEx,onExClick}){
+function ExRow({ex,bi,ei,live,editing,isDone,ms,upEx,delEx,splitEx,onExClick}){
   const showCheck=live&&!editing;
+  const canSplit=live&&(ex.sets||1)>1;
   return <div style={{padding:"8px 14px",borderBottom:`1px solid ${T.border}12`,opacity:showCheck&&isDone?.5:1,background:showCheck&&isDone?T.green+"06":"transparent"}}>
     <div style={{display:"grid",gridTemplateColumns:showCheck?"26px 1fr auto":"1fr auto",gap:"8px",alignItems:"center"}}>
       {showCheck&&<button onClick={()=>upEx(bi,ei,"done",!isDone)} style={{width:24,height:24,borderRadius:"6px",border:`2px solid ${isDone?T.green:T.border}`,background:isDone?T.green+"25":"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",color:T.green,flexShrink:0,padding:0}}>{isDone?"✓":""}</button>}
@@ -731,7 +736,10 @@ function ExRow({ex,bi,ei,live,editing,isDone,ms,upEx,delEx,onExClick}){
         </div>}
       </div>
     </div>
-    {ex.notes&&<div style={{marginTop:"3px",paddingLeft:showCheck?"34px":"0"}}><span style={{color:T.dim,fontSize:"11px",fontStyle:"italic"}}>{ex.notes}</span></div>}
+    <div style={{display:"flex",alignItems:"center",gap:"8px",marginTop:ex.notes||canSplit?"3px":"0",paddingLeft:showCheck?"34px":"0"}}>
+      {ex.notes&&<span style={{color:T.dim,fontSize:"11px",fontStyle:"italic",flex:1}}>{ex.notes}</span>}
+      {canSplit&&!isDone&&<button onClick={()=>splitEx(bi,ei)} style={{background:T.accent+"12",border:`1px solid ${T.accent}30`,color:T.accent,fontSize:"10px",fontWeight:600,padding:"2px 7px",borderRadius:"4px",cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0}}>⇅ Split Sets</button>}
+    </div>
   </div>;
 }
 
@@ -745,6 +753,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
   const canEdit=editing||live;
   const upEx=(bi,ei,f,v)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));nw.blocks[bi].exercises[ei][f]=f==="weight"||f==="reps"||f==="sets"?(v===""?null:Number(v)):v;onChange(nw)};
   const delEx=(bi,ei)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));nw.blocks[bi].exercises.splice(ei,1);if(nw.blocks[bi].exercises.length===0)nw.blocks.splice(bi,1);onChange(nw)};
+  const splitEx=(bi,ei)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));const ex=nw.blocks[bi].exercises[ei];const n=ex.sets||1;if(n<=1)return;const rows=[];for(let i=0;i<n;i++){rows.push({...ex,sets:1,notes:i===0?(ex.notes||"")+"":ex.notes||"",done:false})}nw.blocks[bi].exercises.splice(ei,1,...rows);onChange(nw)};
   const pinKey=(bi,ei)=>`${bi}-${ei}`;
   const hasPins=pinned&&Object.values(pinned).some(v=>v);
   const rpeColors=["","","","","","","#4CAF50","#8BC34A","#FFC107","#FF9800","#F44336"];
@@ -796,7 +805,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
               <button onClick={()=>moveEx(bi,ei,1)} disabled={ei===bl.exercises.length-1} style={{background:"none",border:"none",color:ei===bl.exercises.length-1?T.border:T.sub,fontSize:"12px",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>▼</button>
             </div>}
             {isP&&!reorder&&onTogglePin&&<button onClick={(e)=>{e.stopPropagation();onTogglePin(pk)}} style={{background:"none",border:"none",cursor:"pointer",padding:"8px 2px 8px 10px",fontSize:"13px",flexShrink:0,color:isPinned?T.accent:T.dim,opacity:isPinned?1:0.4}}>{isPinned?"📌":"○"}</button>}
-            <div style={{flex:1}}><ExRow ex={ex} bi={bi} ei={ei} live={canEdit} editing={editing} isDone={!editing&&ex.done} ms={ms} upEx={upEx} delEx={delEx} onExClick={onExClick}/></div>
+            <div style={{flex:1}}><ExRow ex={ex} bi={bi} ei={ei} live={canEdit} editing={editing} isDone={!editing&&ex.done} ms={ms} upEx={upEx} delEx={delEx} splitEx={splitEx} onExClick={onExClick}/></div>
           </div>;
         })}
       </div>)}
@@ -1011,7 +1020,7 @@ function WorkoutBuilder({type,types,onTypeChange,allWs,onSave,onCancel}){
   },[allWs]);
 
   const lastUsed=useMemo(()=>{
-    const m={};allWs.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name)m[e.name]={weight:e.weight,reps:e.reps,sets:e.sets}})));return m;
+    const m={};allWs.forEach(w=>{const seen={};w.blocks.forEach(b=>b.exercises.forEach(e=>{if(!e.name)return;if(!seen[e.name])seen[e.name]={totalS:0,maxW:0,reps:0};seen[e.name].totalS+=(e.sets||1);if(e.weight&&e.weight>seen[e.name].maxW)seen[e.name].maxW=e.weight;seen[e.name].reps=e.reps}));Object.entries(seen).forEach(([name,s])=>{m[name]={weight:s.maxW||null,reps:s.reps,sets:s.totalS}})});return m;
   },[allWs]);
 
   const filtered=search.length>0?allExNames.filter(n=>n.toLowerCase().includes(search.toLowerCase())).slice(0,12):[];
