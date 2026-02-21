@@ -751,6 +751,16 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
   const[confirmDel,setConfirmDel]=useState(false);
   const[copied,setCopied]=useState(false);
   const copyW=()=>{try{navigator.clipboard.writeText(workoutToText(w));setCopied(true);setTimeout(()=>setCopied(false),1500)}catch{}};
+  // Reorder mode
+  const[reorder,setReorder]=useState(false);
+  const dragRef=useRef(null);
+  const rowRefs=useRef({});
+  const moveBlock=(bi,dir)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));const ti=bi+dir;if(ti<0||ti>=nw.blocks.length)return;[nw.blocks[bi],nw.blocks[ti]]=[nw.blocks[ti],nw.blocks[bi]];onChange(nw)};
+  const moveEx=(bi,ei,dir)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));const exs=nw.blocks[bi].exercises;const ti=ei+dir;if(ti<0||ti>=exs.length)return;[exs[ei],exs[ti]]=[exs[ti],exs[ei]];onChange(nw)};
+  // Touch drag for exercises
+  const onTouchStart=(bi,ei,e)=>{if(!reorder)return;const el=e.currentTarget.closest('[data-exrow]');if(!el)return;const t=e.touches[0];dragRef.current={bi,ei,startY:t.clientY,el,moved:false};el.style.transition="none";el.style.zIndex="10";el.style.opacity="0.85";};
+  const onTouchMove=(e)=>{const d=dragRef.current;if(!d)return;e.preventDefault();const t=e.touches[0];const dy=t.clientY-d.startY;d.el.style.transform=`translateY(${dy}px)`;d.moved=true;};
+  const onTouchEnd=()=>{const d=dragRef.current;if(!d){return}d.el.style.transition="transform 0.15s";d.el.style.transform="";d.el.style.zIndex="";d.el.style.opacity="";if(d.moved){const rect=d.el.getBoundingClientRect();const cy=rect.top+rect.height/2;const exs=w.blocks[d.bi].exercises;let best=-1,bestDist=Infinity;exs.forEach((_,i)=>{const key=`${d.bi}-${i}`;const ref=rowRefs.current[key];if(!ref)return;const r=ref.getBoundingClientRect();const mid=r.top+r.height/2;const dist=Math.abs(cy-mid);if(dist<bestDist){bestDist=dist;best=i}});if(best>=0&&best!==d.ei){const nw=JSON.parse(JSON.stringify(w));const exArr=nw.blocks[d.bi].exercises;const[moved]=exArr.splice(d.ei,1);exArr.splice(best,0,moved);if(onChange)onChange(nw)}}dragRef.current=null;};
 
   return <div style={{background:isL?`linear-gradient(135deg,${T.card},${T.green}08)`:isP?`linear-gradient(135deg,${T.card},${T.accent}06)`:editing?`linear-gradient(135deg,${T.card},${T.blue}06)`:T.card,border:`1px solid ${isL?T.green+"40":isP?T.accent+"30":editing?T.blue+"40":T.border}`,borderRadius:"10px",overflow:"hidden",marginBottom:"8px"}}>
     <div onClick={toggle} style={{padding:"12px 14px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -770,10 +780,22 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
     {open&&<div style={{borderTop:`1px solid ${T.border}`}}>
       <div style={{padding:"6px 14px",background:T.surface}}><span style={{color:T.dim,fontSize:"10px",textTransform:"uppercase",letterSpacing:"1px"}}>Warmup: </span><span style={{color:T.sub,fontSize:"11px"}}>{w.warmup}</span></div>
       {w.blocks.map((bl,bi)=><div key={bi} style={{borderTop:bi?`1px solid ${T.border}18`:"none"}}>
-        <div style={{padding:"6px 14px 3px",background:T.surface+"80"}}><span style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:".4px",textTransform:"uppercase"}}>{bl.name}</span></div>
+        <div style={{padding:"6px 14px 3px",background:T.surface+"80",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <span style={{color:T.accent,fontSize:"11px",fontWeight:700,letterSpacing:".4px",textTransform:"uppercase",flex:1}}>{bl.name}</span>
+          {reorder&&<div style={{display:"flex",gap:"2px"}}>
+            <button onClick={()=>moveBlock(bi,-1)} disabled={bi===0} style={{background:"none",border:"none",color:bi===0?T.border:T.accent,fontSize:"16px",cursor:"pointer",padding:"2px 6px",lineHeight:1}}>↑</button>
+            <button onClick={()=>moveBlock(bi,1)} disabled={bi===w.blocks.length-1} style={{background:"none",border:"none",color:bi===w.blocks.length-1?T.border:T.accent,fontSize:"16px",cursor:"pointer",padding:"2px 6px",lineHeight:1}}>↓</button>
+          </div>}
+        </div>
         {bl.exercises.map((ex,ei)=>{const ms=(MM[ex.name]||[]).filter(m=>m!=="Grip");const pk=pinKey(bi,ei);const isPinned=pinned&&pinned[pk];
-          return <div key={ei} style={{display:"flex",alignItems:"flex-start",gap:"0"}}>
-            {isP&&onTogglePin&&<button onClick={(e)=>{e.stopPropagation();onTogglePin(pk)}} style={{background:"none",border:"none",cursor:"pointer",padding:"8px 2px 8px 10px",fontSize:"13px",flexShrink:0,color:isPinned?T.accent:T.dim,opacity:isPinned?1:0.4}}>{isPinned?"📌":"○"}</button>}
+          return <div key={ei} data-exrow ref={el=>{rowRefs.current[`${bi}-${ei}`]=el}} style={{display:"flex",alignItems:"flex-start",gap:"0",position:"relative",background:T.card}}>
+            {reorder&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"4px 2px 4px 6px",gap:"0",flexShrink:0,touchAction:"none"}}
+              onTouchStart={e=>onTouchStart(bi,ei,e)} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+              <button onClick={()=>moveEx(bi,ei,-1)} disabled={ei===0} style={{background:"none",border:"none",color:ei===0?T.border:T.sub,fontSize:"12px",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>▲</button>
+              <span style={{color:T.dim,fontSize:"11px",cursor:"grab",padding:"2px 4px",userSelect:"none"}}>☰</span>
+              <button onClick={()=>moveEx(bi,ei,1)} disabled={ei===bl.exercises.length-1} style={{background:"none",border:"none",color:ei===bl.exercises.length-1?T.border:T.sub,fontSize:"12px",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>▼</button>
+            </div>}
+            {isP&&!reorder&&onTogglePin&&<button onClick={(e)=>{e.stopPropagation();onTogglePin(pk)}} style={{background:"none",border:"none",cursor:"pointer",padding:"8px 2px 8px 10px",fontSize:"13px",flexShrink:0,color:isPinned?T.accent:T.dim,opacity:isPinned?1:0.4}}>{isPinned?"📌":"○"}</button>}
             <div style={{flex:1}}><ExRow ex={ex} bi={bi} ei={ei} live={canEdit} editing={editing} isDone={!editing&&ex.done} ms={ms} upEx={upEx} delEx={delEx} onExClick={onExClick}/></div>
           </div>;
         })}
@@ -787,7 +809,10 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
         {w.readiness.energy&&<span style={{color:T.sub,fontSize:"11px"}}>Energy {w.readiness.energy}/5</span>}
         {w.readiness.note&&<span style={{color:T.dim,fontSize:"11px",fontStyle:"italic"}}>{w.readiness.note}</span>}
       </div>}
-      {isP&&onTogglePin&&<div style={{padding:"6px 14px",background:T.surface,borderTop:`1px solid ${T.border}`}}><span style={{color:T.dim,fontSize:"11px"}}>📌 Pin exercises to keep them on regenerate</span></div>}
+      {isP&&onTogglePin&&<div style={{padding:"6px 14px",background:T.surface,borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{color:T.dim,fontSize:"11px"}}>{reorder?"Tap arrows or drag ☰ to reorder":"📌 Pin exercises to keep them on regenerate"}</span>
+        <button onClick={()=>setReorder(r=>!r)} style={{background:reorder?T.accent+"15":"none",border:`1px solid ${reorder?T.accent:T.border}`,color:reorder?T.accent:T.sub,padding:"3px 8px",borderRadius:"5px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{reorder?"✓ Done":"↕ Reorder"}</button>
+      </div>}
       {isC&&editing&&<div style={{padding:"10px 14px",borderTop:`1px solid ${T.blue}20`,background:T.blue+"06"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 80px 60px",gap:"6px",marginBottom:"8px"}}>
           <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Date</label><input type="date" style={{...ss.inp,width:"100%"}} value={w.date} onChange={e=>onChange({...w,date:e.target.value})}/></div>
