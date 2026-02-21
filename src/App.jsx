@@ -555,6 +555,15 @@ CLIENT PROFILE:
 - Goals: ${client.goals || 'General strength'}
 - Lift maxes: ${liftMaxStr || 'No data yet'}
 ${client.gender ? `- Gender: ${client.gender}` : ''}${client.startingWeight ? ` | Starting weight: ${client.startingWeight}` : ''}
+${(()=>{const phase=getCurrentPhase(client.program,type);if(!phase||phase.completed||phase.upcoming)return'';return`
+ACTIVE TRAINING PROGRAM (CRITICAL — honor these parameters for ${type.toUpperCase()} day):
+- Phase: ${phase.block.name} (Week ${phase.weekInBlock} of ${phase.block.weeks})
+- Overall: Week ${phase.weekTotal} of ${phase.totalWeeks}
+- Rep Range for ${type}: ${phase.block.repRange||'standard'}
+- Intensity for ${type}: ${phase.block.intensity||'moderate'}
+${phase.block.notes?`- Notes: ${phase.block.notes}`:''}${phase.block.volumeNote?`\n- Volume: ${phase.block.volumeNote}`:''}
+${phase.block.intensity==='low'||phase.block.name.toLowerCase().includes('deload')?'⚠️ DELOAD PHASE — reduce weights 40-50%, moderate reps, focus on form/mobility.':phase.weekInBlock===phase.block.weeks&&phase.block.weeks>2?'📌 FINAL WEEK of phase — peak volume if ascending, or begin tapering.':phase.weekInBlock===1?'📌 FIRST WEEK of phase — establish working weights at new rep ranges.':'Program within phase parameters.'}
+YOU MUST honor the rep range and intensity. ${phase.block.repRange?`Keep all working sets in the ${phase.block.repRange} rep range.`:''}`;})()}
 
 ${considerations.length > 0 ? `ACTIVE INJURIES/CONSIDERATIONS (CRITICAL - you MUST avoid exercises that stress these areas):
 ${considerations.map(c => `⚠️ ${c}`).join('\n')}
@@ -622,6 +631,8 @@ Weight should be a number or null for bodyweight. Use exercise names from the cl
     const text = data.content?.map(i => i.text || "").join("\n") || "";
     const clean = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
+    const phase=getCurrentPhase(client.program,type);
+    const phaseTag=phase&&!phase.completed&&!phase.upcoming?{name:phase.block.name,week:phase.weekInBlock,totalWeeks:phase.block.weeks,repRange:phase.block.repRange,intensity:phase.block.intensity}:null;
     return {
       id: `ai-${type}-${Date.now()}`,
       date: new Date().toISOString().slice(0, 10),
@@ -630,6 +641,7 @@ Weight should be a number or null for bodyweight. Use exercise names from the cl
       label: parsed.label || `${type} Day`,
       warmup: parsed.warmup || WU[type] || "General warmup",
       reasoning: parsed.reasoning || "",
+      phase: phaseTag,
       blocks: (parsed.blocks || []).map(b => ({
         name: b.name,
         exercises: (b.exercises || []).map(e => ({
@@ -810,6 +822,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
           {w.rpe&&<span style={{...ss.mono,background:(rpeColors[w.rpe]||T.dim)+"20",color:rpeColors[w.rpe]||T.dim,padding:"1px 5px",borderRadius:"4px",fontSize:"10px",fontWeight:700}}>RPE {w.rpe}</span>}
         </div>
         <span style={{...ss.mono,color:T.sub,fontSize:"11px"}}>{dl} · {sets} sets{vol>0?` · ${(vol/1000).toFixed(1)}k vol`:""}{hasPins?" · 📌 pinned":""}</span>
+        {w.phase&&<div style={{display:"flex",gap:"4px",marginTop:"3px"}}><span style={{background:(({low:T.green,moderate:T.accent,high:T.red,max:"#ff4444"})[w.phase.intensity]||T.accent)+"15",color:(({low:T.green,moderate:T.accent,high:T.red,max:"#ff4444"})[w.phase.intensity]||T.accent),fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"3px"}}>📋 {w.phase.name} Wk{w.phase.week}/{w.phase.totalWeeks}{w.phase.repRange?` · ${w.phase.repRange} reps`:""}</span></div>}
       </div>
       <span style={{color:T.sub,fontSize:"16px",transition:"transform .2s",transform:open?"rotate(180deg)":"rotate(0)"}}>▾</span>
     </div>
@@ -895,6 +908,24 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
 // ═══════════════════════════════════════════════════════════════
 //  VIEWS
 // ═══════════════════════════════════════════════════════════════
+// Program / Mesocycle helpers
+function getCurrentPhase(program,type){
+  if(!program?.enabled||!program.blocks?.length||!program.startDate)return null;
+  const start=new Date(program.startDate+"T12:00:00"),now=new Date();
+  const daysSince=Math.floor((now-start)/(86400000));
+  const totalWeeks=program.blocks.reduce((a,b)=>a+b.weeks,0);
+  if(daysSince<0)return{upcoming:true,block:program.blocks[0],blockIndex:0,weekInBlock:0,daysUntilStart:-daysSince,totalWeeks};
+  const weeksSince=Math.floor(daysSince/7);
+  let wk=0;
+  for(let i=0;i<program.blocks.length;i++){const b=program.blocks[i];if(weeksSince<wk+b.weeks){
+    // Merge type-specific overrides if present
+    const ov=type&&b.typeOverrides&&b.typeOverrides[type]?b.typeOverrides[type]:{};
+    const merged={...b,repRange:ov.repRange||b.repRange,intensity:ov.intensity||b.intensity,notes:[b.notes,ov.notes].filter(Boolean).join(". "),volumeNote:ov.volumeNote||b.volumeNote};
+    return{blockIndex:i,block:merged,rawBlock:b,weekInBlock:weeksSince-wk+1,weekTotal:weeksSince+1,totalWeeks};
+  }wk+=b.weeks}
+  return{completed:true,totalWeeks:wk};
+}
+
 function useForge(){
   const[clients,setCl]=useState([]);const[workouts,setWs]=useState({});const[proposals,setProps]=useState({});const[loading,setL]=useState(true);const init=useRef(false);
   const load=useCallback(async()=>{if(init.current)return;init.current=true;const ver=await S.get("forge:ver");if(!ver){await S.set("forge:ver",17);const cls=[SEED_CLIENT_PAT,SEED_CLIENT_RACHEL,SEED_CLIENT_ANGELA,SEED_CLIENT_ADAM,SEED_CLIENT_DEANNA,SEED_CLIENT_KERIE,SEED_CLIENT_BILLY];await S.set("forge:clients",cls);await S.set("forge:w:pat",SEED_PAT);await S.set("forge:w:rachel",SEED_RACHEL);await S.set("forge:w:angela",SEED_ANGELA);await S.set("forge:w:adam",SEED_ADAM);await S.set("forge:w:deanna",SEED_DEANNA);await S.set("forge:w:kerie",SEED_KERIE);await S.set("forge:w:billy",SEED_BILLY)}
@@ -1492,7 +1523,7 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
     </div></div>
 
     <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 10px",overflowX:"auto"}}>
-      {[{id:"overview",l:"Bio"},{id:"next",l:"Next Workouts"},{id:"history",l:"History"},{id:"analytics",l:"Analytics"}].map(t=>
+      {[{id:"overview",l:"Bio"},{id:"next",l:"Next Workouts"},{id:"history",l:"History"},{id:"analytics",l:"Analytics"},{id:"program",l:"📋 Program"}].map(t=>
         <button key={t.id} onClick={()=>setTab(t.id)} style={{background:"none",border:"none",borderBottom:tab===t.id?`2px solid ${T.accent}`:"2px solid transparent",color:tab===t.id?T.accent:T.sub,padding:"9px 12px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>{t.l}</button>
       )}
     </div>
@@ -1511,6 +1542,26 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
             <div style={{background:T.surface,borderRadius:"8px",padding:"10px",textAlign:"center"}}><div style={{...ss.mono,color:cs.streak>=4?T.green:cs.streak>=2?T.accent:T.dim,fontSize:"20px",fontWeight:700}}>{cs.streak}<span style={{fontSize:"11px",fontWeight:400}}>w</span></div><div style={{color:T.dim,fontSize:"10px",marginTop:"2px"}}>Streak</div></div>
           </div>
         </div>}
+        {(()=>{const phase=getCurrentPhase(client.program);if(!phase)return null;
+          const pct=phase.completed?100:phase.upcoming?0:Math.round((phase.weekTotal/phase.totalWeeks)*100);
+          const ic={low:T.green,moderate:T.accent,high:T.red,max:"#ff4444"}[phase.block?.intensity]||T.accent;
+          if(phase.completed)return <div style={{...ss.card,border:`1px solid ${T.green}30`,background:`linear-gradient(135deg,${T.green}08,${T.card})`,padding:"12px 14px",marginBottom:"10px"}}>
+            <div style={{color:T.green,fontSize:"11px",fontWeight:700}}>✅ PROGRAM COMPLETE</div>
+            <div style={{color:T.sub,fontSize:"11px",marginTop:"2px"}}>{phase.totalWeeks}-week program finished. <button onClick={()=>setTab("program")} style={{background:"none",border:"none",color:T.accent,fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",padding:0}}>Set up next block →</button></div>
+          </div>;
+          if(phase.upcoming)return <div style={{...ss.card,border:`1px solid ${T.blue}30`,background:`linear-gradient(135deg,${T.blue}08,${T.card})`,padding:"12px 14px",marginBottom:"10px"}}>
+            <div style={{color:T.blue,fontSize:"11px",fontWeight:700}}>📋 PROGRAM STARTS IN {phase.daysUntilStart} DAYS</div>
+            <div style={{color:T.sub,fontSize:"11px",marginTop:"2px"}}>First phase: {phase.block.name} · <button onClick={()=>setTab("program")} style={{background:"none",border:"none",color:T.accent,fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",padding:0}}>View program →</button></div>
+          </div>;
+          return <div style={{...ss.card,border:`1px solid ${ic}30`,background:`linear-gradient(135deg,${ic}06,${T.card})`,padding:"12px 14px",marginBottom:"10px",cursor:"pointer"}} onClick={()=>setTab("program")}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div><span style={{color:ic,fontSize:"11px",fontWeight:700,letterSpacing:".5px"}}>{phase.block.name.toUpperCase()}</span><span style={{color:T.sub,fontSize:"11px",marginLeft:"8px"}}>Week {phase.weekInBlock}/{phase.block.weeks}</span></div>
+              <span style={{...ss.mono,color:ic,fontSize:"11px",fontWeight:700}}>Wk {phase.weekTotal}/{phase.totalWeeks}</span>
+            </div>
+            {phase.block.repRange&&<div style={{color:T.sub,fontSize:"11px",marginTop:"4px"}}>Rep range: {phase.block.repRange} · Intensity: {phase.block.intensity||"moderate"}</div>}
+            <div style={{height:4,borderRadius:2,background:T.border,marginTop:"6px",overflow:"hidden"}}><div style={{height:"100%",borderRadius:2,background:`linear-gradient(90deg,${ic},${ic}80)`,width:`${pct}%`,transition:"width .3s"}}/></div>
+          </div>;
+        })()}
         <div style={ss.card}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
             <span style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px"}}>CLIENT PROFILE</span>
@@ -1633,10 +1684,19 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
           const loading = genLoading[type];
           const tp = pinned[type] || {};
           const hasPins = Object.values(tp).some(v=>v);
+          const typePhase=getCurrentPhase(client.program,type);
+          const phaseActive=typePhase&&!typePhase.completed&&!typePhase.upcoming;
+          const pic=phaseActive?({low:T.green,moderate:T.accent,high:T.red,max:"#ff4444"})[typePhase.block.intensity]||T.accent:null;
           return <div key={type} style={{marginBottom:"8px"}}>
-            {!p && !loading && <div style={{...ss.card,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div><span style={{...ss.pill(TC[type]),fontSize:"11px",marginRight:"8px"}}>{type}</span><span style={{color:T.sub,fontSize:"12px"}}>No proposal yet</span></div>
-              <button onClick={()=>generateForType(type)} style={{...ss.btn(true),fontSize:"11px",padding:"4px 10px"}}>✨ Generate</button>
+            {!p && !loading && <div style={{...ss.card,border:phaseActive?`1px solid ${pic}30`:`1px solid ${T.border}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><span style={{...ss.pill(TC[type]),fontSize:"11px",marginRight:"8px"}}>{type}</span><span style={{color:T.sub,fontSize:"12px"}}>No proposal yet</span></div>
+                <button onClick={()=>generateForType(type)} style={{...ss.btn(true),fontSize:"11px",padding:"4px 10px"}}>✨ Generate</button>
+              </div>
+              {phaseActive&&<div style={{marginTop:"6px",padding:"5px 8px",background:pic+"08",borderRadius:"5px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{color:pic,fontSize:"10px",fontWeight:700}}>📋 {typePhase.block.name} · Wk {typePhase.weekInBlock}/{typePhase.block.weeks}</span>
+                <span style={{color:T.sub,fontSize:"10px"}}>{typePhase.block.repRange?`${typePhase.block.repRange} reps`:"—"} · {typePhase.block.intensity||"moderate"}</span>
+              </div>}
             </div>}
             {loading && <div style={{...ss.card,textAlign:"center",padding:"20px"}}>
               <div style={{color:T.accent,fontSize:"13px",fontWeight:600,marginBottom:"4px"}}>🧠 Claude is programming {type} day...</div>
@@ -1668,6 +1728,7 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
             onEditSave={()=>{onSaveW(client.id,editW);setEditingWId(null);setEditW(null)}}
             onEditCancel={()=>{setEditingWId(null);setEditW(null)}}
             onDelete={()=>onDeleteW(client.id,w.id)}
+            allExNames={allExNames}
           />})}
         </>}
       </>}
@@ -1693,6 +1754,134 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
           {topEx.map(([n,d])=><div key={n} onClick={()=>setSelEx(n)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:`1px solid ${T.border}15`,cursor:"pointer"}}><div><span style={{color:T.text,fontSize:"11px",fontWeight:500}}>{n}</span><div style={{display:"flex",gap:"2px",marginTop:"1px"}}>{(MM[n]||[]).filter(m=>m!=="Grip").slice(0,3).map(m=><Pill key={m} g={m}/>)}</div></div><div style={{textAlign:"right"}}><span style={{...ss.mono,color:T.accent,fontSize:"12px",fontWeight:600}}>{d.count}×</span>{d.lastW&&<div style={{color:T.dim,fontSize:"9px"}}>last: {d.lastW}#</div>}</div></div>)}
         </div>
         </>}
+      </>}
+
+      {tab==="program"&&<>
+        {(()=>{
+          const prog=client.program||{enabled:false,startDate:"",blocks:[]};
+          const phase=getCurrentPhase(prog);
+          const totalWks=prog.blocks?.reduce((a,b)=>a+(b.weeks||0),0)||0;
+          const intColors={low:T.green,moderate:T.accent,high:T.red,max:"#ff4444"};
+
+          if(!prog.enabled)return <div style={{textAlign:"center",padding:"32px 16px"}}>
+            <div style={{fontSize:"32px",marginBottom:"8px"}}>📋</div>
+            <div style={{color:T.text,fontWeight:700,fontSize:"15px",marginBottom:"6px"}}>Periodized Programming</div>
+            <div style={{color:T.sub,fontSize:"12px",marginBottom:"4px",lineHeight:1.6}}>Set up mesocycles with structured phases — hypertrophy, strength, deload — so the AI generates workouts that follow a progressive plan.</div>
+            <div style={{color:T.dim,fontSize:"11px",marginBottom:"16px"}}>Optional — {client.name} can continue training without a program.</div>
+            <button onClick={()=>onSaveCl({...client,program:{enabled:true,startDate:new Date().toISOString().slice(0,10),blocks:[
+              {name:"Hypertrophy",weeks:4,repRange:"8-12",intensity:"moderate",volumeNote:"Ascending volume — add 1-2 sets/week",notes:""},
+              {name:"Strength",weeks:3,repRange:"4-6",intensity:"high",volumeNote:"Peak intensity week 2, slight taper week 3",notes:""},
+              {name:"Deload",weeks:1,repRange:"10-15",intensity:"low",volumeNote:"50-60% working weights, focus on form",notes:"Recovery week"}
+            ]}})} style={{...ss.btn(true),fontSize:"13px",padding:"10px 24px"}}>Enable Program</button>
+          </div>;
+
+          const upProg=(updates)=>onSaveCl({...client,program:{...prog,...updates}});
+          const upBlock=(i,updates)=>{const nb=[...prog.blocks];nb[i]={...nb[i],...updates};upProg({blocks:nb})};
+          const addBlock=()=>upProg({blocks:[...prog.blocks,{name:"New Phase",weeks:4,repRange:"8-12",intensity:"moderate",volumeNote:"",notes:""}]});
+          const delBlock=(i)=>{if(prog.blocks.length<=1)return;upProg({blocks:prog.blocks.filter((_,j)=>j!==i)})};
+          const moveBlk=(i,dir)=>{const nb=[...prog.blocks];const ti=i+dir;if(ti<0||ti>=nb.length)return;[nb[i],nb[ti]]=[nb[ti],nb[i]];upProg({blocks:nb})};
+
+          return <>
+            {phase&&!phase.completed&&!phase.upcoming&&<div style={{...ss.card,border:`1px solid ${(intColors[phase.block.intensity]||T.accent)}30`,background:`linear-gradient(135deg,${(intColors[phase.block.intensity]||T.accent)}06,${T.card})`,padding:"14px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}>
+                <span style={{color:intColors[phase.block.intensity]||T.accent,fontSize:"13px",fontWeight:700}}>{phase.block.name}</span>
+                <span style={{...ss.mono,fontSize:"12px",color:T.text,fontWeight:600}}>Week {phase.weekInBlock} of {phase.block.weeks}</span>
+              </div>
+              <div style={{color:T.sub,fontSize:"11px",marginBottom:"6px"}}>Overall progress: week {phase.weekTotal} of {phase.totalWeeks}{phase.block.repRange?` · Target reps: ${phase.block.repRange}`:""}{phase.block.intensity?` · Intensity: ${phase.block.intensity}`:""}</div>
+              <div style={{height:6,borderRadius:3,background:T.border,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,background:`linear-gradient(90deg,${intColors[phase.block.intensity]||T.accent},${intColors[phase.block.intensity]||T.accent}80)`,width:`${Math.round((phase.weekTotal/phase.totalWeeks)*100)}%`,transition:"width .3s"}}/></div>
+            </div>}
+            {phase?.completed&&<div style={{...ss.card,border:`1px solid ${T.green}30`,textAlign:"center",padding:"16px"}}>
+              <div style={{fontSize:"20px",marginBottom:"4px"}}>🏆</div>
+              <div style={{color:T.green,fontWeight:700,fontSize:"13px"}}>Program Complete!</div>
+              <div style={{color:T.sub,fontSize:"11px",marginTop:"2px"}}>All {phase.totalWeeks} weeks finished. Edit below to start a new cycle.</div>
+            </div>}
+
+            <div style={ss.card}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
+                <span style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px"}}>PROGRAM SETTINGS</span>
+                <button onClick={()=>upProg({enabled:false})} style={{background:"none",border:"none",color:T.dim,fontSize:"10px",cursor:"pointer",fontFamily:"inherit"}}>Disable Program</button>
+              </div>
+              <label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Start Date</label>
+              <input type="date" style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"8px 10px",borderRadius:"6px",fontSize:"13px",fontFamily:"inherit",marginBottom:"10px"}} value={prog.startDate||""} onChange={e=>upProg({startDate:e.target.value})}/>
+              <div style={{color:T.dim,fontSize:"10px",marginBottom:"4px"}}>Total: {totalWks} weeks ({Math.round(totalWks/4.3)} months) · End: {prog.startDate?new Date(new Date(prog.startDate+"T12:00:00").getTime()+totalWks*7*86400000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"—"}</div>
+            </div>
+
+            <div style={{...ss.card,padding:"14px"}}>
+              <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"10px"}}>PHASE TIMELINE</div>
+              <div style={{display:"flex",gap:"2px",height:"8px",borderRadius:"4px",overflow:"hidden",marginBottom:"8px"}}>
+                {prog.blocks.map((b,i)=><div key={i} style={{flex:b.weeks||1,background:intColors[b.intensity]||T.accent,opacity:phase&&!phase.completed&&!phase.upcoming&&phase.blockIndex===i?1:0.4,transition:"opacity .3s"}}/>)}
+              </div>
+              <div style={{display:"flex",gap:"2px"}}>
+                {prog.blocks.map((b,i)=><div key={i} style={{flex:b.weeks||1,textAlign:"center"}}><span style={{color:phase&&!phase.completed&&!phase.upcoming&&phase.blockIndex===i?T.text:T.dim,fontSize:"9px",fontWeight:600}}>{b.name}</span></div>)}
+              </div>
+            </div>
+
+            {prog.blocks.map((b,i)=>{
+              const isCurrent=phase&&!phase.completed&&!phase.upcoming&&phase.blockIndex===i;
+              const ic=intColors[b.intensity]||T.accent;
+              return <div key={i} style={{...ss.card,border:isCurrent?`2px solid ${ic}40`:`1px solid ${T.border}`,background:isCurrent?`linear-gradient(135deg,${ic}04,${T.card})`:T.card}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
+                    <span style={{...ss.mono,color:T.dim,fontSize:"11px",fontWeight:700}}>{i+1}</span>
+                    {isCurrent&&<span style={{background:ic+"20",color:ic,fontSize:"9px",fontWeight:700,padding:"1px 6px",borderRadius:"3px"}}>CURRENT</span>}
+                  </div>
+                  <div style={{display:"flex",gap:"4px",alignItems:"center"}}>
+                    <button onClick={()=>moveBlk(i,-1)} disabled={i===0} style={{background:"none",border:"none",color:i===0?T.border:T.sub,fontSize:"14px",cursor:"pointer",padding:"2px"}}>↑</button>
+                    <button onClick={()=>moveBlk(i,1)} disabled={i===prog.blocks.length-1} style={{background:"none",border:"none",color:i===prog.blocks.length-1?T.border:T.sub,fontSize:"14px",cursor:"pointer",padding:"2px"}}>↓</button>
+                    {prog.blocks.length>1&&<button onClick={()=>delBlock(i)} style={{background:"none",border:"none",color:T.red+"80",fontSize:"14px",cursor:"pointer",padding:"2px"}}>×</button>}
+                  </div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 60px",gap:"6px",marginBottom:"6px"}}>
+                  <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Phase Name</label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"5px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.name} onChange={e=>upBlock(i,{name:e.target.value})}/></div>
+                  <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Weeks</label><input type="number" min="1" max="12" style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"5px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.weeks||""} onChange={e=>upBlock(i,{weeks:parseInt(e.target.value)||0})}/></div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"6px"}}>
+                  <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Rep Range</label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"5px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.repRange||""} onChange={e=>upBlock(i,{repRange:e.target.value})} placeholder="e.g. 8-12"/></div>
+                  <div><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Intensity</label>
+                    <div style={{display:"flex",gap:"3px"}}>{["low","moderate","high","max"].map(lv=><button key={lv} onClick={()=>upBlock(i,{intensity:lv})} style={{flex:1,padding:"5px 0",borderRadius:"5px",border:`1px solid ${b.intensity===lv?(intColors[lv]||T.accent):T.border}`,background:b.intensity===lv?(intColors[lv]||T.accent)+"15":"transparent",color:b.intensity===lv?(intColors[lv]||T.accent):T.dim,fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{lv}</button>)}</div>
+                  </div>
+                </div>
+                <div style={{marginBottom:"4px"}}><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Volume / Progression</label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"5px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.volumeNote||""} onChange={e=>upBlock(i,{volumeNote:e.target.value})} placeholder="e.g. Ascending volume, add 1-2 sets/wk"/></div>
+                <div style={{marginBottom:"6px"}}><label style={{color:T.dim,fontSize:"10px",display:"block",marginBottom:"2px"}}>Notes</label><input style={{background:T.surface,border:`1px solid ${T.border}`,color:T.text,padding:"6px 8px",borderRadius:"5px",fontSize:"12px",fontFamily:"inherit",width:"100%",boxSizing:"border-box"}} value={b.notes||""} onChange={e=>upBlock(i,{notes:e.target.value})} placeholder="Focus areas, specific exercises..."/></div>
+                {types.length>1&&<div style={{marginTop:"6px",borderTop:`1px solid ${T.border}18`,paddingTop:"8px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}>
+                    <span style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:".5px"}}>PER-TYPE OVERRIDES</span>
+                    <span style={{color:T.dim,fontSize:"9px"}}>Leave blank to use defaults above</span>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:`repeat(${Math.min(types.length,3)},1fr)`,gap:"4px"}}>
+                    {types.map(t=>{const ov=(b.typeOverrides||{})[t]||{};const tc2=TC[t]||T.accent;const hasOv=ov.repRange||ov.intensity;
+                      return <div key={t} style={{background:hasOv?tc2+"06":T.surface,border:`1px solid ${hasOv?tc2+"30":T.border}`,borderRadius:"6px",padding:"6px 8px"}}>
+                        <span style={{color:tc2,fontSize:"10px",fontWeight:700,textTransform:"uppercase",display:"block",marginBottom:"4px"}}>{t}</span>
+                        <input style={{background:T.card,border:`1px solid ${T.border}`,color:T.text,padding:"4px 6px",borderRadius:"4px",fontSize:"11px",fontFamily:"inherit",width:"100%",boxSizing:"border-box",marginBottom:"3px"}} value={ov.repRange||""} onChange={e=>{const nOv={...ov,repRange:e.target.value};const to={...(b.typeOverrides||{}),[t]:nOv};upBlock(i,{typeOverrides:to})}} placeholder={b.repRange||"reps"}/>
+                        <div style={{display:"flex",gap:"2px"}}>{["low","moderate","high"].map(lv=>{const sel=(ov.intensity||"")=== lv;return <button key={lv} onClick={()=>{const nOv={...ov,intensity:sel?"":lv};const to={...(b.typeOverrides||{}),[t]:nOv};upBlock(i,{typeOverrides:to})}} style={{flex:1,padding:"3px 0",borderRadius:"3px",border:`1px solid ${sel?(intColors[lv]||T.accent):T.border}`,background:sel?(intColors[lv]||T.accent)+"15":"transparent",color:sel?(intColors[lv]||T.accent):T.dim,fontSize:"8px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{lv.slice(0,3)}</button>})}</div>
+                      </div>})}
+                  </div>
+                </div>}
+              </div>})}
+            <button onClick={addBlock} style={{background:"none",border:`1px dashed ${T.border}`,color:T.dim,padding:"10px",borderRadius:"8px",width:"100%",fontSize:"12px",cursor:"pointer",fontFamily:"inherit",marginBottom:"8px"}}>+ Add Phase</button>
+
+            {/* Generate from Program CTA */}
+            {phase&&!phase.completed&&<div style={{...ss.card,border:`1px solid ${T.accent}30`,background:`linear-gradient(135deg,${T.accent}06,${T.card})`,padding:"14px",textAlign:"center",marginBottom:"8px"}}>
+              <div style={{color:T.text,fontWeight:600,fontSize:"13px",marginBottom:"6px"}}>Program is active — ready to generate workouts</div>
+              <div style={{color:T.sub,fontSize:"11px",marginBottom:"10px"}}>AI will follow {phase.block?.name||"current"} phase parameters for each workout type</div>
+              <div style={{display:"flex",gap:"8px",justifyContent:"center"}}>
+                <button onClick={()=>setTab("next")} style={{...ss.btn(false),fontSize:"11px",padding:"6px 14px"}}>→ Next Workouts</button>
+                <button onClick={()=>{setTab("next");setTimeout(()=>generateAll(),100)}} style={{...ss.btn(true),fontSize:"11px",padding:"6px 14px"}}>✨ Generate All from Program</button>
+              </div>
+            </div>}
+
+            <div style={ss.card}>
+              <div style={{color:T.sub,fontSize:"11px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>QUICK TEMPLATES</div>
+              <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
+                {[
+                  {label:"Hypertrophy → Strength",blocks:[{name:"Hypertrophy",weeks:4,repRange:"8-12",intensity:"moderate",volumeNote:"Ascending volume",notes:""},{name:"Strength",weeks:3,repRange:"4-6",intensity:"high",volumeNote:"Peak week 2",notes:""},{name:"Deload",weeks:1,repRange:"10-15",intensity:"low",volumeNote:"50-60% weights",notes:"Recovery"}]},
+                  {label:"Linear Progression",blocks:[{name:"Foundation",weeks:3,repRange:"10-12",intensity:"moderate",volumeNote:"Establish working weights",notes:""},{name:"Build",weeks:3,repRange:"6-8",intensity:"high",volumeNote:"Add weight weekly",notes:""},{name:"Peak",weeks:2,repRange:"3-5",intensity:"max",volumeNote:"Test new maxes week 2",notes:""},{name:"Deload",weeks:1,repRange:"12-15",intensity:"low",volumeNote:"Active recovery",notes:""}]},
+                  {label:"Body Recomp",blocks:[{name:"Volume",weeks:4,repRange:"10-15",intensity:"moderate",volumeNote:"High volume, moderate weight",notes:"Metabolic stress focus"},{name:"Strength",weeks:3,repRange:"5-8",intensity:"high",volumeNote:"Heavy compounds",notes:""},{name:"Active Recovery",weeks:1,repRange:"12-20",intensity:"low",volumeNote:"Light circuits, mobility",notes:""}]}
+                ].map(t=><button key={t.label} onClick={()=>upProg({blocks:t.blocks,startDate:prog.startDate||new Date().toISOString().slice(0,10)})} style={{background:T.surface,border:`1px solid ${T.border}`,color:T.sub,padding:"6px 10px",borderRadius:"6px",fontSize:"11px",fontWeight:500,cursor:"pointer",fontFamily:"inherit"}}>{t.label}</button>)}
+              </div>
+            </div>
+          </>;
+        })()}
       </>}
     </div>
     {selEx&&<ExProg name={selEx} ws={sorted} onClose={()=>setSelEx(null)}/>}
