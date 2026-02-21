@@ -766,10 +766,17 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
   const rowRefs=useRef({});
   const moveBlock=(bi,dir)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));const ti=bi+dir;if(ti<0||ti>=nw.blocks.length)return;[nw.blocks[bi],nw.blocks[ti]]=[nw.blocks[ti],nw.blocks[bi]];onChange(nw)};
   const moveEx=(bi,ei,dir)=>{if(!onChange)return;const nw=JSON.parse(JSON.stringify(w));const exs=nw.blocks[bi].exercises;const ti=ei+dir;if(ti<0||ti>=exs.length)return;[exs[ei],exs[ti]]=[exs[ti],exs[ei]];onChange(nw)};
-  // Touch drag for exercises
-  const onTouchStart=(bi,ei,e)=>{if(!reorder)return;const el=e.currentTarget.closest('[data-exrow]');if(!el)return;const t=e.touches[0];dragRef.current={bi,ei,startY:t.clientY,el,moved:false};el.style.transition="none";el.style.zIndex="10";el.style.opacity="0.85";};
-  const onTouchMove=(e)=>{const d=dragRef.current;if(!d)return;e.preventDefault();const t=e.touches[0];const dy=t.clientY-d.startY;d.el.style.transform=`translateY(${dy}px)`;d.moved=true;};
-  const onTouchEnd=()=>{const d=dragRef.current;if(!d){return}d.el.style.transition="transform 0.15s";d.el.style.transform="";d.el.style.zIndex="";d.el.style.opacity="";if(d.moved){const rect=d.el.getBoundingClientRect();const cy=rect.top+rect.height/2;const exs=w.blocks[d.bi].exercises;let best=-1,bestDist=Infinity;exs.forEach((_,i)=>{const key=`${d.bi}-${i}`;const ref=rowRefs.current[key];if(!ref)return;const r=ref.getBoundingClientRect();const mid=r.top+r.height/2;const dist=Math.abs(cy-mid);if(dist<bestDist){bestDist=dist;best=i}});if(best>=0&&best!==d.ei){const nw=JSON.parse(JSON.stringify(w));const exArr=nw.blocks[d.bi].exercises;const[moved]=exArr.splice(d.ei,1);exArr.splice(best,0,moved);if(onChange)onChange(nw)}}dragRef.current=null;};
+  // Global touch drag
+  useEffect(()=>{if(!reorder)return;
+    const onMove=(e)=>{const d=dragRef.current;if(!d)return;e.preventDefault();const t=e.touches[0];const dy=t.clientY-d.startY;d.el.style.transform=`translateY(${dy}px)`;d.moved=true};
+    const onEnd=()=>{const d=dragRef.current;if(!d)return;d.el.style.transition="transform 0.15s";d.el.style.transform="";d.el.style.zIndex="";d.el.style.opacity="";d.el.style.boxShadow="";
+      if(d.moved&&onChange){const rect=d.el.getBoundingClientRect();const cy=rect.top+rect.height/2;const exs=w.blocks[d.bi]?.exercises||[];let best=-1,bestDist=Infinity;exs.forEach((_,i)=>{const ref=rowRefs.current[`${d.bi}-${i}`];if(!ref)return;const r=ref.getBoundingClientRect();const mid=r.top+r.height/2;if(Math.abs(cy-mid)<bestDist){bestDist=Math.abs(cy-mid);best=i}});
+        if(best>=0&&best!==d.ei){const nw=JSON.parse(JSON.stringify(w));const arr=nw.blocks[d.bi].exercises;const[item]=arr.splice(d.ei,1);arr.splice(best,0,item);onChange(nw)}}
+      dragRef.current=null};
+    document.addEventListener("touchmove",onMove,{passive:false});document.addEventListener("touchend",onEnd);document.addEventListener("touchcancel",onEnd);
+    return()=>{document.removeEventListener("touchmove",onMove);document.removeEventListener("touchend",onEnd);document.removeEventListener("touchcancel",onEnd)};
+  },[reorder,w,onChange]);
+  const onGripStart=(bi,ei,e)=>{if(!reorder)return;const el=e.currentTarget.closest('[data-exrow]');if(!el)return;const t=e.touches[0];dragRef.current={bi,ei,startY:t.clientY,el,moved:false};el.style.transition="none";el.style.zIndex="10";el.style.opacity="0.9";el.style.boxShadow="0 4px 12px rgba(0,0,0,0.15)"};
 
   return <div style={{background:isL?`linear-gradient(135deg,${T.card},${T.green}08)`:isP?`linear-gradient(135deg,${T.card},${T.accent}06)`:editing?`linear-gradient(135deg,${T.card},${T.blue}06)`:T.card,border:`1px solid ${isL?T.green+"40":isP?T.accent+"30":editing?T.blue+"40":T.border}`,borderRadius:"10px",overflow:"hidden",marginBottom:"8px"}}>
     <div onClick={toggle} style={{padding:"12px 14px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -799,7 +806,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
         {bl.exercises.map((ex,ei)=>{const ms=(MM[ex.name]||[]).filter(m=>m!=="Grip");const pk=pinKey(bi,ei);const isPinned=pinned&&pinned[pk];
           return <div key={ei} data-exrow ref={el=>{rowRefs.current[`${bi}-${ei}`]=el}} style={{display:"flex",alignItems:"flex-start",gap:"0",position:"relative",background:T.card}}>
             {reorder&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"4px 2px 4px 6px",gap:"0",flexShrink:0,touchAction:"none"}}
-              onTouchStart={e=>onTouchStart(bi,ei,e)} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+              onTouchStart={e=>onGripStart(bi,ei,e)}>
               <button onClick={()=>moveEx(bi,ei,-1)} disabled={ei===0} style={{background:"none",border:"none",color:ei===0?T.border:T.sub,fontSize:"12px",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>▲</button>
               <span style={{color:T.dim,fontSize:"11px",cursor:"grab",padding:"2px 4px",userSelect:"none"}}>☰</span>
               <button onClick={()=>moveEx(bi,ei,1)} disabled={ei===bl.exercises.length-1} style={{background:"none",border:"none",color:ei===bl.exercises.length-1?T.border:T.sub,fontSize:"12px",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>▼</button>
@@ -1573,7 +1580,7 @@ function ClientView({client,ws,onNav,onSaveW,onDeleteW,onSaveCl,initTab}){
               <div style={{marginTop:"8px",height:"3px",background:T.border,borderRadius:"2px",overflow:"hidden"}}><div style={{height:"100%",width:"70%",background:`linear-gradient(90deg,${T.accent},${T.cyan})`,borderRadius:"2px",animation:"pulse 1.5s ease infinite"}} /></div>
             </div>}
             {p && !loading && <div>
-              <WCard w={p} open={exp[p.id]!==false} toggle={()=>tog(p.id)} onAction={handleAction} pinned={tp} onTogglePin={(pk)=>setPinned(prev=>({...prev,[type]:{...(prev[type]||{}), [pk]:!(prev[type]||{})[pk]}}))} onExClick={setSelEx}/>
+              <WCard w={p} open={exp[p.id]!==false} toggle={()=>tog(p.id)} onChange={(nw)=>setProposals(prev=>prev.map(x=>x.type===type?nw:x))} onAction={handleAction} pinned={tp} onTogglePin={(pk)=>setPinned(prev=>({...prev,[type]:{...(prev[type]||{}), [pk]:!(prev[type]||{})[pk]}}))} onExClick={setSelEx}/>
               <div style={{textAlign:"right",marginTop:"-4px",marginBottom:"8px",display:"flex",justifyContent:"flex-end",gap:"10px"}}>
                 {hasPins&&<button onClick={()=>generateForType(type,true)} style={{background:"none",border:"none",color:T.accent,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>✨ Regen unpinned</button>}
                 <button onClick={()=>generateForType(type)} style={{background:"none",border:"none",color:T.cyan,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>↻ Regenerate all</button>
