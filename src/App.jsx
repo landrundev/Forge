@@ -713,17 +713,34 @@ function ExProg({name,ws,onClose}){
   </div>;
 }
 
-function ExRow({ex,bi,ei,live,editing,isDone,isProposed,ms,upEx,delEx,splitEx,onExClick}){
+function ExRow({ex,bi,ei,live,editing,isDone,isProposed,ms,upEx,delEx,splitEx,onExClick,allExNames}){
   const showCheck=live&&!editing&&!isProposed;
   const showInputs=live||isProposed;
   const canSplit=live&&!isProposed&&(ex.sets||1)>1;
+  const nameEditable=isProposed||(live&&ex.name==="New Exercise");
+  const[acOpen,setAcOpen]=useState(false);
+  const[acSearch,setAcSearch]=useState("");
+  const acFiltered=acOpen&&acSearch.length>0&&allExNames?allExNames.filter(n=>n.toLowerCase().includes(acSearch.toLowerCase())&&n!==ex.name).slice(0,8):[];
+  const pickName=(name)=>{upEx(bi,ei,"name",name);setAcOpen(false);setAcSearch("")};
   return <div style={{padding:"8px 14px",borderBottom:`1px solid ${T.border}12`,opacity:showCheck&&isDone?.5:1,background:showCheck&&isDone?T.green+"06":"transparent"}}>
     <div style={{display:"grid",gridTemplateColumns:showCheck?"26px 1fr auto":"1fr auto",gap:"8px",alignItems:"center"}}>
       {showCheck&&<button onClick={()=>upEx(bi,ei,"done",!isDone)} style={{width:24,height:24,borderRadius:"6px",border:`2px solid ${isDone?T.green:T.border}`,background:isDone?T.green+"25":"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",color:T.green,flexShrink:0,padding:0}}>{isDone?"✓":""}</button>}
-      <div style={{minWidth:0}}>
-        {isProposed?<input style={{...ss.inp,width:"100%",fontSize:"13px",fontWeight:500,padding:"4px 6px",boxSizing:"border-box"}} value={ex.name} onChange={e=>upEx(bi,ei,"name",e.target.value)}/>
+      <div style={{minWidth:0,position:"relative"}}>
+        {nameEditable?<>
+          <input style={{...ss.inp,width:"100%",fontSize:"13px",fontWeight:500,padding:"4px 6px",boxSizing:"border-box"}} value={acOpen?acSearch:ex.name}
+            onFocus={()=>{setAcOpen(true);setAcSearch(ex.name==="New Exercise"?"":ex.name)}}
+            onChange={e=>{setAcSearch(e.target.value);setAcOpen(true);upEx(bi,ei,"name",e.target.value)}}
+            onBlur={()=>setTimeout(()=>setAcOpen(false),200)}
+            placeholder="Exercise name..."/>
+          {acFiltered.length>0&&<div style={{position:"absolute",top:"100%",left:0,right:0,background:T.card,border:`1px solid ${T.border}`,borderRadius:"0 0 6px 6px",maxHeight:"180px",overflowY:"auto",zIndex:99,boxShadow:"0 4px 12px rgba(0,0,0,0.1)"}}>
+            {acFiltered.map(n=>{const nms=(MM[n]||[]).filter(m=>m!=="Grip");return <div key={n} onMouseDown={e=>e.preventDefault()} onClick={()=>pickName(n)} style={{padding:"6px 8px",cursor:"pointer",fontSize:"12px",color:T.text,borderBottom:`1px solid ${T.border}18`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span>{n}</span>
+              {nms.length>0&&<div style={{display:"flex",gap:"2px"}}>{nms.slice(0,2).map(m=><Pill key={m} g={m}/>)}</div>}
+            </div>})}
+          </div>}
+        </>
         :<div style={{color:T.text,fontSize:"13px",fontWeight:500,textDecoration:showCheck&&isDone?"line-through":"none",cursor:onExClick?"pointer":"default"}} onClick={()=>onExClick&&onExClick(ex.name)}>{ex.name}</div>}
-        {ms.length>0&&<div style={{display:"flex",gap:"3px",flexWrap:"wrap",marginTop:"2px"}}>{ms.slice(0,3).map(m=><Pill key={m} g={m}/>)}</div>}
+        {ms.length>0&&!acOpen&&<div style={{display:"flex",gap:"3px",flexWrap:"wrap",marginTop:"2px"}}>{ms.slice(0,3).map(m=><Pill key={m} g={m}/>)}</div>}
       </div>
       <div style={{display:"flex",alignItems:"center",gap:"6px",flexShrink:0}}>
         {showInputs?<>
@@ -746,7 +763,7 @@ function ExRow({ex,bi,ei,live,editing,isDone,isProposed,ms,upEx,delEx,splitEx,on
   </div>;
 }
 
-function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClick,editing,onEdit,onEditSave,onEditCancel,onDelete}){
+function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClick,editing,onEdit,onEditSave,onEditCancel,onDelete,allExNames}){
   const sets=w.blocks.reduce((a,b)=>a+b.exercises.reduce((s2,e)=>s2+(e.sets||0),0),0);
   const vol=w.blocks.reduce((a,b)=>a+b.exercises.reduce((s2,e)=>s2+((e.sets||0)*(e.reps||0)*(e.weight||0)),0),0);
   const dt=new Date(w.date+"T12:00:00");
@@ -815,7 +832,7 @@ function WCard({w,open,toggle,live,onChange,onAction,pinned,onTogglePin,onExClic
               <button onClick={()=>moveEx(bi,ei,1)} disabled={ei===bl.exercises.length-1} style={{background:"none",border:"none",color:ei===bl.exercises.length-1?T.border:T.sub,fontSize:"12px",cursor:"pointer",padding:"1px 4px",lineHeight:1}}>▼</button>
             </div>}
             {isP&&!reorder&&onTogglePin&&<button onClick={(e)=>{e.stopPropagation();onTogglePin(pk)}} style={{background:"none",border:"none",cursor:"pointer",padding:"8px 2px 8px 10px",fontSize:"13px",flexShrink:0,color:isPinned?T.accent:T.dim,opacity:isPinned?1:0.4}}>{isPinned?"📌":"○"}</button>}
-            <div style={{flex:1}}><ExRow ex={ex} bi={bi} ei={ei} live={canEdit} editing={editing} isDone={!editing&&ex.done} isProposed={isP} ms={ms} upEx={upEx} delEx={delEx} splitEx={splitEx} onExClick={onExClick}/></div>
+            <div style={{flex:1}}><ExRow ex={ex} bi={bi} ei={ei} live={canEdit} editing={editing} isDone={!editing&&ex.done} isProposed={isP} ms={ms} upEx={upEx} delEx={delEx} splitEx={splitEx} onExClick={onExClick} allExNames={allExNames}/></div>
           </div>;
         })}
         {(isP||isL)&&onChange&&<button onClick={()=>{const nw=JSON.parse(JSON.stringify(w));nw.blocks[bi].exercises.push({name:"New Exercise",sets:3,reps:10,weight:null,notes:"",done:false});onChange(nw)}} style={{background:"none",border:"none",color:isL?T.green:T.accent,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",padding:"4px 14px 6px",fontWeight:600,opacity:0.7}}>+ Add exercise</button>}
@@ -1413,6 +1430,7 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
   const af=exFreq(sorted);
   const topEx=Object.entries(af).filter(([n])=>(MM[n]||[]).length>0).sort((a,b)=>b[1].count-a[1].count).slice(0,12);
   const considerations=client.considerations||[];
+  const allExNames=useMemo(()=>{const s=new Set(Object.keys(MM));sorted.forEach(w=>w.blocks.forEach(b=>b.exercises.forEach(e=>{if(e.name)s.add(e.name)})));return[...s].sort()},[sorted]);
   const filtHist=filt==="all"?sorted:sorted.filter(w=>w.type===filt);
   const tog=id=>setExp(p=>({...p,[id]:!p[id]}));
 
@@ -1463,7 +1481,7 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
     <div style={{...ss.header,background:`linear-gradient(180deg,${T.green}10,${T.surface})`}}>
       <div style={{display:"flex",alignItems:"center",gap:"8px"}}><span style={{background:T.green,color:T.bg,padding:"2px 7px",borderRadius:"5px",fontSize:"10px",fontWeight:800,letterSpacing:"1px"}}>● LIVE</span><h2 style={{margin:0,fontSize:"16px"}}>{liveW.label}</h2><span style={{color:T.sub,fontSize:"11px",marginLeft:"auto"}}>{client.name}</span>{elapsed&&<span style={{...ss.mono,background:T.green+"15",color:T.green,padding:"2px 8px",borderRadius:"5px",fontSize:"11px",fontWeight:600}}>⏱ {elapsed}</span>}</div>
     </div>
-    <div style={ss.content}><WCard w={liveW} open={true} toggle={()=>{}} live onChange={setLiveW} onAction={handleAction} onExClick={setSelEx}/></div>
+    <div style={ss.content}><WCard w={liveW} open={true} toggle={()=>{}} live onChange={setLiveW} onAction={handleAction} onExClick={setSelEx} allExNames={allExNames}/></div>
   </div>;
 
   return <div>
@@ -1626,7 +1644,7 @@ function ClientView({client,ws,proposals,onSaveProposals,onClearProposals,onNav,
               <div style={{marginTop:"8px",height:"3px",background:T.border,borderRadius:"2px",overflow:"hidden"}}><div style={{height:"100%",width:"70%",background:`linear-gradient(90deg,${T.accent},${T.cyan})`,borderRadius:"2px",animation:"pulse 1.5s ease infinite"}} /></div>
             </div>}
             {p && !loading && <div>
-              <WCard w={p} open={exp[p.id]!==false} toggle={()=>tog(p.id)} onChange={(nw)=>setProposals(prev=>prev.map(x=>x.type===type?nw:x))} onAction={handleAction} pinned={tp} onTogglePin={(pk)=>setPinned(prev=>({...prev,[type]:{...(prev[type]||{}), [pk]:!(prev[type]||{})[pk]}}))} onExClick={setSelEx}/>
+              <WCard w={p} open={exp[p.id]!==false} toggle={()=>tog(p.id)} onChange={(nw)=>setProposals(prev=>prev.map(x=>x.type===type?nw:x))} onAction={handleAction} pinned={tp} onTogglePin={(pk)=>setPinned(prev=>({...prev,[type]:{...(prev[type]||{}), [pk]:!(prev[type]||{})[pk]}}))} onExClick={setSelEx} allExNames={allExNames}/>
               <div style={{textAlign:"right",marginTop:"-4px",marginBottom:"8px",display:"flex",justifyContent:"flex-end",gap:"10px"}}>
                 {hasPins&&<button onClick={()=>generateForType(type,true)} style={{background:"none",border:"none",color:T.accent,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>✨ Regen unpinned</button>}
                 <button onClick={()=>generateForType(type)} style={{background:"none",border:"none",color:T.cyan,fontSize:"11px",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>↻ Regenerate all</button>
