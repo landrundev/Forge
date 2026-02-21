@@ -649,7 +649,7 @@ Weight should be a number or null for bodyweight. Use exercise names from the cl
 //  UI COMPONENTS (v5 — improved layout)
 // ═══════════════════════════════════════════════════════════════
 const ss={
-  page:{minHeight:"100vh",background:T.surface,color:T.text,fontFamily:"'Outfit','Helvetica Neue',sans-serif",paddingBottom:"70px",overflowX:"hidden"},
+  page:{minHeight:"100vh",background:T.surface,color:T.text,fontFamily:"'Outfit','Helvetica Neue',sans-serif",paddingBottom:"52px",overflowX:"hidden"},
   header:{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"14px 16px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},
   content:{padding:"14px",maxWidth:"700px",margin:"0 auto",overflow:"hidden"},
   card:{background:T.card,border:`1px solid ${T.border}`,borderRadius:"10px",padding:"14px",marginBottom:"10px",boxShadow:"0 1px 3px rgba(0,0,0,0.06)",overflow:"hidden"},
@@ -657,7 +657,7 @@ const ss={
   pill:(c)=>({display:"inline-block",padding:"2px 6px",borderRadius:"4px",fontSize:"9px",fontWeight:700,letterSpacing:".3px",textTransform:"uppercase",background:(c||T.dim)+"15",color:c||T.dim,border:`1px solid ${(c||T.dim)}25`}),
   inp:{background:T.card,border:`1px solid ${T.border}`,color:T.text,padding:"7px 8px",borderRadius:"5px",fontSize:"13px",fontFamily:"'JetBrains Mono',monospace",width:"50px",textAlign:"center"},
   mono:{fontFamily:"'JetBrains Mono',monospace"},
-  navBar:{position:"fixed",bottom:0,left:0,right:0,background:T.surface,borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-around",padding:"6px 0 10px",zIndex:100,boxShadow:"0 -1px 3px rgba(0,0,0,0.04)"},
+  navBar:{position:"fixed",bottom:0,left:0,right:0,background:T.surface,borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-around",padding:"4px 0 6px",zIndex:100,boxShadow:"0 -1px 3px rgba(0,0,0,0.04)",transition:"transform .25s ease"},
   navBtn:(a)=>({background:"none",border:"none",color:a?T.accent:T.dim,fontSize:"11px",fontWeight:600,display:"flex",flexDirection:"column",alignItems:"center",gap:"1px",cursor:"pointer",fontFamily:"inherit",padding:"3px 12px"}),
 };
 function Pill({g}){return <span style={ss.pill(MC[g])}>{g}</span>}
@@ -1127,15 +1127,15 @@ function TrainerStats({clients,workouts,onBack}){
         <Hero v={S.busiestMonth[0]?moName(S.busiestMonth[0]):"—"} l="Busiest Month" sub={`${S.busiestMonth[1]} sessions`} c={T.green}/>
       </div>
       <div style={ss.card}>
-        <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"8px"}}>SESSIONS BY DAY</div>
-        <div style={{display:"flex",gap:"4px",alignItems:"flex-end",height:"60px"}}>
-          {["M","T","W","TH","F","S","SU"].map(d=>{const cnt=S.typeCount?1:1;const v=Object.entries(workouts).reduce((a,[,ws])=>a+ws.filter(w=>{const dow=new Date(w.date+"T12:00:00").getDay();return{0:"SU",1:"M",2:"T",3:"W",4:"TH",5:"F",6:"S"}[dow]===d}).length,0);const mx=Math.max(...["M","T","W","TH","F","S","SU"].map(dd=>Object.entries(workouts).reduce((a2,[,ws2])=>a2+ws2.filter(w2=>{const dw=new Date(w2.date+"T12:00:00").getDay();return{0:"SU",1:"M",2:"T",3:"W",4:"TH",5:"F",6:"S"}[dw]===dd}).length,0)),1);
-            return <div key={d} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:"3px"}}>
-              <div style={{width:"100%",background:`linear-gradient(180deg,${T.accent},${T.accent}60)`,borderRadius:"3px 3px 0 0",height:`${Math.max(v/mx*50,2)}px`,transition:"height .3s"}}/>
-              <span style={{color:T.dim,fontSize:"9px",fontWeight:600}}>{d}</span>
-              <span style={{...ss.mono,color:T.sub,fontSize:"9px"}}>{v}</span>
-            </div>})}
-        </div>
+        <div style={{color:T.sub,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"12px"}}>SESSIONS BY DAY</div>
+        {(()=>{const dayCounts=["M","T","W","TH","F","S","SU"].map(d=>{const v=Object.entries(workouts).reduce((a,[,ws])=>a+ws.filter(w=>{const dow=new Date(w.date+"T12:00:00").getDay();return{0:"SU",1:"M",2:"T",3:"W",4:"TH",5:"F",6:"S"}[dow]===d}).length,0);return{d,v}});const mx=Math.max(...dayCounts.map(x=>x.v),1);
+        return <div style={{display:"flex",gap:"4px",alignItems:"flex-end",height:"80px"}}>
+          {dayCounts.map(({d,v})=><div key={d} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:"3px"}}>
+            <span style={{...ss.mono,color:T.sub,fontSize:"9px"}}>{v}</span>
+            <div style={{width:"100%",background:`linear-gradient(180deg,${T.accent},${T.accent}60)`,borderRadius:"3px 3px 0 0",height:`${Math.max(v/mx*55,2)}px`,transition:"height .3s"}}/>
+            <span style={{color:T.dim,fontSize:"9px",fontWeight:600}}>{d}</span>
+          </div>)}
+        </div>})()}
       </div>
 
       {/* Workout Type Mix */}
@@ -1668,6 +1668,9 @@ function AddClient({onSave,onCancel}){
 export default function Forge(){
   const{clients,workouts,loading,saveW,deleteW,saveCl}=useForge();
   const[view,setView]=useState("dashboard");const[cid,setCid]=useState(null);const[initTab,setInitTab]=useState(null);const[showPicker,setShowPicker]=useState(false);
+  const[navHidden,setNavHidden]=useState(false);
+  const scrollRef=useRef({y:0,dir:"up"});
+  useEffect(()=>{const onScroll=()=>{const y=window.scrollY;const dy=y-scrollRef.current.y;if(dy>8&&y>60){setNavHidden(true);if(showPicker)setShowPicker(false)}else if(dy<-5)setNavHidden(false);scrollRef.current.y=y};window.addEventListener("scroll",onScroll,{passive:true});return()=>window.removeEventListener("scroll",onScroll)},[showPicker]);
   const nav=(v,id,tab)=>{if(v==="client"){setView("client");setCid(id);setInitTab(tab||null)}else if(v==="addClient")setView("addClient");else if(v==="trainerStats")setView("trainerStats");else{setView("dashboard");setInitTab(null)}};
   const client=clients.find(c=>c.id===cid);
   if(loading)return <div style={{...ss.page,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{textAlign:"center"}}><div style={{color:T.accent,fontSize:"24px",fontWeight:700}}>FORGE <span style={{color:T.cyan,fontSize:"14px"}}>AI</span></div><div style={{color:T.sub,fontSize:"12px"}}>Loading...</div></div></div>;
@@ -1678,7 +1681,7 @@ export default function Forge(){
     :view==="client"&&client?<ClientView client={client} ws={workouts[cid]||[]} onNav={nav} onSaveW={saveW} onDeleteW={deleteW} onSaveCl={saveCl} initTab={initTab}/>
     :<Dashboard clients={clients} workouts={workouts} onNav={nav}/>}
     {showPicker&&<div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.25)"}} onClick={()=>setShowPicker(false)}>
-        <div onClick={e=>e.stopPropagation()} style={{position:"fixed",bottom:56,left:8,right:8,background:T.card,border:`1px solid ${T.border}`,borderRadius:"12px",boxShadow:"0 -4px 20px rgba(0,0,0,0.12)",padding:"10px",maxHeight:"50vh",overflowY:"auto"}}>
+        <div onClick={e=>e.stopPropagation()} style={{position:"fixed",bottom:48,left:8,right:8,background:T.card,border:`1px solid ${T.border}`,borderRadius:"12px",boxShadow:"0 -4px 20px rgba(0,0,0,0.12)",padding:"10px",maxHeight:"50vh",overflowY:"auto"}}>
           <div style={{color:T.dim,fontSize:"10px",fontWeight:700,letterSpacing:"1px",marginBottom:"6px",padding:"2px 4px"}}>ALL CLIENTS</div>
           {clients.map(c=>{const ws=workouts[c.id]||[];const lastW=ws.length?ws[ws.length-1]:null;const lastDate=lastW?new Date(lastW.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}):"";
             return <button key={c.id} onClick={()=>{nav("client",c.id);setShowPicker(false)}} style={{display:"flex",alignItems:"center",gap:"10px",width:"100%",padding:"8px",borderRadius:"8px",border:"none",background:cid===c.id?T.accent+"10":"transparent",cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>
@@ -1692,7 +1695,7 @@ export default function Forge(){
           </button>
         </div>
       </div>}
-    <div style={ss.navBar}>
+    <div style={{...ss.navBar,transform:navHidden&&!showPicker?"translateY(100%)":"translateY(0)"}}>
       <button onClick={()=>nav("dashboard")} style={ss.navBtn(view==="dashboard")}><span style={{fontSize:"18px"}}>⌂</span>Home</button>
       <button onClick={()=>setShowPicker(!showPicker)} style={{...ss.navBtn(view==="client"||showPicker),padding:"3px 10px",flex:1.2}}>
         {view==="client"&&client?<><span style={{width:22,height:22,borderRadius:"5px",background:T.accent,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:700,color:T.bg}}>{client.name[0]}</span><span style={{fontSize:"10px",maxWidth:"60px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{client.name}</span></>
